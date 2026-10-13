@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АСУ ТП — Скважина №1247 / УЭЦН</title>
+<style>
+:root{
+  --bg:#080d11; --panel:#101820; --panel2:#0c141b; --line:#1e2d3a;
+  --txt:#c8d8e4; --dim:#6b8296; --grn:#00e5a0; --cyan:#38bdf8;
+  --amb:#f7b731; --red:#ff4757; --vio:#a78bfa; --oil:#2b2118;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:
+    radial-gradient(1200px 700px at 20% -10%, #12202b 0%, transparent 60%),
+    var(--bg);
+  color:var(--txt); font:12px/1.35 "Segoe UI",Roboto,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+.mono{font-family:"Cascadia Mono",Consolas,"SF Mono",monospace}
+#app{display:flex;flex-direction:column;min-height:100vh;padding:10px;gap:9px;max-width:1900px;margin:0 auto}
+
+/* ---------- header ---------- */
+header{
+  display:flex;align-items:center;gap:14px;padding:9px 14px;
+  background:linear-gradient(90deg,#0f1a23,#0b1219);
+  border:1px solid var(--line);border-radius:8px;
+}
+header .brand{display:flex;flex-direction:column;line-height:1.15}
+header .brand b{font-size:14px;letter-spacing:.06em;color:#e7f2fa}
+header .brand span{font-size:10px;color:var(--dim);letter-spacing:.16em;text-transform:uppercase}
+.hspacer{flex:1}
+.hstat{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.hstat .v{font-size:15px;font-weight:600}
+.hstat .k{font-size:9px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+.state-pill{
+  padding:6px 14px;border-radius:5px;font-weight:700;letter-spacing:.1em;
+  font-size:12px;border:1px solid;text-transform:uppercase
+}
+.st-run{color:#05231a;background:var(--grn);border-color:var(--grn);box-shadow:0 0 18px #00e5a055}
+.st-stop{color:var(--dim);background:#131d26;border-color:#25384a}
+.st-alarm{color:#2a0508;background:var(--red);border-color:var(--red);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:.35}}
+
+/* ---------- layout ---------- */
+.grid{display:grid;grid-template-columns:330px 1fr 300px;gap:9px;align-items:start}
+@media(max-width:1350px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.card>h3{
+  margin:0;padding:7px 11px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--dim);background:var(--panel2);border-bottom:1px solid var(--line);font-weight:600
+}
+.card>.body{padding:10px}
+
+/* ---------- displays ---------- */
+.disp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+@media(max-width:1050px){.disp-grid{grid-template-columns:repeat(2,1fr)}}
+.disp{
+  background:linear-gradient(180deg,#0a1219,#0d161e);border:1px solid #1b2836;
+  border-radius:6px;padding:7px 9px;position:relative;overflow:hidden
+}
+.disp::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,#ffffff05 0 1px,transparent 1px 3px);pointer-events:none}
+.disp .lbl{font-size:9px;color:var(--dim);letter-spacing:.09em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.disp .val{font-size:21px;font-weight:600;letter-spacing:.02em;color:var(--grn);text-shadow:0 0 12px currentColor;line-height:1.2}
+.disp .val small{font-size:10px;color:var(--dim);font-weight:400;text-shadow:none;margin-left:3px}
+.disp.c-cy .val{color:var(--cyan)} .disp.c-am .val{color:var(--amb)}
+.disp.c-vi .val{color:var(--vio)} .disp.c-rd .val{color:var(--red)}
+.disp.warn{border-color:#5b451480;background:linear-gradient(180deg,#1a1408,#140f06)}
+.disp.crit{border-color:var(--red);background:linear-gradient(180deg,#22090c,#170609);animation:blink 1.1s steps(1) infinite}
+.bar{height:3px;background:#16222d;border-radius:2px;margin-top:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:currentColor;transition:width .25s}
+
+/* ---------- controls ---------- */
+.ctl-row{display:flex;gap:6px;margin-bottom:7px}
+button{
+  flex:1;padding:8px 6px;border-radius:5px;border:1px solid #24384a;background:#14202b;
+  color:var(--txt);font:600 11px/1.2 inherit;letter-spacing:.05em;cursor:pointer;
+  text-transform:uppercase;transition:.12s
+}
+button:hover:not(:disabled){background:#1c2b39;border-color:#31536e}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.35;cursor:not-allowed}
+button.on{background:#0a3f31;border-color:var(--grn);color:var(--grn)}
+button.go{background:#0d4d3c;border-color:#00e5a0;color:#7dffd6}
+button.go:hover:not(:disabled){background:#12654f}
+button.stop{background:#3d2410;border-color:#a3620f;color:#ffc46b}
+button.estop{
+  background:linear-gradient(180deg,#b31226,#7d0d1b);border:2px solid #ff5c6c;color:#fff;
+  font-size:12px;padding:11px;box-shadow:0 0 16px #ff475740,inset 0 1px 0 #ffffff30;border-radius:6px
+}
+button.estop:hover{background:linear-gradient(180deg,#d4142c,#960f20)}
+button.sm{padding:5px 4px;font-size:10px}
+.sl{margin-bottom:11px}
+.sl .top{display:flex;justify-content:space-between;font-size:10px;margin-bottom:4px}
+.sl .top b{color:var(--cyan);font-size:12px}
+.sl .top span{color:var(--dim);letter-spacing:.08em;text-transform:uppercase}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:3px;background:#1d2c3a;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--cyan);border:2px solid #06121b;cursor:pointer;box-shadow:0 0 8px #38bdf880}
+input[type=range]:disabled{opacity:.4}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--cyan);border:2px solid #06121b;cursor:pointer}
+
+/* ---------- alarms ---------- */
+#alarms{height:186px;overflow-y:auto;font-size:10.5px}
+#alarms::-webkit-scrollbar{width:6px}#alarms::-webkit-scrollbar-thumb{background:#243646;border-radius:3px}
+.al{display:flex;gap:7px;padding:4px 9px;border-bottom:1px solid #16222d;align-items:baseline}
+.al time{color:#4d6478;flex:0 0 42px}
+.al .tag{flex:0 0 34px;font-weight:700;font-size:9px;letter-spacing:.05em}
+.al.a-crit .tag{color:var(--red)} .al.a-warn .tag{color:var(--amb)}
+.al.a-info .tag{color:var(--cyan)} .al.a-ok .tag{color:var(--grn)}
+.al.a-crit{background:#ff475710}
+.al span{flex:1}
+.empty{padding:16px;text-align:center;color:#3d5568}
+
+/* ---------- charts ---------- */
+.charts{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+@media(max-width:1250px){.charts{grid-template-columns:1fr}}
+canvas{display:block;width:100%;height:172px}
+.legend{display:flex;gap:11px;padding:5px 10px 8px;flex-wrap:wrap;font-size:10px}
+.legend i{display:inline-block;width:9px;height:2.5px;vertical-align:middle;margin-right:4px;border-radius:2px}
+
+/* ---------- mnemonic ---------- */
+#mnemo{width:100%;height:auto;display:block}
+.dash{stroke-dasharray:5 9;animation:flow .7s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-14}}
+.badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;letter-spacing:.08em;font-weight:700}
+.b-ok{background:#0a3f31;color:var(--grn)} .b-off{background:#1a2632;color:var(--dim)}
+.b-al{background:#4a1018;color:#ff8a95}
+.kv{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dotted #1c2a36;font-size:11px}
+.kv b{color:#dfeaf3;font-weight:600}
+.kv:last-child{border:0}
+.tabs{display:flex;gap:4px;padding:0 10px 8px}
+.tabs button{font-size:10px;padding:5px}
+footer{color:#3d5568;font-size:10px;text-align:center;padding:4px 0 10px}
+</style>
+</head>
+<body>
+<div id="app">
+
+<header>
+  <div class="brand">
+    <b>СКВАЖИНА № 1247 · КУСТ 12 · УЭЦН-5-50-2000</b>
+    <span>АСУ ТП добывающего фонда · режим тренажёра</span>
+  </div>
+  <div class="hspacer"></div>
+  <div class="hstat"><div class="v mono" id="hClock">00:00</div><div class="k">Модельное время</div></div>
+  <div class="hstat"><div class="v mono" id="hDays">сут 0</div><div class="k">Наработка</div></div>
+  <div class="state-pill st-stop" id="hState">Остановлен</div>
+</header>
+
+<div class="grid">
+
+  <!-- ======= ЛЕВО: мнемосхема ======= -->
+  <div style="display:flex;flex-direction:column;gap:9px">
+    <div class="card">
+      <h3>Мнемосхема скважины</h3>
+      <div class="body" style="padding:4px">
+        <svg id="mnemo" viewBox="0 0 300 470" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gOil" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#3a2a15"/><stop offset="1" stop-color="#171008"/>
+            </linearGradient>
+            <linearGradient id="gRock" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#111b23"/><stop offset="1" stop-color="#0a1117"/>
+            </linearGradient>
+            <linearGradient id="gRes" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#2a1f10"/><stop offset="1" stop-color="#1d1508"/>
+            </linearGradient>
+          </defs>
+
+          <!-- грунт -->
+          <rect x="0" y="60" width="300" height="410" fill="url(#gRock)"/>
+          <rect x="0" y="0" width="300" height="60" fill="#0a1219"/>
+          <line x1="0" y1="60" x2="300" y2="60" stroke="#2b4054" stroke-width="1.5"/>
+          <!-- продуктивный пласт -->
+          <rect x="0" y="392" width="300" height="60" fill="url(#gRes)"/>
+          <line x1="0" y1="392" x2="300" y2="392" stroke="#6b4f22" stroke-width="1"/>
+          <line x1="0" y1="452" x2="300" y2="452" stroke="#6b4f22" stroke-width="1"/>
+          <text x="8" y="412" font-size="8" fill="#8a6c33" letter-spacing="1">ПРОДУКТИВНЫЙ ПЛАСТ</text>
+          <text x="8" y="424" font-size="8" fill="#8a6c33" class="mono" id="svgPr">Рпл 210.0 бар</text>
+
+          <!-- обсадная колонна -->
+          <rect x="118" y="60" width="64" height="392" fill="#060b0f" stroke="#2b4054" stroke-width="1.2"/>
+          <!-- флюид в затрубе -->
+          <rect id="svgLevel" x="119" y="300" width="62" height="152" fill="url(#gOil)"/>
+          <line id="svgLevelLine" x1="112" y1="300" x2="188" y2="300" stroke="#f7b731" stroke-width="1.6"/>
+          <text id="svgLevelTxt" x="192" y="298" font-size="8.5" fill="#f7b731" class="mono">Ндин 1200 м</text>
+
+          <!-- НКТ -->
+          <rect x="141" y="30" width="18" height="330" fill="#0d1720" stroke="#31536e" stroke-width="1"/>
+          <path id="svgFlow" class="dash" d="M150 358 L150 34" stroke="#00e5a0" stroke-width="4" fill="none" opacity="0"/>
+
+          <!-- ЭЦН -->
+          <rect id="svgPump" x="134" y="332" width="32" height="34" rx="3" fill="#16232f" stroke="#31536e" stroke-width="1.2"/>
+          <circle id="svgPumpLed" cx="150" cy="349" r="6" fill="#25384a"/>
+          <text x="192" y="345" font-size="8.5" fill="#6b8296" class="mono">ЭЦН 2100 м</text>
+          <!-- ПЭД -->
+          <rect id="svgMotor" x="136" y="368" width="28" height="26" rx="2" fill="#16232f" stroke="#31536e" stroke-width="1.2"/>
+          <text x="192" y="386" font-size="8.5" fill="#6b8296" class="mono" id="svgMotorT">ПЭД 20 °C</text>
+          <!-- кабель -->
+          <path d="M167 394 L172 394 L172 62" stroke="#4a3a1c" stroke-width="2" fill="none"/>
+          <!-- перфорация -->
+          <g stroke="#c07a2a" stroke-width="1.6">
+            <path d="M118 402 L104 398"/><path d="M182 402 L196 398"/>
+            <path d="M118 416 L104 412"/><path d="M182 416 L196 412"/>
+            <path d="M118 430 L104 426"/><path d="M182 430 L196 426"/>
+          </g>
+          <g id="svgInflow" opacity="0">
+            <path d="M104 398 L118 402" stroke="#38bdf8" stroke-width="2" class="dash"/>
+            <path d="M196 412 L182 416" stroke="#38bdf8" stroke-width="2" class="dash"/>
+          </g>
+
+          <!-- устье -->
+          <rect x="128" y="18" width="44" height="14" rx="2" fill="#16232f" stroke="#31536e"/>
+          <path d="M172 25 L232 25" stroke="#31536e" stroke-width="6" fill="none"/>
+          <path id="svgOutFlow" class="dash" d="M172 25 L232 25" stroke="#00e5a0" stroke-width="3.5" fill="none" opacity="0"/>
+          <!-- штуцер -->
+          <circle cx="212" cy="25" r="8" fill="#0d1720" stroke="#f7b731" stroke-width="1.4"/>
+          <text x="205" y="46" font-size="8" fill="#f7b731" class="mono" id="svgChoke">100%</text>
+          <rect x="232" y="14" width="56" height="22" rx="3" fill="#0d1720" stroke="#31536e"/>
+          <text x="240" y="28" font-size="8" fill="#6b8296">АГЗУ</text>
+          <text x="6" y="18" font-size="8.5" fill="#38bdf8" class="mono" id="svgPwh">Рбуф 12.0 бар</text>
+          <text x="6" y="32" font-size="8.5" fill="#a78bfa" class="mono" id="svgPcas">Рзатр 12.0 бар</text>
+          <text x="6" y="46" font-size="8.5" fill="#6b8296" class="mono" id="svgQ">Q 0.0 м³/сут</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Состояние оборудования</h3>
+      <div class="body" id="eqState"></div>
+    </div>
+  </div>
+
+  <!-- ======= ЦЕНТР: дисплеи + графики ======= -->
+  <div style="display:flex;flex-direction:column;gap:9px">
+    <div class="card">
+      <h3>Технологические параметры</h3>
+      <div class="body"><div class="disp-grid" id="displays"></div></div>
+    </div>
+
+    <div class="charts">
+      <div class="card">
+        <h3>Давления и динамический уровень</h3>
+        <canvas id="ch1"></canvas>
+        <div class="legend">
+          <span><i style="background:#38bdf8"></i>Рприём, бар</span>
+          <span><i style="background:#a78bfa"></i>Рзаб, бар</span>
+          <span><i style="background:#f7b731"></i>Ндин, ×10 м</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Дебит и обводнённость</h3>
+        <canvas id="ch2"></canvas>
+        <div class="legend">
+          <span><i style="background:#00e5a0"></i>Qж, м³/сут</span>
+          <span><i style="background:#ff9f43"></i>Qн, т/сут</span>
+          <span><i style="background:#38bdf8"></i>Обв., %</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Электрические параметры ПЭД</h3>
+        <canvas id="ch3"></canvas>
+        <div class="legend">
+          <span><i style="background:#f7b731"></i>Ток, А</span>
+          <span><i style="background:#ff4757"></i>t ПЭД, °C</span>
+          <span><i style="background:#00e5a0"></i>Загрузка, %</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Журнал событий и тревог</h3>
+      <div id="alarms"><div class="empty">Событий нет</div></div>
+      <div class="tabs">
+        <button class="sm" onclick="ackAll()">Квитировать</button>
+        <button class="sm" onclick="clearLog()">Очистить журнал</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= ПРАВО: управление ======= -->
+  <div style="display:flex;flex-direction:column;gap:9px">
+    <div class="card">
+      <h3>Управление ЭЦН</h3>
+      <div class="body">
+        <div class="ctl-row">
+          <button class="go" id="btnStart" onclick="cmdStart()">Пуск</button>
+          <button class="stop" id="btnStop" onclick="cmdStop()">Стоп</button>
+        </div>
+        <button class="estop" style="width:100%;margin-bottom:9px" onclick="cmdEstop()">⏻ Аварийный останов</button>
+
+        <div class="sl">
+          <div class="top"><span>Частота ЧРП</span><b><span id="vFreq">50.0</span> Гц</b></div>
+          <input type="range" id="sFreq" min="35" max="65" step="0.5" value="50">
+        </div>
+        <div class="sl">
+          <div class="top"><span>Штуцер на устье</span><b><span id="vChoke">100</span> %</b></div>
+          <input type="range" id="sChoke" min="15" max="100" step="1" value="100">
+        </div>
+        <div class="sl">
+          <div class="top"><span>Клапан затруб. газа</span><b><span id="vGasV">50</span> %</b></div>
+          <input type="range" id="sGasV" min="0" max="100" step="1" value="50">
+        </div>
+        <div class="sl">
+          <div class="top"><span>Уставка погружения</span><b><span id="vSub">400</span> м</b></div>
+          <input type="range" id="sSub" min="100" max="900" step="10" value="400">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Режимы и автоматика</h3>
+      <div class="body">
+        <div class="ctl-row">
+          <button id="btnAuto" onclick="tgl('auto')">Авторегул. уровня</button>
+        </div>
+        <div class="ctl-row">
+          <button id="btnApv" onclick="tgl('apv')">АПВ</button>
+          <button id="btnInh" onclick="tgl('inh')">Ингибитор</button>
+        </div>
+        <div class="ctl-row">
+          <button id="btnHeat" onclick="tgl('heat')">Обогрев устья</button>
+          <button onclick="cmdFlush()">Промывка</button>
+        </div>
+        <div class="ctl-row">
+          <button onclick="ackAll()">Сброс защит</button>
+          <button onclick="resetAll()">Сброс модели</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Имитация неисправностей</h3>
+      <div class="body">
+        <div class="ctl-row"><button class="sm" onclick="inject('clog')">Отложение солей / АСПО</button></div>
+        <div class="ctl-row"><button class="sm" onclick="inject('skin')">Кольматация ПЗП</button></div>
+        <div class="ctl-row"><button class="sm" onclick="inject('leak')">Негерметичность НКТ</button></div>
+        <div class="ctl-row"><button class="sm" onclick="inject('iso')">Пробой изоляции кабеля</button></div>
+        <div class="ctl-row"><button class="sm" onclick="inject('water')">Прорыв воды</button></div>
+        <div class="ctl-row"><button class="sm go" onclick="repair()">ТКРС — устранить все</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Скорость моделирования</h3>
+      <div class="body">
+        <div class="ctl-row" id="spd">
+          <button class="sm" data-s="1">×1</button>
+          <button class="sm" data-s="30">×30</button>
+          <button class="sm" data-s="120">×120</button>
+          <button class="sm" data-s="600">×600</button>
+        </div>
+        <div class="ctl-row"><button id="btnPause" onclick="tgl('pause')">Пауза</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Учебный тренажёр. Модель: приток по индикаторной линии, напорная характеристика ЭЦН с законами подобия, баланс динамического уровня в затрубе.</footer>
+</div>
+
+<script>
+"use strict";
+/* ==================================================================
+   1. КОНСТАНТЫ ОБЪЕКТА
+   ================================================================== */
+const K = {
+  Pr0: 210,            // начальное пластовое давление, бар
+  J0: 0.35,            // коэф. продуктивности, м³/(сут·бар)
+  Lwell: 2400,         // глубина забоя, м
+  Lpump: 2100,         // глубина спуска ЭЦН, м
+  Pb: 95,              // давление насыщения, бар
+  Aann: 0.0135,        // площадь затрубного кольца, м²
+  Hshut: 2160,         // напор ЭЦН при нулевой подаче на 50 Гц, м (240 ступеней × 9 м)
+  Qmax: 120,           // подача при нулевом напоре на 50 Гц, м³/сут
+  Qbep: 60,            // подача в точке макс. КПД на 50 Гц
+  Pline: 12,           // давление в выкидной линии, бар
+  Prated: 32,          // мощность ПЭД, кВт
+  Inom: 32,            // номинальный ток ПЭД, А
+  Uf: 1000,            // напряжение, В
+  Tres: 64,            // пластовая температура, °C
+  rhoO: 850, rhoW: 1010
+};
+const LIM = {
+  submWarn: 120, submTrip: 30,     // погружение, м
+  tWarn: 105, tTrip: 130,          // температура ПЭД, °C
+  iWarn: 1.20, iTrip: 1.45,        // кратность тока
+  isoWarn: 30, isoTrip: 5,         // сопротивление изоляции, кОм
+  loadLow: 0.25                    // недогруз (срыв подачи)
+};
+
+/* ==================================================================
+   2. СОСТОЯНИЕ
+   ================================================================== */
+let S, ui, hist, log, speed = 30, paused = false;
+
+function initState(){
+  S = {
+    t: 0,                 // модельное время, с
+    run: false, tripped: false, tripReason: "",
+    h: 1150,              // динамический уровень (глубина от устья), м
+    Pr: K.Pr0, J: K.J0,
+    wc: 0.42,             // обводнённость
+    clog: 1.0,            // коэф. засорения (1 = чисто)
+    iso: 240,             // сопротивление изоляции, кОм
+    tMot: 20,             // температура ПЭД, °C
+    leak: 0,              // негерметичность НКТ, доля
+    cumLiq: 0, cumOil: 0, runtime: 0,
+    restartAt: null, starting: 0,
+    // расчётные
+    Q:0, Qin:0, Qoil:0, subm:0, Ppi:0, Pwf:0, Pwh:12, Pcas:12,
+    Hn:0, gas:0, eff:0, load:0, I:0, Phyd:0, vib:0
+  };
+  ui = { f:50, choke:100, gasV:50, subTgt:400, auto:false, apv:true, inh:false, heat:false };
+  hist = { p:[], q:[], e:[] };
+  log = [];
+}
+
+/* ==================================================================
+   3. ФИЗИКА — один шаг интегрирования
+   ================================================================== */
+function physics(dt){
+  const rho = S.wc*K.rhoW + (1-S.wc)*K.rhoO;
+
+  // --- затрубное давление: газ накапливается, клапан стравливает
+  const gasIn = S.run ? 0.9 : 0.25;
+  S.Pcas += (gasIn - (S.Pcas-K.Pline)*(0.02 + ui.gasV*0.0035)) * dt/3600;
+  S.Pcas = clamp(S.Pcas, 3, 90);
+
+  // --- давление на приёме и на забое
+  S.subm = Math.max(0, K.Lpump - S.h);
+  S.Ppi  = S.Pcas + rho*9.81*S.subm/1e5;
+  S.Pwf  = S.Ppi + rho*9.81*(K.Lwell-K.Lpump)/1e5;
+
+  // --- приток из пласта (индикаторная линия с загибом по Вогелю)
+  const dd = S.Pr - S.Pwf;
+  S.Qin = dd <= 0 ? 0
+        : S.Pwf >= K.Pb ? S.J*dd
+        : S.J*(S.Pr-K.Pb) + S.J*K.Pb/1.8*(1 - 0.2*(S.Pwf/K.Pb) - 0.8*Math.pow(S.Pwf/K.Pb,2));
+
+  // --- свободный газ на приёме снижает подачу насоса
+  S.gas = clamp((K.Pb - S.Ppi)/K.Pb, 0, 1) * 0.55;
+  const degr = Math.max(0.05, 1 - 1.6*S.gas);
+
+  // --- рабочая точка ЭЦН: пересечение напорной характеристики с характеристикой сети.
+  //     Решается делением пополам: подача насоса монотонно убывает с ростом расхода.
+  const fr = S.run ? ui.f/50 * S.starting : 0;
+  let Q = 0;
+  const wellhead = q => K.Pline + 6*Math.pow(q/50,2)*Math.pow(100/ui.choke,1.6);
+  const headNeed = (q,pwh) => (pwh - S.Ppi)*1e5/(rho*9.81) + K.Lpump + 110*S.clog*Math.pow(q/50,2);
+  if (fr > 0.05){
+    const shut = K.Hshut*fr*fr;
+    const deliver = q => {
+      const v = 1 - headNeed(q, wellhead(q))/shut;
+      return v <= 0 ? 0 : K.Qmax*fr*Math.sqrt(v)*degr;
+    };
+    let lo = 0, hi = K.Qmax*fr;
+    for (let i=0;i<32;i++){ const m=(lo+hi)/2; if (deliver(m) > m) lo=m; else hi=m; }
+    Q = (lo+hi)/2;
+    S.Pwh = wellhead(Q); S.Hn = headNeed(Q, S.Pwh);
+    if (S.subm < 25) Q *= 0.12 + 0.1*Math.sin(S.t/17);   // сухой ход: срыв подачи, пульсации
+    Q *= (1 - S.leak);                                    // негерметичность НКТ
+  } else { S.Pwh = K.Pline; S.Hn = 0; }
+  S.Q = Math.max(0, Q);
+
+  // --- баланс уровня в затрубе
+  S.h += (S.Q - S.Qin)/(K.Aann*86400)*dt;
+  S.h = clamp(S.h, 0, K.Lpump + 40);
+
+  // --- энергетика ПЭД
+  if (fr > 0.05){
+    const qb = K.Qbep*fr;
+    S.eff = clamp(0.62*(1 - 0.75*Math.pow(S.Q/qb - 1, 2)), 0.06, 0.62);
+    S.Phyd = rho*9.81*(S.Q/86400)*S.Hn/1000;
+    const shaft = S.Phyd/S.eff;
+    S.load = clamp(shaft/K.Prated, 0, 2);
+    S.I = K.Inom*(0.28 + 0.80*S.load)*(1 + 0.18*Math.max(0, fr-1));
+  } else { S.eff=0; S.Phyd=0; S.load=0; S.I=0; }
+
+  // --- тепловой баланс ПЭД (охлаждение потоком флюида вдоль двигателя)
+  const dry  = (S.run && S.starting > 0.6 && S.Q < 5) ? 1 : 0;
+  const cool = 0.22 + 0.78*clamp(S.Q/40, 0, 1.3);
+  const Ttar = S.run ? Math.min(250, K.Tres + (8 + 75*S.load*S.load + 55*dry)/cool) : 24;
+  S.tMot += (Ttar - S.tMot) * dt/1200;
+  S.tMot = clamp(S.tMot, 15, 260);
+
+  // --- деградация изоляции (ускоряется с температурой)
+  if (S.run) S.iso -= (0.004 + Math.pow(Math.max(0,S.tMot-90)/40,2)*0.35) * dt/60;
+  S.iso = clamp(S.iso, 0, 500);
+
+  // --- вибрация
+  const off = Math.abs(S.Q/(K.Qbep*Math.max(fr,.01)) - 1);
+  S.vib = S.run ? clamp(0.8 + off*5 + S.gas*4 + (S.clog-1)*1.2, 0, 20) : 0;
+
+  // --- отложения / ингибитор / промывка
+  if (S.run) S.clog += (ui.inh ? 0.00004 : 0.00035) * dt/60 * (0.5 + S.wc);
+  S.clog = clamp(S.clog, 1, 6);
+
+  // --- обводнённость и истощение пласта
+  if (S.run){
+    S.wc = clamp(S.wc + S.Q*dt/86400 * 0.000018, 0, 0.98);
+    S.Pr -= S.Qin*dt/86400 * 0.00022;
+    S.runtime += dt;
+    S.cumLiq += S.Q*dt/86400;
+    S.cumOil += S.Q*(1-S.wc)*dt/86400 * K.rhoO/1000;
+  }
+  S.Qoil = S.Q*(1-S.wc)*K.rhoO/1000;
+
+  // --- плавный разгон/выбег ЧРП
+  S.starting = S.run ? Math.min(1, S.starting + dt/45) : Math.max(0, S.starting - dt/25);
+
+  S.t += dt;
+}
+
+/* ==================================================================
+   4. ЗАЩИТЫ (ЗСП) И АВТОМАТИКА
+   ================================================================== */
+function protections(dt){
+  if (!S.run) {
+    if (S.restartAt !== null && S.t >= S.restartAt){
+      S.restartAt = null;
+      if (ui.apv && !S.tripped){ S.run = true; alarm("ok","АПВ","Автоматический повторный запуск выполнен"); }
+    }
+    return;
+  }
+  const trip = (r,m) => { S.run=false; S.tripped=true; S.tripReason=r; alarm("crit","ЗСП",m); };
+
+  if (S.tMot > LIM.tTrip)              trip("Перегрев ПЭД", "Отключение: температура ПЭД "+S.tMot.toFixed(0)+" °C > "+LIM.tTrip);
+  else if (S.I > K.Inom*LIM.iTrip)     trip("Перегруз по току", "Отключение: ток "+S.I.toFixed(1)+" А > "+(K.Inom*LIM.iTrip).toFixed(0)+" А");
+  else if (S.iso < LIM.isoTrip)        trip("Пробой изоляции", "Отключение: сопротивление изоляции "+S.iso.toFixed(1)+" кОм");
+  else if (S.subm < LIM.submTrip && S.starting >= 1){
+    S.run=false; S.tripped=false; S.tripReason="Срыв подачи";
+    alarm("crit","ЗСП","Срыв подачи — насос в зоне сухого хода. Пуск по АПВ через 2 ч");
+    S.restartAt = S.t + 7200;
+  }
+  else if (S.load < LIM.loadLow && S.starting >= 1 && S.Q < 4){
+    S.run=false; S.tripped=false; S.tripReason="Недогруз ПЭД";
+    alarm("crit","ЗСП","Отключение по недогрузу. Пуск по АПВ через 2 ч");
+    S.restartAt = S.t + 7200;
+  }
+
+  // --- авторегулятор уровня: медленный П-регулятор по погружению с токоограничением
+  if (ui.auto && S.run && S.starting >= 1){
+    const e = clamp((S.subm - ui.subTgt)/200, -1, 1);   // + : запас есть, можно ускориться
+    const lim = S.I > K.Inom*1.15 || S.tMot > LIM.tWarn;  // блокировка разгона
+    const de = (lim && e > 0) ? 0 : e;
+    ui.f = clamp(ui.f + de*0.00055*dt, 35, 65);          // не быстрее ~2 Гц/час
+    sync();
+  }
+}
+
+/* ==================================================================
+   5. ПРЕДУПРЕЖДЕНИЯ (одноразовые)
+   ================================================================== */
+const warned = {};
+function warnOnce(id, cond, lvl, tag, msg){
+  if (cond && !warned[id]){ warned[id]=true; alarm(lvl,tag,msg); }
+  else if (!cond) warned[id]=false;
+}
+function checkWarnings(){
+  warnOnce("sub", S.run && S.subm < LIM.submWarn, "warn","ПРЕД","Низкое погружение насоса: "+S.subm.toFixed(0)+" м");
+  warnOnce("tmp", S.tMot > LIM.tWarn, "warn","ПРЕД","Повышенная температура ПЭД: "+S.tMot.toFixed(0)+" °C");
+  warnOnce("cur", S.I > K.Inom*LIM.iWarn, "warn","ПРЕД","Повышенный ток ПЭД: "+S.I.toFixed(1)+" А");
+  warnOnce("iso", S.iso < LIM.isoWarn, "warn","ПРЕД","Снижение сопротивления изоляции: "+S.iso.toFixed(0)+" кОм");
+  warnOnce("gas", S.gas > 0.30, "warn","ПРЕД","Высокое газосодержание на приёме: "+(S.gas*100).toFixed(0)+" %");
+  warnOnce("vib", S.vib > 9, "warn","ПРЕД","Повышенная вибрация: "+S.vib.toFixed(1)+" мм/с");
+  warnOnce("clg", S.clog > 2.2, "warn","ПРЕД","Рост гидравлических потерь в НКТ (АСПО/соли)");
+  warnOnce("cas", S.Pcas > 55, "warn","ПРЕД","Высокое затрубное давление: "+S.Pcas.toFixed(1)+" бар");
+  warnOnce("wc",  S.wc > 0.85, "warn","ПРЕД","Обводнённость продукции "+(S.wc*100).toFixed(0)+" %");
+}
+
+/* ==================================================================
+   6. КОМАНДЫ ОПЕРАТОРА
+   ================================================================== */
+function cmdStart(){
+  if (S.run) return;
+  if (S.tripped){ alarm("warn","БЛОК","Пуск запрещён: активна защита «"+S.tripReason+"». Требуется сброс"); return; }
+  if (S.iso < LIM.isoTrip){ alarm("warn","БЛОК","Пуск запрещён: низкое сопротивление изоляции"); return; }
+  S.run = true; S.restartAt = null;
+  alarm("ok","ПУСК","Запуск УЭЦН на частоте "+ui.f.toFixed(1)+" Гц");
+}
+function cmdStop(){
+  if (!S.run) return;
+  S.run = false; S.restartAt = null;
+  alarm("info","СТОП","Плановый останов УЭЦН оператором");
+}
+function cmdEstop(){
+  S.run = false; S.tripped = true; S.tripReason = "Аварийный останов"; S.restartAt = null;
+  alarm("crit","АВАР","АВАРИЙНЫЙ ОСТАНОВ по команде оператора");
+}
+function cmdFlush(){
+  S.clog = 1 + (S.clog-1)*0.25;
+  alarm("ok","ТЕХ","Выполнена промывка НКТ горячей нефтью — потери снижены");
+}
+function ackAll(){
+  if (S.tripped){ alarm("ok","КВИТ","Сброс защиты «"+S.tripReason+"»"); }
+  S.tripped=false; S.tripReason="";
+  if (typeof document!=="undefined") document.querySelectorAll(".al.a-crit").forEach(e=>e.classList.remove("a-crit"));
+}
+function clearLog(){ log = []; renderLog(); }
+function resetAll(){ initState(); sync(); alarm("info","СИСТ","Модель приведена в исходное состояние"); }
+
+function inject(k){
+  const m = {
+    clog: ()=>{ S.clog = Math.min(6, S.clog+1.4); return ["Отложение солей и АСПО в НКТ — гидравлические потери выросли"]; },
+    skin: ()=>{ S.J *= 0.55; return ["Кольматация призабойной зоны — коэффициент продуктивности снижен вдвое"]; },
+    leak: ()=>{ S.leak = Math.min(0.6, S.leak+0.25); return ["Негерметичность колонны НКТ — часть жидкости циркулирует в затруб"]; },
+    iso:  ()=>{ S.iso = Math.min(S.iso, 22); return ["Повреждение изоляции кабельной линии"]; },
+    water:()=>{ S.wc = Math.min(0.97, S.wc+0.18); return ["Прорыв пластовой воды — обводнённость выросла"]; }
+  }[k]();
+  alarm("crit","НЕИСПР", m[0]);
+}
+function repair(){
+  S.run=false; S.tripped=false; S.tripReason=""; S.restartAt=null;
+  S.iso=240; S.clog=1; S.leak=0; S.J=K.J0; S.tMot=24;
+  alarm("ok","ТКРС","Текущий ремонт: заменена кабельная линия и НКТ, выполнена ОПЗ. Оборудование исправно");
+  sync();
+}
+function tgl(k){
+  if (k==="pause"){ paused=!paused; }
+  else {
+    ui[k] = !ui[k];
+    const t = {auto:"Авторегулирование уровня",apv:"АПВ",inh:"Дозирование ингибитора",heat:"Обогрев устья"}[k];
+    alarm("info","РЕЖ", t+": "+(ui[k]?"ВКЛЮЧЕНО":"ОТКЛЮЧЕНО"));
+  }
+  sync();
+}
+
+/* ==================================================================
+   7. ЖУРНАЛ
+   ================================================================== */
+function alarm(lvl, tag, msg){
+  log.unshift({ lvl, tag, msg, t: fmtClock(S.t) });
+  if (log.length > 220) log.pop();
+  renderLog();
+}
+function renderLog(){
+  const el = document.getElementById("alarms");
+  if (!log.length){ el.innerHTML = '<div class="empty">Событий нет</div>'; return; }
+  el.innerHTML = log.map(a =>
+    `<div class="al a-${a.lvl}"><time class="mono">${a.t}</time><b class="tag">${a.tag}</b><span>${a.msg}</span></div>`
+  ).join("");
+}
+
+/* ==================================================================
+   8. ГРАФИКИ (canvas)
+   ================================================================== */
+function Trend(id, series, ymin, ymax){
+  const c = document.getElementById(id);
+  const ctx = c.getContext("2d");
+  return { c, ctx, series, ymin, ymax,
+    draw(data){
+      const dpr = window.devicePixelRatio || 1;
+      const w = c.clientWidth, h = 172;
+      if (c.width !== w*dpr){ c.width = w*dpr; c.height = h*dpr; }
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,w,h);
+      const L=34,R=8,T=8,B=16, pw=w-L-R, ph=h-T-B;
+
+      // сетка
+      ctx.strokeStyle="#182634"; ctx.lineWidth=1; ctx.font="9px Consolas,monospace";
+      ctx.fillStyle="#4d6478"; ctx.textAlign="right";
+      for(let i=0;i<=4;i++){
+        const y=T+ph*i/4;
+        ctx.beginPath();ctx.moveTo(L,y+.5);ctx.lineTo(w-R,y+.5);ctx.stroke();
+        ctx.fillText((this.ymax-(this.ymax-this.ymin)*i/4).toFixed(0), L-5, y+3);
+      }
+      for(let i=0;i<=6;i++){
+        const x=L+pw*i/6;
+        ctx.beginPath();ctx.moveTo(x+.5,T);ctx.lineTo(x+.5,T+ph);ctx.stroke();
+      }
+      if(!data.length) return;
+      const N = data.length, span = Math.max(1, N-1);
+      this.series.forEach((s,si)=>{
+        ctx.beginPath(); ctx.strokeStyle=s.c; ctx.lineWidth=1.6;
+        ctx.lineJoin="round";
+        for(let i=0;i<N;i++){
+          const v = clamp(data[i][si], this.ymin, this.ymax);
+          const x = L + pw*i/span;
+          const y = T + ph*(1-(v-this.ymin)/(this.ymax-this.ymin));
+          i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+        }
+        ctx.stroke();
+        // последняя точка
+        const v = clamp(data[N-1][si], this.ymin, this.ymax);
+        const y = T + ph*(1-(v-this.ymin)/(this.ymax-this.ymin));
+        ctx.fillStyle=s.c; ctx.beginPath(); ctx.arc(L+pw,y,2.4,0,7); ctx.fill();
+      });
+      ctx.fillStyle="#3d5568"; ctx.textAlign="left";
+      ctx.fillText("← 24 ч модельного времени", L+2, h-4);
+    }
+  };
+}
+let T1,T2,T3;
+
+/* ==================================================================
+   9. ОТРИСОВКА ИНТЕРФЕЙСА
+   ================================================================== */
+const DISPLAYS = [
+  {k:"Дебит жидкости", u:"м³/сут", c:"", g:()=>S.Q, d:1, max:120},
+  {k:"Дебит нефти",    u:"т/сут",  c:"c-am", g:()=>S.Qoil, d:1, max:60},
+  {k:"Обводнённость",  u:"%",      c:"c-cy", g:()=>S.wc*100, d:1, max:100},
+  {k:"Приток из пласта",u:"м³/сут",c:"c-vi", g:()=>S.Qin, d:1, max:120},
+
+  {k:"Р на приёме",    u:"бар", c:"c-cy", g:()=>S.Ppi, d:1, max:150},
+  {k:"Р забойное",     u:"бар", c:"c-vi", g:()=>S.Pwf, d:1, max:210},
+  {k:"Р буферное",     u:"бар", c:"c-cy", g:()=>S.Pwh, d:1, max:80},
+  {k:"Р затрубное",    u:"бар", c:"c-vi", g:()=>S.Pcas, d:1, max:90,
+     w:()=>S.Pcas>55, cr:()=>S.Pcas>75},
+
+  {k:"Динамич. уровень",u:"м",  c:"c-am", g:()=>S.h, d:0, max:2100},
+  {k:"Погружение",      u:"м",  c:"c-am", g:()=>S.subm, d:0, max:1200,
+     w:()=>S.run&&S.subm<LIM.submWarn, cr:()=>S.run&&S.subm<LIM.submTrip},
+  {k:"Р пластовое",     u:"бар",c:"c-vi", g:()=>S.Pr, d:1, max:220},
+  {k:"Депрессия",       u:"бар",c:"",     g:()=>Math.max(0,S.Pr-S.Pwf), d:1, max:150},
+
+  {k:"Частота ЧРП",   u:"Гц", c:"c-cy", g:()=>S.run?ui.f*S.starting:0, d:1, max:65},
+  {k:"Ток ПЭД",       u:"А",  c:"c-am", g:()=>S.I, d:1, max:K.Inom*1.6,
+     w:()=>S.I>K.Inom*LIM.iWarn, cr:()=>S.I>K.Inom*LIM.iTrip},
+  {k:"Загрузка ПЭД",  u:"%",  c:"",     g:()=>S.load*100, d:0, max:150},
+  {k:"Темп. ПЭД",     u:"°C", c:"c-rd", g:()=>S.tMot, d:0, max:150,
+     w:()=>S.tMot>LIM.tWarn, cr:()=>S.tMot>LIM.tTrip},
+
+  {k:"Сопр. изоляции",u:"кОм",c:"",     g:()=>S.iso, d:0, max:300,
+     w:()=>S.iso<LIM.isoWarn, cr:()=>S.iso<LIM.isoTrip},
+  {k:"Газ на приёме", u:"%",  c:"c-vi", g:()=>S.gas*100, d:0, max:60, w:()=>S.gas>0.3},
+  {k:"КПД насоса",    u:"%",  c:"",     g:()=>S.eff*100, d:0, max:65},
+  {k:"Вибрация",      u:"мм/с",c:"c-am",g:()=>S.vib, d:1, max:20, w:()=>S.vib>9, cr:()=>S.vib>14},
+
+  {k:"Напор ЭЦН",     u:"м",  c:"c-cy", g:()=>S.Hn, d:0, max:2200},
+  {k:"Гидр. мощность",u:"кВт",c:"",     g:()=>S.Phyd, d:1, max:K.Prated},
+  {k:"Накопл. нефть", u:"т",  c:"c-am", g:()=>S.cumOil, d:0, max:5000},
+  {k:"Наработка",     u:"ч",  c:"",     g:()=>S.runtime/3600, d:0, max:2000}
+];
+
+function buildDisplays(){
+  document.getElementById("displays").innerHTML = DISPLAYS.map((d,i)=>
+    `<div class="disp ${d.c}" id="d${i}">
+       <div class="lbl">${d.k}</div>
+       <div class="val mono"><span id="dv${i}">0</span><small>${d.u}</small></div>
+       <div class="bar"><i id="db${i}" style="width:0%"></i></div>
+     </div>`).join("");
+}
+function renderDisplays(){
+  DISPLAYS.forEach((d,i)=>{
+    const v = d.g();
+    document.getElementById("dv"+i).textContent = (isFinite(v)?v:0).toFixed(d.d);
+    document.getElementById("db"+i).style.width = clamp(v/d.max*100,0,100).toFixed(1)+"%";
+    const el = document.getElementById("d"+i);
+    const cr = d.cr && d.cr(), w = d.w && d.w();
+    el.classList.toggle("crit", !!cr);
+    el.classList.toggle("warn", !cr && !!w);
+  });
+}
+
+function renderEq(){
+  const b = (on,t,cls)=>`<span class="badge ${cls||(on?'b-ok':'b-off')}">${t}</span>`;
+  document.getElementById("eqState").innerHTML = `
+    <div class="kv"><span>ЭЦН / ПЭД</span>${S.tripped?b(0,"АВАРИЯ","b-al"):b(S.run,S.run?"В РАБОТЕ":"ОСТАНОВЛЕН")}</div>
+    <div class="kv"><span>Станция управления</span>${b(1,"ЧРП "+ui.f.toFixed(1)+" Гц")}</div>
+    <div class="kv"><span>Защита ЗСП</span>${S.tripped?b(0,S.tripReason,"b-al"):b(1,"НОРМА")}</div>
+    <div class="kv"><span>АПВ</span>${b(ui.apv, ui.apv? (S.restartAt!==null? "ОТСЧЁТ "+Math.max(0,Math.round((S.restartAt-S.t)/60))+" мин":"ГОТОВ") : "ОТКЛ")}</div>
+    <div class="kv"><span>Авторегулятор</span>${b(ui.auto, ui.auto?"АВТО":"РУЧН")}</div>
+    <div class="kv"><span>Дозатор ингибитора</span>${b(ui.inh, ui.inh?"РАБОТА":"ОТКЛ")}</div>
+    <div class="kv"><span>Обогрев устья</span>${b(ui.heat, ui.heat?"ВКЛ":"ОТКЛ")}</div>
+    <div class="kv"><span>Коэф. засорения НКТ</span><b>${S.clog.toFixed(2)}</b></div>
+    <div class="kv"><span>Коэф. продуктивности</span><b>${S.J.toFixed(3)} м³/сут·бар</b></div>
+    <div class="kv"><span>Утечка НКТ</span><b>${(S.leak*100).toFixed(0)} %</b></div>
+    <div class="kv"><span>Накопл. жидкость</span><b>${S.cumLiq.toFixed(0)} м³</b></div>`;
+}
+
+function renderMnemo(){
+  const top = 60, bot = 452, span = bot-top;          // 0…2400 м по вертикали
+  const y = top + span*clamp(S.h/K.Lwell,0,1);
+  const lv = document.getElementById("svgLevel");
+  lv.setAttribute("y", y.toFixed(1));
+  lv.setAttribute("height", Math.max(0, bot-y).toFixed(1));
+  document.getElementById("svgLevelLine").setAttribute("y1", y.toFixed(1));
+  document.getElementById("svgLevelLine").setAttribute("y2", y.toFixed(1));
+  const lt = document.getElementById("svgLevelTxt");
+  lt.setAttribute("y", (y-3).toFixed(1));
+  lt.textContent = "Ндин "+S.h.toFixed(0)+" м";
+
+  const flowing = S.Q > 0.5;
+  document.getElementById("svgFlow").setAttribute("opacity", flowing?"0.95":"0");
+  document.getElementById("svgOutFlow").setAttribute("opacity", flowing?"0.95":"0");
+  document.getElementById("svgInflow").setAttribute("opacity", S.Qin>0.5?"0.9":"0");
+  const led = document.getElementById("svgPumpLed");
+  led.setAttribute("fill", S.tripped?"#ff4757":(S.run?"#00e5a0":"#25384a"));
+  document.getElementById("svgPump").setAttribute("stroke", S.run?"#00e5a0":"#31536e");
+  document.getElementById("svgMotor").setAttribute("stroke",
+    S.tMot>LIM.tWarn?"#ff4757":(S.run?"#f7b731":"#31536e"));
+  document.getElementById("svgMotorT").textContent = "ПЭД "+S.tMot.toFixed(0)+" °C";
+  document.getElementById("svgPwh").textContent  = "Рбуф "+S.Pwh.toFixed(1)+" бар";
+  document.getElementById("svgPcas").textContent = "Рзатр "+S.Pcas.toFixed(1)+" бар";
+  document.getElementById("svgQ").textContent    = "Q "+S.Q.toFixed(1)+" м³/сут";
+  document.getElementById("svgPr").textContent   = "Рпл "+S.Pr.toFixed(1)+" бар";
+  document.getElementById("svgChoke").textContent = ui.choke+"%";
+}
+
+function renderHeader(){
+  document.getElementById("hClock").textContent = fmtClock(S.t);
+  document.getElementById("hDays").textContent  = "сут "+Math.floor(S.t/86400);
+  const p = document.getElementById("hState");
+  if (S.tripped){ p.className="state-pill st-alarm"; p.textContent="Авария · "+S.tripReason; }
+  else if (S.run){ p.className="state-pill st-run"; p.textContent="В работе"; }
+  else { p.className="state-pill st-stop"; p.textContent = S.restartAt!==null ? "Ожидание АПВ" : "Остановлен"; }
+}
+
+/* ==================================================================
+   10. ЦИКЛ
+   ================================================================== */
+function tick(){
+  if (!paused){
+    const dtTotal = 0.1*speed;                 // модельных секунд за кадр
+    const n = clamp(Math.ceil(dtTotal/20), 1, 40);
+    for (let i=0;i<n;i++){ physics(dtTotal/n); protections(dtTotal/n); }
+    checkWarnings();
+
+    // выборка в тренды раз в ~10 модельных минут, окно 24 ч
+    if (S.t - (hist.last||-1e9) > 600){
+      hist.last = S.t;
+      hist.p.push([S.Ppi, S.Pwf, S.h/10]);
+      hist.q.push([S.Q, S.Qoil, S.wc*100]);
+      hist.e.push([S.I, S.tMot, S.load*100]);
+      const cap = 144;
+      ["p","q","e"].forEach(k=>{ if(hist[k].length>cap) hist[k].shift(); });
+    }
+  }
+  renderHeader(); renderDisplays(); renderMnemo(); renderEq();
+  T1.draw(hist.p); T2.draw(hist.q); T3.draw(hist.e);
+  requestAnimationFrame(tick);
+}
+
+/* ==================================================================
+   11. СВЯЗЬ С ЭЛЕМЕНТАМИ УПРАВЛЕНИЯ
+   ================================================================== */
+function sync(){
+  document.getElementById("sFreq").value = ui.f;
+  document.getElementById("vFreq").textContent = ui.f.toFixed(1);
+  document.getElementById("vChoke").textContent = ui.choke;
+  document.getElementById("vGasV").textContent = ui.gasV;
+  document.getElementById("vSub").textContent = ui.subTgt;
+  document.getElementById("sFreq").disabled = ui.auto;
+  document.getElementById("btnAuto").classList.toggle("on", ui.auto);
+  document.getElementById("btnApv").classList.toggle("on", ui.apv);
+  document.getElementById("btnInh").classList.toggle("on", ui.inh);
+  document.getElementById("btnHeat").classList.toggle("on", ui.heat);
+  document.getElementById("btnPause").classList.toggle("on", paused);
+  document.getElementById("btnPause").textContent = paused ? "Продолжить" : "Пауза";
+  document.getElementById("btnStart").disabled = S.run;
+  document.getElementById("btnStop").disabled = !S.run;
+}
+function bind(){
+  const on=(id,f)=>document.getElementById(id).addEventListener("input",f);
+  on("sFreq", e=>{ ui.f=+e.target.value; sync(); });
+  on("sChoke",e=>{ ui.choke=+e.target.value; sync(); });
+  on("sGasV", e=>{ ui.gasV=+e.target.value; sync(); });
+  on("sSub",  e=>{ ui.subTgt=+e.target.value; sync(); });
+  document.querySelectorAll("#spd button").forEach(b=>{
+    b.onclick=()=>{ speed=+b.dataset.s;
+      document.querySelectorAll("#spd button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on"); };
+    if (+b.dataset.s===speed) b.classList.add("on");
+  });
+  document.addEventListener("keydown", e=>{
+    if (e.target.tagName==="INPUT") return;
+    if (e.code==="Space"){ e.preventDefault(); tgl("pause"); }
+    if (e.key==="s"||e.key==="ы") S.run?cmdStop():cmdStart();
+  });
+}
+
+/* ==================================================================
+   12. УТИЛИТЫ И СТАРТ
+   ================================================================== */
+function clamp(v,a,b){ return v<a?a:v>b?b:v; }
+function fmtClock(t){
+  const h=Math.floor(t/3600)%24, m=Math.floor(t/60)%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
+
+initState();
+buildDisplays();
+bind();
+sync();
+T1 = Trend("ch1",[{c:"#38bdf8"},{c:"#a78bfa"},{c:"#f7b731"}], 0, 220);
+T2 = Trend("ch2",[{c:"#00e5a0"},{c:"#ff9f43"},{c:"#38bdf8"}], 0, 110);
+T3 = Trend("ch3",[{c:"#f7b731"},{c:"#ff4757"},{c:"#00e5a0"}], 0, 150);
+alarm("info","СИСТ","Тренажёр загружен. Скважина остановлена, уровень восстановился до 1150 м");
+alarm("info","СИСТ","Нажмите ПУСК. Пробел — пауза, S — пуск/стоп");
+tick();
+</script>
+</body>
+</html>

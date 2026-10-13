@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Приёмник щита 1247</title>
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0f1012; --surface-1:#1a1a19; --surface-2:#222321; --line:#30312e;
+  --text-primary:#f0efec; --text-secondary:#c3c2b7; --text-muted:#8d8c84;
+  --series-1:#3987e5; --accent:#3987e5;
+  --good:#0ca30c; --warning:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --btn:#2a2b28; --btn-hover:#353632;
+}
+@media (prefers-color-scheme: light){
+  :root:where(:not([data-theme="dark"])){
+    color-scheme: light;
+    --bg:#f2f1ee; --surface-1:#fcfcfb; --surface-2:#f4f3f0; --line:#deddd8;
+    --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#76756f;
+    --series-1:#2a78d6; --accent:#2a78d6; --btn:#ecebe7; --btn-hover:#e2e1dc;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme: light;
+  --bg:#f2f1ee; --surface-1:#fcfcfb; --surface-2:#f4f3f0; --line:#deddd8;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#76756f;
+  --series-1:#2a78d6; --accent:#2a78d6; --btn:#ecebe7; --btn-hover:#e2e1dc;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text-primary);
+     font:13px/1.4 "Segoe UI",Roboto,Arial,sans-serif}
+header{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:12px 16px;
+       border-bottom:1px solid var(--line);background:var(--surface-1);position:sticky;top:0;z-index:5}
+header h1{font-size:15px;margin:0 8px 0 0;font-weight:650}
+.chip{display:flex;flex-direction:column;min-width:96px}
+.chip i{font-style:normal;font-size:10.5px;color:var(--text-muted);letter-spacing:.04em}
+.chip b{font:600 13px Consolas,monospace;color:var(--text-primary)}
+.status{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--text-muted)}
+.dot.good{background:var(--good)}.dot.critical{background:var(--critical)}.dot.warning{background:var(--warning)}
+main{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:14px;padding:14px 16px;max-width:1700px;margin:0 auto}
+@media (max-width:1100px){main{grid-template-columns:minmax(0,1fr)}}
+section{background:var(--surface-1);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:14px}
+section h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-secondary);
+           margin:0 0 10px;font-weight:650;display:flex;justify-content:space-between;align-items:center;gap:8px}
+section h2 .switch{text-transform:none;letter-spacing:0;font-weight:400;font-size:11.5px}
+section h2 small{text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.tile{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;position:relative}
+.tile.hb .t{padding-right:78px}
+.tile .t{font-size:11px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .v{font:600 20px Consolas,monospace;margin-top:2px}
+.tile .v small{font:400 11px "Segoe UI",sans-serif;color:var(--text-muted);margin-left:4px}
+.tile .r{font-size:10.5px;color:var(--text-muted)}
+.tile svg{display:block;width:100%;height:38px;margin-top:4px;overflow:visible}
+.tile .badge{position:absolute;top:7px;right:8px}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:650;
+       padding:1px 6px;border-radius:9px;border:1px solid currentColor}
+.badge.warn{color:var(--warning)}.badge.alarm{color:var(--critical)}
+.tip{position:fixed;pointer-events:none;background:var(--surface-1);border:1px solid var(--line);
+     border-radius:5px;padding:4px 8px;font-size:12px;color:var(--text-primary);display:none;z-index:20;
+     box-shadow:0 2px 8px rgba(0,0,0,.25)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+td,th{padding:3px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--text-muted);font-weight:500;font-size:11px}
+td.n{text-align:right;font-family:Consolas,monospace}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.state-on{color:var(--text-primary);font-weight:600}.state-off{color:var(--text-muted)}
+.frame{position:relative;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:#000}
+.frame img{display:block;width:100%}
+.frame svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.btns{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+button{font:600 12px "Segoe UI",sans-serif;padding:7px 11px;border-radius:5px;border:1px solid var(--line);
+       background:var(--btn);color:var(--text-primary);cursor:pointer}
+button:hover{background:var(--btn-hover)}
+button.go{border-color:var(--good)}button.danger{border-color:var(--critical);color:var(--critical)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.row label{font-size:12px;color:var(--text-secondary);min-width:96px}
+input[type=number]{width:72px;padding:6px;border-radius:5px;border:1px solid var(--line);
+                   background:var(--surface-2);color:var(--text-primary);font:13px Consolas,monospace}
+.jobs div,.events div{font-size:12px;padding:3px 0;border-bottom:1px solid var(--line);color:var(--text-secondary)}
+.jobs b{color:var(--text-primary);font-weight:600}
+.lvl{display:inline-block;width:62px;font-size:10.5px;font-weight:650}
+.lvl.alarm{color:var(--critical)}.lvl.warn{color:var(--warning)}.lvl.ok{color:var(--good)}.lvl.info{color:var(--text-muted)}
+.switch{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:4px 0;color:var(--text-secondary)}
+.muted{color:var(--text-muted);font-size:11.5px}
+.events{max-height:420px;overflow:auto}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Щит 1247 · приёмник CV</h1>
+  <span class="status"><span class="dot" id="dLink"></span><span id="sLink">нет данных</span></span>
+  <div class="chip"><i>канал</i><b id="cLink">—</b></div>
+  <div class="chip"><i>задержка канала p50</i><b id="cLat">—</b></div>
+  <div class="chip"><i>распознавание</i><b id="cCv">—</b></div>
+  <div class="chip"><i>чтение кадра</i><b id="cRead">—</b></div>
+  <div class="chip"><i>захват → показания</i><b id="cGlass">—</b></div>
+  <div class="chip"><i>HID · RTT</i><b id="cHid">—</b></div>
+  <div class="chip"><i>компоновка</i><b id="cLay">—</b></div>
+</header>
+
+<main>
+<div>
+  <section>
+    <h2>Приборы <small>прочитано с картинки · линия — последние 10 минут</small></h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section>
+    <h2>Добавлено приёмником <small>на щите этого нет — посчитано из прочитанного</small></h2>
+    <div class="tiles" id="derived"></div>
+  </section>
+
+  <section>
+    <h2>Остальные объекты щита <small id="cntObj"></small></h2>
+    <div class="grid2" id="others"></div>
+  </section>
+</div>
+
+<div>
+  <section>
+    <h2>Кадр после нормализации
+      <span class="switch" style="padding:0"><input type="checkbox" id="ovl" checked><label for="ovl">найденные органы управления</label></span></h2>
+    <div class="frame"><img id="frame" alt="кадр щита с трансляции"><svg id="ovlSvg" viewBox="0 0 1920 1080" preserveAspectRatio="none"></svg></div>
+    <p class="muted" id="calib">—</p>
+  </section>
+
+  <section>
+    <h2>Пульт <small>клик мышью через HID, итог проверяется по кадрам</small></h2>
+    <div class="btns">
+      <button class="go" data-cmd="start">Пуск</button>
+      <button data-cmd="stop">Стоп</button>
+      <button data-cmd="ack">Квитировать</button>
+      <button class="danger" id="bEstop">Авар. стоп</button>
+    </div>
+    <div class="row"><label>Частота ЧРП</label>
+      <button data-cmd="freq_dn">−0,5</button><button data-cmd="freq_up">+0,5</button>
+      <input type="number" id="vFreq" min="35" max="65" step="0.5" value="50">
+      <button id="bFreq">Выставить</button></div>
+    <div class="row"><label>Штуцер</label>
+      <button data-cmd="choke_dn">−5 %</button><button data-cmd="choke_up">+5 %</button>
+      <input type="number" id="vChoke" min="20" max="100" step="5" value="100">
+      <button id="bChoke">Выставить</button></div>
+    <div class="btns">
+      <button data-cmd="mode">Режим РУЧН/АВТО</button>
+      <button data-cmd="apv">АПВ</button>
+      <button data-cmd="inh">Ингибитор</button>
+      <button data-cmd="flush">Промывка</button>
+      <button data-cmd="repair">ТКРС</button>
+    </div>
+    <div class="jobs" id="jobs"></div>
+  </section>
+
+  <section>
+    <h2>Автоматика <small>условие на прочитанном → команда через HID</small></h2>
+    <div id="rules"></div>
+    <div class="switch"><input type="checkbox" id="assist"><label for="assist">выводить подсказки на экран щита (полоса под ним)</label></div>
+  </section>
+
+  <section>
+    <h2>Тестовый канал <small>только для стенда: у настоящего щита его нет</small></h2>
+    <div class="btns">
+      <button data-sc="fault" data-arg="clog">АСПО</button>
+      <button data-sc="fault" data-arg="skin">ПЗП</button>
+      <button data-sc="fault" data-arg="leak">НКТ</button>
+      <button data-sc="fault" data-arg="iso">Изоляция</button>
+      <button data-sc="fault" data-arg="water">Вода</button>
+    </div>
+    <div class="btns">
+      <button data-sc="layout" data-arg="A">Компоновка A</button>
+      <button data-sc="layout" data-arg="B">B</button>
+      <button data-sc="layout" data-arg="C">C</button>
+      <button data-sc="layout" data-arg="D">D</button>
+      <button data-sc="speed" data-arg="30">×30</button>
+      <button data-sc="speed" data-arg="120">×120</button>
+      <button data-sc="speed" data-arg="600">×600</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>События <small><a href="/api/history.csv">история в CSV</a></small></h2>
+    <div class="events" id="events"></div>
+  </section>
+</div>
+</main>
+<div class="tip" id="tip"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = (v, d=1) => v == null ? "—" : (typeof v === "number" ? v.toFixed(d) : v);
+const LEVEL_RU = {warn:"▲ внимание", alarm:"■ авария"};
+const STATE_RU = {on:"вкл", off:"выкл", blink:"мигает", running:"работа", stopped:"стоп",
+  open:"открыта", closed:"закрыта", partial:"прикрыта", throttled:"дросселирует",
+  pressed:"нажата", released:"отпущена", run:"в работе", stop:"остановлен", trip:"авария"};
+const MAIN = ["gauge", "sevenseg_digit"];
+const SPAN = 600;                       // секунд на спарклайне
+const series = {};                      // тег → [[t, v], …]
+let last = null;
+
+/* ── история с сервера при открытии, дальше копим из потока ── */
+async function seed(ids){
+  await Promise.all(ids.map(async id => {
+    try { series[id] = await (await fetch("/api/history?tag=" + encodeURIComponent(id))).json(); }
+    catch(e){ series[id] = []; }
+  }));
+}
+function push(id, t, v){
+  const s = series[id] || (series[id] = []);
+  if (v == null) return;
+  if (!s.length || s[s.length-1][0] < t) s.push([t, v]);
+  while (s.length && s[0][0] < t - SPAN) s.shift();
+}
+
+/* ── спарклайн: одна линия 2px, без осей; наведение — перекрестие и подсказка ── */
+function spark(svg, id, unit){
+  const s = (series[id] || []).filter(p => p[0] >= Date.now()/1000 - SPAN);
+  const W = svg.clientWidth || 170, H = 38;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  if (s.length < 2){ svg.innerHTML = ""; return; }
+  const t0 = s[0][0], t1 = s[s.length-1][0];
+  let lo = Math.min(...s.map(p=>p[1])), hi = Math.max(...s.map(p=>p[1]));
+  if (hi - lo < 1e-6){ lo -= 1; hi += 1; }
+  const X = t => (t - t0) / Math.max(1e-6, t1 - t0) * (W - 4) + 2;
+  const Y = v => H - 3 - (v - lo) / (hi - lo) * (H - 6);
+  const d = s.map((p,i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join("");
+  svg.innerHTML = `<path d="${d}" fill="none" style="stroke:var(--series-1)" stroke-width="2"
+     stroke-linejoin="round" stroke-linecap="round"/>
+     <line class="xh" y1="0" y2="${H}" style="stroke:var(--text-muted)" stroke-width="1" visibility="hidden"/>
+     <circle class="pt" r="4" style="fill:var(--series-1);stroke:var(--surface-2)" stroke-width="2" visibility="hidden"/>
+     <rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`;
+  svg.onmousemove = e => {
+    const r = svg.getBoundingClientRect(), x = e.clientX - r.left;
+    const t = t0 + (x - 2) / (W - 4) * (t1 - t0);
+    let best = s[0]; for (const p of s) if (Math.abs(p[0]-t) < Math.abs(best[0]-t)) best = p;
+    const xh = svg.querySelector(".xh"), pt = svg.querySelector(".pt");
+    xh.setAttribute("x1", X(best[0])); xh.setAttribute("x2", X(best[0])); xh.setAttribute("visibility","visible");
+    pt.setAttribute("cx", X(best[0])); pt.setAttribute("cy", Y(best[1])); pt.setAttribute("visibility","visible");
+    const tip = $("tip");
+    tip.innerHTML = `<b>${fmt(best[1], 2)}</b> ${esc(unit||"")} · ${new Date(best[0]*1000).toLocaleTimeString("ru-RU")}`;
+    tip.style.display = "block"; tip.style.left = (e.clientX + 12) + "px"; tip.style.top = (e.clientY - 30) + "px";
+  };
+  svg.onmouseleave = () => {
+    $("tip").style.display = "none";
+    svg.querySelectorAll(".xh,.pt").forEach(el => el.setAttribute("visibility","hidden"));
+  };
+}
+
+/* ── плитки приборов ── */
+function tiles(st){
+  const box = $("tiles"), levels = st.agg.levels || {}, rates = st.agg.rates_per_min || {};
+  const items = MAIN.flatMap(g => (st.groups[g] || []).map(it => ({...it, cls:g})));
+  if (box.children.length !== items.length){
+    box.innerHTML = items.map(it => `<div class="tile" id="t_${it.id}">
+      <div class="t" title="${esc(it.label)}">${esc(it.label)}</div>
+      <div class="v"></div><div class="r"></div><svg aria-label="тренд ${esc(it.label)}"></svg><span class="badge" hidden></span></div>`).join("");
+  }
+  for (const it of items){
+    const el = $("t_" + it.id); if (!el) continue;
+    const shown = it.cls === "sevenseg_digit" ? (it.display || it.text) : fmt(it.value, 1);
+    const unsure = it.reliable === false;
+    el.querySelector(".v").innerHTML = `${esc(unsure ? (it.text || "?") : shown)}<small>${esc(it.unit || "")}</small>`;
+    el.querySelector(".v").style.opacity = unsure ? .5 : 1;
+    const r = rates[it.id];
+    el.querySelector(".r").textContent = (unsure ? "недостоверно · " : "") +
+      (r == null ? "тренд копится" : `${r >= 0 ? "+" : ""}${r.toFixed(2)} ${it.unit || ""}/мин`) +
+      (it.method === "needle" ? " · по стрелке" : "") + (it.cached ? " · из кэша" : "");
+    const b = el.querySelector(".badge"), lv = levels[it.id];
+    b.hidden = !lv; el.classList.toggle("hb", !!lv); if (lv){ b.className = "badge " + lv; b.textContent = LEVEL_RU[lv]; }
+    spark(el.querySelector("svg"), it.id, it.unit);
+  }
+}
+
+/* ── то, что добавил приёмник ── */
+function derived(st){
+  $("derived").innerHTML = (st.agg.derived || []).map(d => `<div class="tile${d.level ? " hb" : ""}" title="${esc(d.note || "")}">
+     <div class="t">${esc(d.label)}</div>
+     <div class="v">${esc(typeof d.value === "number" ? fmt(d.value, 1) : d.value)}<small>${esc(d.unit)}</small></div>
+     <div class="r">${esc(d.note || "")}</div>
+     ${d.level ? `<span class="badge ${d.level === "alarm" ? "alarm" : "warn"}">${LEVEL_RU[d.level === "alarm" ? "alarm" : "warn"]}</span>` : ""}</div>`).join("");
+}
+
+/* ── прочие объекты: таблицы по группам ── */
+function others(st){
+  const levels = st.agg.levels || {}, agg = st.agg.states || {};
+  const groups = st.group_order.filter(g => !MAIN.includes(g) && !["trend","text_readout","button"].includes(g));
+  let n = 0;
+  $("others").innerHTML = groups.map(g => {
+    const rows = st.groups[g].map(it => {
+      n++;
+      let val;
+      if (g === "bargraph") val = fmt(it.value, 1) + " " + (it.unit || "");
+      else if (g === "vessel_level") val = fmt(it.level_pct, 1) + " %";
+      else { const s = agg[it.id] || it.state; val = `<span class="${["off","stopped","closed","stop"].includes(s) ? "state-off" : "state-on"}">${esc(STATE_RU[s] || s || "?")}</span>`; }
+      const lv = levels[it.id];
+      return `<tr><td>${esc(it.label)}</td><td class="n">${val}</td>
+              <td>${lv ? `<span class="badge ${lv}">${LEVEL_RU[lv]}</span>` : ""}</td></tr>`;
+    }).join("");
+    return `<div><table><tr><th colspan="3">${esc(st.group_titles[g] || g)}</th></tr>${rows}</table></div>`;
+  }).join("");
+  $("cntObj").textContent = `всего объектов на кадре: ${Object.values(st.groups).reduce((a, g) => a + g.length, 0)}`;
+}
+
+/* ── кадр и найденные органы управления ── */
+let lastImg = 0;
+function frame(st){
+  if (Date.now() - lastImg > 400){ lastImg = Date.now(); $("frame").src = "/frame.jpg?" + lastImg; }
+  const svg = $("ovlSvg");
+  if (!$("ovl").checked){ svg.innerHTML = ""; return; }
+  const items = [...(st.groups.button || []), ...(st.groups.selector || [])].filter(it => it.at);
+  svg.innerHTML = items.map(it => `<rect x="${it.at[0]}" y="${it.at[1]}" width="${it.size[0]}" height="${it.size[1]}"
+     fill="none" style="stroke:var(--series-1)" stroke-width="4" rx="6"/>`).join("");
+  const c = st.calibration;
+  $("calib").textContent = (c ? `калибровка: масштаб ${c.scale}, начало щита (${c.x}, ${c.y}), пересчётов ${c.recalibrations}` : "без калибровки")
+    + ` · кадр трансляции ${st.raw_size.join("×")} · привязка блоков ${fmt(st.registration_quality, 2)}`;
+}
+
+/* ── пульт ── */
+function control(st){
+  const c = st.control || {};
+  document.querySelectorAll("[data-cmd],#bEstop,#bFreq,#bChoke,[data-sc]").forEach(b => b.disabled = !c.available);
+  $("jobs").innerHTML = (c.jobs || []).slice(0, 8).map(j => `<div><b>${esc(j.cmd)}</b>
+      ${esc(j.status)}${j.ms != null ? ` · ${j.ms} мс` : ""}<br><span class="muted">${esc(j.source)}${j.detail ? " — " + esc(j.detail) : ""}</span></div>`).join("")
+      || `<div class="muted">${c.available ? "команд ещё не было" : "приёмник запущен только на чтение"}</div>`;
+  $("rules").innerHTML = (c.rules || []).map(r => `<div class="switch">
+      <input type="checkbox" id="r_${r.id}" ${r.enabled ? "checked" : ""} onchange="rule('${r.id}', this.checked)">
+      <label for="r_${r.id}">${esc(r.title)} <span class="muted">· срабатываний ${r.fired}, пауза ${r.cooldown} с</span></label></div>`).join("")
+      || `<div class="muted">нет обратного канала</div>`;
+  if (document.activeElement !== $("assist")) $("assist").checked = !!c.assist;
+}
+
+async function post(url, body){
+  const r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  const j = await r.json();
+  if (!j.ok) alert(j.error || "ошибка");
+  return j;
+}
+const cmd = (name, args) => post("/api/command", {cmd:name, args:args || {}});
+window.rule = (id, on) => post("/api/rule", {id, enabled:on});
+document.querySelectorAll("[data-cmd]").forEach(b => b.onclick = () => cmd(b.dataset.cmd));
+document.querySelectorAll("[data-sc]").forEach(b => b.onclick = () => post("/api/scenario", {action:b.dataset.sc, arg:b.dataset.arg}));
+$("bEstop").onclick = () => confirm("Аварийный останов насоса?") && cmd("estop", {confirm:true});
+$("bFreq").onclick = () => cmd("set_freq", {value:+$("vFreq").value});
+$("bChoke").onclick = () => cmd("set_choke", {value:+$("vChoke").value});
+$("assist").onchange = e => post("/api/assist", {on:e.target.checked});
+
+/* ── шапка и события ── */
+function head(st){
+  const L = st.link || {}, C = st.cv || {}, H = st.control || {};
+  const live = st.ts && Date.now()/1000 - st.ts < 3;
+  $("dLink").className = "dot " + (live ? "good" : "critical");
+  $("sLink").textContent = live ? st.status : "нет обновлений";
+  $("cLink").textContent = `${esc(st.transport)} · ${fmt(L.fps, 1)} к/с`;
+  $("cLat").textContent = L.lat_ms_p50 != null ? `${L.lat_ms_p50} мс` : "—";
+  $("cCv").textContent = `${fmt(C.fps, 1)} к/с`;
+  $("cRead").textContent = C.read_ms != null ? `${C.read_ms} мс · кэш ${C.cached_objects}/${C.read_objects + C.cached_objects}` : "—";
+  $("cGlass").textContent = C.glass_ms != null ? `${C.glass_ms} мс` : "—";
+  $("cHid").textContent = H.available ? `${H.hid} · ${H.rtt_ms != null ? H.rtt_ms + " мс" : "—"}` : "нет";
+  $("cLay").textContent = st.layout ? st.layout.name : "—";
+  $("events").innerHTML = (st.agg.events || []).map(e =>
+    `<div><span class="lvl ${e.level}">${esc({alarm:"■ авария", warn:"▲ внимание", ok:"● норма", info:"· инфо"}[e.level] || e.level)}</span>
+     <span class="muted">${esc(e.clock)}</span> ${esc(e.text)}</div>`).join("");
+}
+
+function render(st){
+  last = st;
+  if (!st.groups){ $("sLink").textContent = st.status || "ожидание"; return; }
+  const t = st.ts;
+  for (const g of ["gauge","sevenseg_digit"]) for (const it of st.groups[g] || [])
+    if (it.reliable !== false) push(it.id, t, it.value);
+  head(st); tiles(st); derived(st); others(st); frame(st); control(st);
+}
+
+(async () => {
+  try {
+    const st = await (await fetch("/api/state")).json();
+    if (st.groups) await seed(MAIN.flatMap(g => (st.groups[g] || []).map(i => i.id)));
+    render(st);
+  } catch(e){}
+  const es = new EventSource("/events");
+  es.onmessage = e => render(JSON.parse(e.data));
+  es.onerror = () => { $("dLink").className = "dot critical"; $("sLink").textContent = "переподключение…"; };
+  setInterval(() => last && head(last), 1000);
+})();
+</script>
+</body>
+</html>

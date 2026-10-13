@@ -1,0 +1,13 @@
+# Текст хранится с LF, в рабочей копии — как принято в системе.
+* text=auto
+
+*.py   text diff=python
+*.md   text
+*.html text
+*.json text
+*.csv  text
+*.yml  text
+
+# Эталоны и кадры: matchTemplate сравнивает пиксели буквально — никаких преобразований.
+*.png binary
+*.jpg binary

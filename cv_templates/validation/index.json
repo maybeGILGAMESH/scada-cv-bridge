@@ -1,0 +1,103 @@
+{
+ "layout_signature": "5bcdfa1cd49b1529",
+ "frames": [
+  {
+   "scenario": "01_нормальный_режим_50гц",
+   "image": "validation/01_нормальный_режим_50гц.png",
+   "truth": "validation/01_нормальный_режим_50гц.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "02_останов_уровень_восстановлен",
+   "image": "validation/02_останов_уровень_восстановлен.png",
+   "truth": "validation/02_останов_уровень_восстановлен.json",
+   "pump_running": false,
+   "tripped": false
+  },
+  {
+   "scenario": "03_авария_перегрев_пэд",
+   "image": "validation/03_авария_перегрев_пэд.png",
+   "truth": "validation/03_авария_перегрев_пэд.json",
+   "pump_running": false,
+   "tripped": true
+  },
+  {
+   "scenario": "04_срыв_подачи_ожидание_апв",
+   "image": "validation/04_срыв_подачи_ожидание_апв.png",
+   "truth": "validation/04_срыв_подачи_ожидание_апв.json",
+   "pump_running": false,
+   "tripped": false
+  },
+  {
+   "scenario": "05_автомат_высокая_частота",
+   "image": "validation/05_автомат_высокая_частота.png",
+   "truth": "validation/05_автомат_высокая_частота.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "06_штуцер_прижат_25",
+   "image": "validation/06_штуцер_прижат_25.png",
+   "truth": "validation/06_штуцер_прижат_25.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "07_высокая_обводнённость",
+   "image": "validation/07_высокая_обводнённость.png",
+   "truth": "validation/07_высокая_обводнённость.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "08_парк_полный_откачка",
+   "image": "validation/08_парк_полный_откачка.png",
+   "truth": "validation/08_парк_полный_откачка.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "09_парк_почти_пуст",
+   "image": "validation/09_парк_почти_пуст.png",
+   "truth": "validation/09_парк_почти_пуст.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "10_сепаратор_верхний_уровень",
+   "image": "validation/10_сепаратор_верхний_уровень.png",
+   "truth": "validation/10_сепаратор_верхний_уровень.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "11_низкая_изоляция_предупреждение",
+   "image": "validation/11_низкая_изоляция_предупреждение.png",
+   "truth": "validation/11_низкая_изоляция_предупреждение.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "12_нижний_край_шкал",
+   "image": "validation/12_нижний_край_шкал.png",
+   "truth": "validation/12_нижний_край_шкал.json",
+   "pump_running": false,
+   "tripped": false
+  },
+  {
+   "scenario": "13_верхний_край_шкал",
+   "image": "validation/13_верхний_край_шкал.png",
+   "truth": "validation/13_верхний_край_шкал.json",
+   "pump_running": true,
+   "tripped": false
+  },
+  {
+   "scenario": "14_кольматация_и_аспо",
+   "image": "validation/14_кольматация_и_аспо.png",
+   "truth": "validation/14_кольматация_и_аспо.json",
+   "pump_running": true,
+   "tripped": false
+  }
+ ]
+}

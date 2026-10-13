@@ -1,0 +1,26 @@
+[
+ {
+  "capture": "screencast",
+  "frames": 136,
+  "fps": 22.5,
+  "interval_ms_p50": 42.5,
+  "interval_ms_p95": 62.0,
+  "kb": 271.9
+ },
+ {
+  "capture": "screenshot",
+  "frames": 28,
+  "fps": 4.6,
+  "interval_ms_p50": 216.1,
+  "interval_ms_p95": 243.0,
+  "kb": 272.5
+ },
+ {
+  "capture": "canvas",
+  "frames": 54,
+  "fps": 8.9,
+  "interval_ms_p50": 110.2,
+  "interval_ms_p95": 118.0,
+  "kb": 272.3
+ }
+]

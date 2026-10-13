@@ -1,0 +1,2584 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>АСУ ТП «Скважина 1247» — стенд для компьютерного зрения</title>
+<style>
+:root{--bg:#070b0e;--panel:#0f1720;--line:#1e2d3a;--txt:#c8d8e4;--dim:#6b8296;--grn:#00e5a0;--cyan:#38bdf8;--amb:#f7b731;--red:#ff4757}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:12px/1.35 "Segoe UI",Roboto,Arial,sans-serif}
+#wrap{max-width:1930px;margin:0 auto;padding:8px}
+#panelBox{position:relative;border:1px solid #223243;border-radius:6px;overflow:hidden;
+          background:#000;display:flex;justify-content:center}
+/* холст вписывается в окно, чтобы строка управления под ним всегда оставалась видна */
+#panel{display:block;max-width:100%;max-height:calc(100vh - 196px);cursor:pointer}
+#ovl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:8px;
+     background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:9px 11px}
+.grp{display:flex;flex-direction:column;gap:4px;padding-right:11px;border-right:1px solid #1b2836}
+.grp:last-child{border:0}
+.grp>label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.row{display:flex;gap:5px;align-items:center}
+button{padding:7px 11px;border-radius:4px;border:1px solid #24384a;background:#16232f;color:var(--txt);
+       font:600 11px/1 inherit;letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+button:hover{background:#1e2f3e;border-color:#33566f}
+button.on{background:#0a3f31;border-color:var(--grn);color:var(--grn)}
+button.acc{background:#123a55;border-color:var(--cyan);color:#9bd9ff}
+button:disabled{opacity:.4;cursor:not-allowed}
+input[type=range]{width:132px;-webkit-appearance:none;height:4px;border-radius:3px;background:#1d2c3a;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--cyan);border:2px solid #06121b;cursor:pointer}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--cyan);border:2px solid #06121b}
+input[type=number],select{background:#0d151d;border:1px solid #24384a;color:var(--txt);border-radius:4px;padding:5px 6px;width:74px;font:inherit}
+select{width:auto}
+.val{font:600 12px/1 Consolas,monospace;color:var(--cyan);min-width:52px;display:inline-block}
+#prog{height:5px;background:#16232f;border-radius:3px;overflow:hidden;margin-top:8px;display:none}
+#prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#38bdf8,#00e5a0);transition:width .1s}
+#note{margin-top:7px;color:#4f6a80;font-size:10.5px}
+kbd{background:#16232f;border:1px solid #26394b;border-radius:3px;padding:1px 5px;font:11px Consolas,monospace;color:#9fb6c9}
+.chk{display:flex;align-items:center;gap:5px;font-size:10.5px;color:#9fb6c9}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="panelBox"><canvas id="panel" width="1920" height="1080"></canvas></div>
+
+  <div class="bar">
+    <div class="grp">
+      <label>Управление УЭЦН</label>
+      <div class="row">
+        <button id="bStart">Пуск</button>
+        <button id="bStop">Стоп</button>
+        <button id="bAck">Квитировать</button>
+        <button id="bRepair">ТКРС</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <label>Частота ЧРП</label>
+      <div class="row"><input type="range" id="sFreq" min="35" max="65" step="0.5" value="50"><span class="val" id="vFreq">50.0 Гц</span></div>
+    </div>
+    <div class="grp">
+      <label>Штуцер</label>
+      <div class="row"><input type="range" id="sChoke" min="20" max="100" step="1" value="100"><span class="val" id="vChoke">100 %</span></div>
+    </div>
+
+    <div class="grp">
+      <label>Режимы</label>
+      <div class="row">
+        <button id="bAuto">Авто-уровень</button>
+        <button id="bApv" class="on">АПВ</button>
+        <button id="bPause">Пауза</button>
+        <select id="selSpeed"><option value="1">×1</option><option value="30" selected>×30</option><option value="120">×120</option><option value="600">×600</option></select>
+      </div>
+    </div>
+
+    <div class="grp">
+      <label>Имитация отказов</label>
+      <div class="row">
+        <button data-f="clog">АСПО</button>
+        <button data-f="skin">ПЗП</button>
+        <button data-f="leak">НКТ</button>
+        <button data-f="iso">Изоляция</button>
+        <button data-f="water">Вода</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <label>Компоновка щита</label>
+      <div class="row">
+        <select id="selLay"></select>
+        <button id="bLayNext">Следующая</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <label>Датасет для CV</label>
+      <div class="row">
+        <span style="font-size:10.5px;color:#8fa8bb">кадров</span>
+        <input type="number" id="nFrames" value="120" min="1" max="2000" step="10">
+        <select id="selFmt"><option value="jpeg">JPEG</option><option value="png">PNG</option></select>
+        <label class="chk"><input type="checkbox" id="cAug" checked> аугментации</label>
+        <label class="chk"><input type="checkbox" id="cLay" checked> менять компоновку</label>
+        <button id="bGen" class="acc">Сгенерировать ZIP</button>
+        <button id="bShot">Кадр + JSON</button>
+        <button id="bBox">Показать разметку</button>
+      </div>
+    </div>
+
+    <div class="grp">
+      <label>Эталоны для matchTemplate</label>
+      <div class="row">
+        <span style="font-size:10.5px;color:#8fa8bb">шаг стрелки</span>
+        <select id="selAng">
+          <option value="2">2°</option>
+          <option value="5" selected>5°</option>
+          <option value="10">10°</option>
+          <option value="15">15°</option>
+        </select>
+        <select id="selVal">
+          <option value="all" selected>контроль: все компоновки</option>
+          <option value="cur">контроль: текущая</option>
+        </select>
+        <button id="bTpl" class="acc">Выгрузить эталоны</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="prog"><i></i></div>
+  <div id="note">
+    Панель отрисована целиком на <kbd>&lt;canvas&gt;</kbd> 1920×1080 — координаты разметки точно совпадают с пикселями изображения.
+    Управление дублировано: пульт в правом нижнем углу щита кликабелен мышью (задание ЧРП «больше/меньше»,
+    штуцер, переключатель режима, пуск и останов), а строка ниже даёт те же команды ползунками.
+    <kbd>Пробел</kbd> — пауза, <kbd>S</kbd> — пуск/стоп, <kbd>B</kbd> — разметка,
+    <kbd>L</kbd> — следующая компоновка.
+    <br>Компоновка переставляет блоки щита целиком, не меняя ни размера приборов, ни их отрисовки.
+    Эталон, нарезанный в одной компоновке, обязан читаться в любой другой — иначе распознавание
+    держится на координате прибора, а не на его изображении.
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ####################################################################
+   0. УТИЛИТЫ
+   #################################################################### */
+const W = 1920, H = 1080;
+const cv  = document.getElementById("panel");
+const ctx = cv.getContext("2d", { willReadFrequently: false });
+
+const clamp = (v,a,b)=> v<a?a:v>b?b:v;
+const lerp  = (a,b,t)=> a+(b-a)*t;
+const R2D   = 180/Math.PI, D2R = Math.PI/180;
+
+function rr(c,x,y,w,h,r){
+  r = Math.min(r, w/2, h/2);
+  c.beginPath();
+  c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.quadraticCurveTo(x+w,y,x+w,y+r);
+  c.lineTo(x+w,y+h-r); c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  c.lineTo(x+r,y+h); c.quadraticCurveTo(x,y+h,x,y+h-r);
+  c.lineTo(x,y+r); c.quadraticCurveTo(x,y,x+r,y); c.closePath();
+}
+/* Единая отрисовка текста.
+   o.max — предельная ширина: шрифт автоматически ужимается, чтобы надпись
+   не вылезала за габарит прибора.  o.ls — разрядка между буквами.        */
+function txt(c,s,x,y,o){
+  o = o||{}; s = String(s);
+  let size = o.s||12;
+  const setFont = ()=> c.font = (o.w||"400")+" "+size.toFixed(2)+"px "+(o.f||'"Segoe UI",Arial,sans-serif');
+  const width   = ()=> c.measureText(s).width + (o.ls ? o.ls*Math.max(0,s.length-1) : 0);
+  setFont();
+  if (o.max){ let guard=0; while (width() > o.max && size > 5.5 && guard++ < 48){ size -= 0.5; setFont(); } }
+  c.fillStyle = o.c || "#c8d8e4";
+  c.textAlign = "left";
+  c.textBaseline = o.b || "alphabetic";
+  const tw = width();
+  let px = o.a==="center" ? x-tw/2 : o.a==="right" ? x-tw : x;
+  if (o.ls) for (const ch of s){ c.fillText(ch,px,y); px += c.measureText(ch).width + o.ls; }
+  else c.fillText(s,px,y);
+  return tw;
+}
+const mono = '"Consolas","DejaVu Sans Mono",monospace';
+
+/* Часы анимации. На время нарезки эталонов замораживаются, иначе мигание ламп,
+   вращение насосов и бегущие штрихи потоков делали бы шаблоны недетерминированными. */
+let CLK = ()=>Date.now();
+/* Принудительные состояния приборов при съёмке эталонов (в рабочем режиме null). */
+let OVR = null;
+const ovr = (kind,id)=>{ const g = OVR && OVR[kind]; return g && (id in g) ? g[id] : undefined; };
+
+/* кэш статичной графики: рисуем один раз в offscreen-канву */
+const CACHE = new Map();
+function cached(key,w,h,fn){
+  let c = CACHE.get(key);
+  if (!c){
+    c = document.createElement("canvas"); c.width=Math.ceil(w); c.height=Math.ceil(h);
+    fn(c.getContext("2d")); CACHE.set(key,c);
+  }
+  return c;
+}
+
+/* ####################################################################
+   1. МОДЕЛЬ ОБЪЕКТА (проверенная физика + сепаратор и резервуары)
+   #################################################################### */
+const K = {
+  Pr0:210, J0:0.35, Lwell:2400, Lpump:2100, Pb:95, Aann:0.0135,
+  Hshut:2160, Qmax:120, Qbep:60, Pline:12, Prated:32, Inom:32, Tres:64,
+  rhoO:850, rhoW:1010,
+  Vsep:12,          // объём сепаратора, м³
+  Vtank:2000,       // объём РВС нефти, м³
+  Vwtank:800        // объём РВС подтоварной воды, м³
+};
+const LIM = { submWarn:120, submTrip:30, tWarn:105, tTrip:130, iWarn:1.20, iTrip:1.45,
+              isoWarn:30, isoTrip:5, loadLow:0.25 };
+
+let S, ui, hist, log, speed=30, paused=false, showBox=false;
+
+function initState(){
+  S = { t:0, run:false, tripped:false, tripReason:"", h:1150, Pr:K.Pr0, J:K.J0, wc:0.42,
+        clog:1.0, iso:240, tMot:20, leak:0, cumLiq:0, cumOil:0, runtime:0,
+        restartAt:null, starting:0,
+        Q:0,Qin:0,Qoil:0,Qwat:0,subm:0,Ppi:0,Pwf:0,Pwh:12,Pcas:12,Hn:0,gas:0,eff:0,load:0,I:0,Phyd:0,vib:0,
+        sepL:0.5, Psep:6.2, Tsep:38, sepOut:0, lv:0.5,
+        tankV:1180, wtankV:260, shipPump:false, wPump:false, shipQ:0 };
+  ui = { f:50, choke:100, gasV:50, subTgt:400, auto:false, apv:true, inh:false };
+  hist = { p:[], q:[], e:[], last:-1e9 };
+  log = [];
+}
+
+function physics(dt){
+  const rho = S.wc*K.rhoW + (1-S.wc)*K.rhoO;
+
+  const gasIn = S.run ? 0.9 : 0.25;
+  S.Pcas += (gasIn - (S.Pcas-K.Pline)*(0.02 + ui.gasV*0.0035)) * dt/3600;
+  S.Pcas = clamp(S.Pcas, 3, 90);
+
+  S.subm = Math.max(0, K.Lpump - S.h);
+  S.Ppi  = S.Pcas + rho*9.81*S.subm/1e5;
+  S.Pwf  = S.Ppi + rho*9.81*(K.Lwell-K.Lpump)/1e5;
+
+  const dd = S.Pr - S.Pwf;
+  S.Qin = dd<=0 ? 0
+        : S.Pwf>=K.Pb ? S.J*dd
+        : S.J*(S.Pr-K.Pb) + S.J*K.Pb/1.8*(1 - 0.2*(S.Pwf/K.Pb) - 0.8*Math.pow(S.Pwf/K.Pb,2));
+
+  S.gas = clamp((K.Pb-S.Ppi)/K.Pb,0,1)*0.55;
+  const degr = Math.max(0.05, 1-1.6*S.gas);
+
+  const fr = S.run ? ui.f/50*S.starting : 0;
+  const wellhead = q => K.Pline + 6*Math.pow(q/50,2)*Math.pow(100/ui.choke,1.6);
+  const headNeed = (q,pwh) => (pwh-S.Ppi)*1e5/(rho*9.81) + K.Lpump + 110*S.clog*Math.pow(q/50,2);
+  let Q = 0;
+  if (fr > 0.05){
+    const shut = K.Hshut*fr*fr;
+    const deliver = q => { const v = 1 - headNeed(q, wellhead(q))/shut; return v<=0?0:K.Qmax*fr*Math.sqrt(v)*degr; };
+    let lo=0, hi=K.Qmax*fr;
+    for (let i=0;i<32;i++){ const m=(lo+hi)/2; if (deliver(m)>m) lo=m; else hi=m; }
+    Q = (lo+hi)/2;
+    S.Pwh = wellhead(Q); S.Hn = headNeed(Q,S.Pwh);
+    if (S.subm < 25) Q *= 0.12 + 0.1*Math.sin(S.t/17);
+    Q *= (1-S.leak);
+  } else { S.Pwh = K.Pline; S.Hn = 0; }
+  S.Q = Math.max(0,Q);
+
+  S.h += (S.Q - S.Qin)/(K.Aann*86400)*dt;
+  S.h = clamp(S.h, 0, K.Lpump+40);
+
+  if (fr > 0.05){
+    const qb = K.Qbep*fr;
+    S.eff  = clamp(0.62*(1-0.75*Math.pow(S.Q/qb-1,2)), 0.06, 0.62);
+    S.Phyd = rho*9.81*(S.Q/86400)*S.Hn/1000;
+    S.load = clamp(S.Phyd/S.eff/K.Prated, 0, 2);
+    S.I    = K.Inom*(0.28+0.80*S.load)*(1+0.18*Math.max(0,fr-1));
+  } else { S.eff=0; S.Phyd=0; S.load=0; S.I=0; }
+
+  const dry  = (S.run && S.starting>0.6 && S.Q<5) ? 1 : 0;
+  const cool = 0.22 + 0.78*clamp(S.Q/40,0,1.3);
+  const Ttar = S.run ? Math.min(250, K.Tres + (8+75*S.load*S.load+55*dry)/cool) : 24;
+  S.tMot += (Ttar-S.tMot)*dt/1200;
+  S.tMot = clamp(S.tMot,15,260);
+
+  if (S.run) S.iso -= (0.004 + Math.pow(Math.max(0,S.tMot-90)/40,2)*0.35)*dt/60;
+  S.iso = clamp(S.iso,0,500);
+
+  const off = Math.abs(S.Q/(K.Qbep*Math.max(fr,.01))-1);
+  S.vib = S.run ? clamp(0.8+off*5+S.gas*4+(S.clog-1)*1.2,0,20) : 0;
+
+  if (S.run) S.clog += (ui.inh?0.00004:0.00035)*dt/60*(0.5+S.wc);
+  S.clog = clamp(S.clog,1,6);
+
+  if (S.run){
+    S.wc = clamp(S.wc + S.Q*dt/86400*0.000018, 0, 0.98);
+    S.Pr -= S.Qin*dt/86400*0.00022;
+    S.runtime += dt; S.cumLiq += S.Q*dt/86400;
+    S.cumOil += S.Q*(1-S.wc)*dt/86400*K.rhoO/1000;
+  }
+  S.Qoil = S.Q*(1-S.wc)*K.rhoO/1000;
+  S.Qwat = S.Q*S.wc;
+
+  /* ---- сепаратор первой ступени: регулятор уровня на сбросе ---- */
+  S.lv = clamp((S.sepL-0.45)*6, 0, 1);
+  S.sepOut = 95*S.lv;
+  S.sepL = clamp(S.sepL + (S.Q - S.sepOut)*dt/86400/K.Vsep, 0.02, 0.98);
+  S.Psep += ((S.run? 6.2+S.gas*5 : 4.0) - S.Psep)*dt/2400;
+  S.Tsep += ((S.run? 34+S.Q*0.12 : 14) - S.Tsep)*dt/3600;
+
+  /* ---- товарный парк ---- */
+  const oilIn = S.sepOut*(1-S.wc), watIn = S.sepOut*S.wc;
+  if (S.tankV/K.Vtank  > 0.86) S.shipPump = true;
+  if (S.tankV/K.Vtank  < 0.22) S.shipPump = false;
+  if (S.wtankV/K.Vwtank> 0.86) S.wPump = true;
+  if (S.wtankV/K.Vwtank< 0.22) S.wPump = false;
+  S.shipQ = S.shipPump ? 900 : 0;
+  S.tankV  = clamp(S.tankV  + (oilIn - S.shipQ)*dt/86400, 0, K.Vtank);
+  S.wtankV = clamp(S.wtankV + (watIn - (S.wPump?700:0))*dt/86400, 0, K.Vwtank);
+
+  S.starting = S.run ? Math.min(1,S.starting+dt/45) : Math.max(0,S.starting-dt/25);
+  S.t += dt;
+}
+
+function protections(dt){
+  if (!S.run){
+    if (S.restartAt!==null && S.t>=S.restartAt){
+      S.restartAt=null;
+      if (ui.apv && !S.tripped){ S.run=true; alarm("ok","АПВ","Автоматический повторный запуск выполнен"); }
+    }
+    return;
+  }
+  const trip=(r,m)=>{ S.run=false; S.tripped=true; S.tripReason=r; alarm("crit","ЗСП",m); };
+  if      (S.tMot > LIM.tTrip)          trip("ПЕРЕГРЕВ ПЭД","Отключение: температура ПЭД "+S.tMot.toFixed(0)+" °C");
+  else if (S.I > K.Inom*LIM.iTrip)      trip("ПЕРЕГРУЗ ТОКА","Отключение: ток "+S.I.toFixed(1)+" А");
+  else if (S.iso < LIM.isoTrip)         trip("НИЗК. ИЗОЛЯЦИЯ","Отключение: сопротивление изоляции "+S.iso.toFixed(1)+" кОм");
+  else if (S.subm < LIM.submTrip && S.starting>=1){
+    S.run=false; S.tripReason="СРЫВ ПОДАЧИ";
+    alarm("crit","ЗСП","Срыв подачи — сухой ход насоса. Пуск по АПВ через 2 ч"); S.restartAt=S.t+7200;
+  } else if (S.load < LIM.loadLow && S.starting>=1 && S.Q<4){
+    S.run=false; S.tripReason="НЕДОГРУЗ ПЭД";
+    alarm("crit","ЗСП","Отключение по недогрузу. Пуск по АПВ через 2 ч"); S.restartAt=S.t+7200;
+  }
+  if (ui.auto && S.run && S.starting>=1){
+    const e = clamp((S.subm-ui.subTgt)/200,-1,1);
+    const lim = S.I>K.Inom*1.15 || S.tMot>LIM.tWarn;
+    ui.f = clamp(ui.f + ((lim&&e>0)?0:e)*0.00055*dt, 35, 65);
+    syncUI();
+  }
+}
+
+function alarm(lvl,tag,msg){
+  log.unshift({lvl,tag,msg,t:fmtClock(S.t)});
+  if (log.length>60) log.pop();
+}
+function fmtClock(t){
+  const d=Math.floor(t/86400), h=Math.floor(t/3600)%24, m=Math.floor(t/60)%60, s=Math.floor(t)%60;
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0")+" (сут "+d+")";
+}
+
+/* команды */
+function cmdStart(){
+  if (S.run) return;
+  if (S.tripped){ alarm("warn","БЛОК","Пуск запрещён: активна защита «"+S.tripReason+"»"); return; }
+  if (S.iso < LIM.isoTrip){ alarm("warn","БЛОК","Пуск запрещён: низкое сопротивление изоляции"); return; }
+  S.run=true; S.restartAt=null; alarm("ok","ПУСК","Запуск УЭЦН на частоте "+ui.f.toFixed(1)+" Гц");
+}
+function cmdStop(){ if(!S.run) return; S.run=false; S.restartAt=null; alarm("info","СТОП","Плановый останов оператором"); }
+function cmdEstop(){ S.run=false; S.tripped=true; S.tripReason="АВАР. ОСТАНОВ"; S.restartAt=null;
+  alarm("crit","АВАР","АВАРИЙНЫЙ ОСТАНОВ по команде оператора"); }
+function cmdAck(){ if(S.tripped) alarm("ok","КВИТ","Сброс защиты «"+S.tripReason+"»"); S.tripped=false; S.tripReason=""; ackAnn(); }
+function cmdRepair(){ S.run=false; S.tripped=false; S.tripReason=""; S.restartAt=null;
+  S.iso=240; S.clog=1; S.leak=0; S.J=K.J0; S.tMot=24;
+  alarm("ok","ТКРС","Текущий ремонт: заменены кабель и НКТ, выполнена ОПЗ"); }
+function inject(k){
+  const m={clog:()=>{S.clog=Math.min(6,S.clog+1.4);return"Отложение солей и АСПО в НКТ";},
+           skin:()=>{S.J*=0.55;return"Кольматация призабойной зоны";},
+           leak:()=>{S.leak=Math.min(.6,S.leak+.25);return"Негерметичность колонны НКТ";},
+           iso :()=>{S.iso=Math.min(S.iso,22);return"Повреждение изоляции кабельной линии";},
+           water:()=>{S.wc=Math.min(.97,S.wc+.18);return"Прорыв пластовой воды";}}[k]();
+  alarm("crit","НЕИСПР",m);
+}
+
+/* ####################################################################
+   1-bis. КОМПОНОВКИ ЩИТА
+
+   Один и тот же набор приборов раскладывается по холсту несколькими
+   способами. Приборы при этом не меняются ни в размере, ни в отрисовке —
+   переезжают только блоки целиком. Это и есть проверка распознавания:
+   эталон, нарезанный в одной компоновке, обязан читаться в любой другой.
+   Если чтение держится на координате прибора, а не на его изображении,
+   смена компоновки его ломает — и это сразу видно в отчёте.
+
+   Габариты блоков не зависят от компоновки:
+     mimic     900x700   мнемосхема сбора и подготовки
+     gauges    684x456   шесть стрелочных манометров
+     displays  680x234   шесть семисегментных индикаторов
+     right     288x700   щит сигнализации, лампы, кнопки
+     console   288x288   пульт управления режимом
+     bars      460x288   столбчатые индикаторы
+     trends   1126x240   три тренда
+     log      1126x42    журнал событий
+   #################################################################### */
+const BLOCK_RECT = {
+  mimic:   [  12,  70,  900, 700],
+  gauges:  [ 928,  76,  684, 456],
+  displays:[ 928, 534,  680, 234],
+  right:   [1620,  70,  288, 700],
+  console: [1620, 780,  288, 288],
+  bars:    [  12, 780,  460, 288],
+  trends:  [ 482, 780, 1126, 240],
+  log:     [ 482,1026, 1126,  42]
+};
+const BLOCK_TITLE = {
+  mimic:"мнемосхема", gauges:"манометры", displays:"цифровые индикаторы",
+  right:"щит сигнализации", console:"пульт управления",
+  bars:"столбчатые индикаторы", trends:"тренды", log:"журнал событий"
+};
+
+/* Компоновка задаёт левый верхний угол каждого блока. Перечислены только
+   переехавшие блоки, остальные остаются на базовых местах. */
+const LAYOUTS = {
+  A: { name:"A · базовая",
+       note:"мнемосхема слева, приборы в центре, сигнализация справа",
+       at:{} },
+  B: { name:"B · зеркальная",
+       note:"колонки обеих полос в обратном порядке",
+       at:{ right:[  12,  70], gauges:[ 316,  76], displays:[ 316, 534], mimic:[1008,  70],
+            console:[ 12, 780], trends:[ 316, 780], log:[ 316,1026], bars:[1448, 780] } },
+  C: { name:"C · приборы слева",
+       note:"манометры и индикаторы к левому краю, мнемосхема в центре",
+       at:{ gauges:[  12,  76], displays:[  12, 534], mimic:[ 712,  70], right:[1620,  70],
+            trends:[  12, 780], log:[  12,1026], bars:[1148, 780], console:[1620, 780] } },
+  D: { name:"D · полосы наоборот",
+       note:"нижняя полоса поднята под шапку, верхняя опущена вниз",
+       at:{ console:[  12,  70], trends:[ 316,  70], log:[ 316, 316], bars:[1448,  70],
+            mimic:[  12, 366], right:[1620, 366], gauges:[ 928, 372], displays:[ 928, 830] } }
+};
+const LAY_IDS = Object.keys(LAYOUTS);
+let LAY = "A";
+
+/* Сдвиг блока относительно базовой компоновки. */
+function blockOfs(name){
+  const t = LAYOUTS[LAY].at[name], b = BLOCK_RECT[name];
+  return t ? [t[0]-b[0], t[1]-b[1]] : [0,0];
+}
+/* Габарит блока в текущей компоновке. */
+function blockRect(name){
+  const b = BLOCK_RECT[name], o = blockOfs(name);
+  return [b[0]+o[0], b[1]+o[1], b[2], b[3]];
+}
+/* Все габариты разом — уходят в аннотацию кадра и в manifest.json:
+   по ним скрипт сверки ищет блоки в кадре, а не читает их координаты. */
+function blockRects(){
+  const r = {}; for (const k in BLOCK_RECT) r[k] = blockRect(k); return r;
+}
+/* Габариты текущей компоновки считаются один раз на компоновку: blockOf()
+   зовётся для каждого из восьми десятков приборов на каждом кадре. */
+let RECTS_LAY = null, RECTS = null;
+function rects(){
+  if (RECTS_LAY !== LAY){ RECTS = Object.entries(blockRects()); RECTS_LAY = LAY; }
+  return RECTS;
+}
+/* Какому блоку принадлежит прибор — по попаданию габарита внутрь блока. */
+function blockOf(bbox){
+  for (const [k,r] of rects()){
+    if (bbox[0] >= r[0]-3 && bbox[1] >= r[1]-3 &&
+        bbox[0]+bbox[2] <= r[0]+r[2]+3 && bbox[1]+bbox[3] <= r[1]+r[3]+3) return k;
+  }
+  return null;
+}
+
+/* Текущий сдвиг. Его прибавляет reg() к геометрии разметки и drawButton —
+   к зоне клика, поэтому сам блок рисуется в базовых координатах и код
+   отрисовки о компоновке ничего не знает. */
+let OFS = [0,0];
+function blk(name, fn){
+  const o = blockOfs(name);
+  OFS = o;
+  ctx.save(); ctx.translate(o[0], o[1]);
+  try { fn(); } finally { ctx.restore(); OFS = [0,0]; }
+}
+
+/* ####################################################################
+   2. РЕЕСТР РАЗМЕТКИ
+   #################################################################### */
+let ANN = [];
+/* Геометрия приходит сюда в координатах блока — сдвиг компоновки
+   прибавляется здесь, единственным местом на весь щит. */
+const GEO_BOX = ["bbox","liquid_bbox","fill_bbox","display_bbox","plot_bbox",
+                 "track_bbox","measure_bbox"];
+function reg(o){
+  const dx = OFS[0], dy = OFS[1];
+  if (dx || dy){
+    for (const k of GEO_BOX) if (o[k]) o[k] = [o[k][0]+dx, o[k][1]+dy, o[k][2], o[k][3]];
+    for (const k of ["center","needle_tip"]) if (o[k]) o[k] = [o[k][0]+dx, o[k][1]+dy];
+    if (o.digits) o.digits = o.digits.map(d=>Object.assign({}, d,
+      {bbox:[d.bbox[0]+dx, d.bbox[1]+dy, d.bbox[2], d.bbox[3]]}));
+  }
+  o.block = blockOf(o.bbox);
+  ANN.push(o); return o;
+}
+
+/* Отпечаток компоновки: тип, идентификатор и габарит каждого прибора.
+   Пишется и в manifest.json, и в аннотацию каждого кадра — по нему скрипт
+   сверки замечает, что эталоны нарезаны с другой версии щита. */
+function layoutSignature(){
+  const s = ANN.map(o=>o.type+":"+o.id+":"+o.bbox.map(v=>Math.round(v)).join(",")).sort().join(";");
+  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  for (let i=0;i<s.length;i++){
+    h1 = Math.imul(h1 ^ s.charCodeAt(i), 0x01000193) >>> 0;
+    h2 = Math.imul(h2 + s.charCodeAt(i)*(i+1), 0x85ebca6b) >>> 0;
+  }
+  return (h1.toString(16).padStart(8,"0") + h2.toString(16).padStart(8,"0"));
+}
+
+/* ####################################################################
+   3. ПРИБОРЫ
+   #################################################################### */
+
+/* ---------- 3.1 Аналоговый манометр со стрелкой ---------- */
+const A0 = 135, ASWEEP = 270;   // начало шкалы и её размах, град
+
+function gaugeFace(g){
+  const size = g.r*2 + 34;
+  return cached("g:"+g.id, size, size, c=>{
+    const cx=size/2, cy=size/2, r=g.r;
+    /* корпус-квадрат с винтами */
+    const bodyGrad = c.createLinearGradient(0,0,0,size);
+    bodyGrad.addColorStop(0,"#3a4550"); bodyGrad.addColorStop(.5,"#222c36"); bodyGrad.addColorStop(1,"#151c24");
+    rr(c,2,2,size-4,size-4,10); c.fillStyle=bodyGrad; c.fill();
+    c.strokeStyle="#0a1016"; c.lineWidth=2; c.stroke();
+    for(const [sx,sy] of [[13,13],[size-13,13],[13,size-13],[size-13,size-13]]){
+      c.beginPath(); c.arc(sx,sy,4.4,0,7); c.fillStyle="#5a6773"; c.fill();
+      c.strokeStyle="#101820"; c.lineWidth=1; c.stroke();
+      c.beginPath(); c.moveTo(sx-2.6,sy-2.6); c.lineTo(sx+2.6,sy+2.6); c.strokeStyle="#2a343e"; c.lineWidth=1.4; c.stroke();
+    }
+    /* хромированный ободок */
+    const bez = c.createRadialGradient(cx-r*.5,cy-r*.5,r*.2,cx,cy,r+11);
+    bez.addColorStop(0,"#c9d4dd"); bez.addColorStop(.45,"#6d7c88"); bez.addColorStop(.72,"#aab7c2"); bez.addColorStop(1,"#39434d");
+    c.beginPath(); c.arc(cx,cy,r+11,0,7); c.fillStyle=bez; c.fill();
+    c.beginPath(); c.arc(cx,cy,r+2,0,7); c.fillStyle="#0d1319"; c.fill();
+
+    /* циферблат */
+    const dark = g.face==="dark";
+    const dg = c.createRadialGradient(cx-r*.35,cy-r*.45,r*.1,cx,cy,r);
+    if (dark){ dg.addColorStop(0,"#2b3540"); dg.addColorStop(1,"#0e141a"); }
+    else     { dg.addColorStop(0,"#fbfaf5"); dg.addColorStop(1,"#d8d6cc"); }
+    c.beginPath(); c.arc(cx,cy,r,0,7); c.fillStyle=dg; c.fill();
+
+    const ink = dark ? "#e6eef5" : "#14181c";
+    const sub = dark ? "#8fa3b4" : "#5a6068";
+
+    /* цветные зоны шкалы */
+    const zone=(from,to,col,off)=>{
+      c.beginPath();
+      c.arc(cx,cy,r-off,(A0+ASWEEP*from)*D2R,(A0+ASWEEP*to)*D2R);
+      c.strokeStyle=col; c.lineWidth=8; c.stroke();
+    };
+    if (g.green!=null) zone(0,g.green,"#1faa63",11);
+    if (g.amber!=null) zone(g.amber,g.red!=null?g.red:1,"#e0a020",11);
+    if (g.red!=null)   zone(g.red,1,"#cc2233",11);
+
+    /* деления */
+    const N = g.major*g.minor;
+    for(let i=0;i<=N;i++){
+      const f=i/N, a=(A0+ASWEEP*f)*D2R, big=i%g.minor===0;
+      const r1=r-(big?24:19), r2=r-11;
+      c.beginPath();
+      c.moveTo(cx+Math.cos(a)*r1, cy+Math.sin(a)*r1);
+      c.lineTo(cx+Math.cos(a)*r2, cy+Math.sin(a)*r2);
+      c.strokeStyle=ink; c.lineWidth=big?2.6:1.1; c.stroke();
+      if (big){
+        const v = g.min+(g.max-g.min)*f;
+        const rt = r-38;
+        txt(c, g.tickFmt?g.tickFmt(v):String(Math.round(v)),
+            cx+Math.cos(a)*rt, cy+Math.sin(a)*rt+4.5,
+            {s:Math.round(r*0.155), w:"700", c:ink, a:"center", f:mono});
+      }
+    }
+    /* надписи на циферблате */
+    txt(c,g.unit,cx,cy-r*0.30,{s:Math.round(r*0.17),w:"600",c:sub,a:"center"});
+    txt(c,g.label,cx,cy+r*0.44,{s:Math.round(r*0.145),w:"700",c:ink,a:"center",ls:0.6});
+    txt(c,"КИП · кл.т. 0,6",cx,cy+r*0.66,{s:Math.round(r*0.105),w:"400",c:sub,a:"center"});
+  });
+}
+function drawGauge(g){
+  { const v = ovr("gauge", g.id); if (v !== undefined) g.value = v; }
+  const size = g.r*2+34, x = g.x, y = g.y, cx = x+size/2, cy = y+size/2;
+  ctx.drawImage(gaugeFace(g), x, y);
+
+  const f = clamp((g.value-g.min)/(g.max-g.min),0,1);
+  const ang = A0 + ASWEEP*f;
+  const a = ang*D2R, r = g.r;
+
+  /* стрелка */
+  ctx.save(); ctx.translate(cx,cy); ctx.rotate(a);
+  ctx.shadowColor="rgba(0,0,0,.55)"; ctx.shadowBlur=6; ctx.shadowOffsetX=2; ctx.shadowOffsetY=2;
+  ctx.beginPath();
+  ctx.moveTo(r-14,0); ctx.lineTo(4,-3.6); ctx.lineTo(-r*0.26,-5.2);
+  ctx.lineTo(-r*0.26,5.2); ctx.lineTo(4,3.6); ctx.closePath();
+  ctx.fillStyle = g.face==="dark" ? "#ff5a2a" : "#c81e1e"; ctx.fill();
+  ctx.restore();
+  /* ось стрелки */
+  const hub = ctx.createRadialGradient(cx-3,cy-3,1,cx,cy,10);
+  hub.addColorStop(0,"#e8eef4"); hub.addColorStop(.6,"#8c99a5"); hub.addColorStop(1,"#39434d");
+  ctx.beginPath(); ctx.arc(cx,cy,9.5,0,7); ctx.fillStyle=hub; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx,cy,3.2,0,7); ctx.fillStyle="#1b232b"; ctx.fill();
+
+  /* цифровое дублирование значения */
+  txt(ctx, g.value.toFixed(g.dec), cx, cy+r*0.83,
+      {s:Math.round(r*0.20), w:"700", c: g.face==="dark"?"#7dffd6":"#0d2b1e", a:"center", f:mono});
+
+  /* блик стекла */
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.clip();
+  const gl = ctx.createLinearGradient(cx-r,cy-r,cx+r*0.3,cy+r*0.6);
+  gl.addColorStop(0,"rgba(255,255,255,.30)"); gl.addColorStop(.42,"rgba(255,255,255,.06)");
+  gl.addColorStop(.55,"rgba(255,255,255,0)");
+  ctx.fillStyle=gl; ctx.fillRect(cx-r,cy-r,r*2,r*2);
+  ctx.beginPath(); ctx.ellipse(cx-r*0.36,cy-r*0.52,r*0.46,r*0.19,-0.6,0,7);
+  ctx.fillStyle="rgba(255,255,255,.13)"; ctx.fill();
+  ctx.restore();
+
+  reg({ id:g.id, type:"gauge", label:g.label, unit:g.unit,
+        value:+g.value.toFixed(3), min:g.min, max:g.max,
+        angle_deg:+ang.toFixed(2), needle_frac:+f.toFixed(4),
+        center:[cx,cy], radius:r,
+        needle_tip:[+(cx+Math.cos(a)*(r-14)).toFixed(1), +(cy+Math.sin(a)*(r-14)).toFixed(1)],
+        digital_text:g.value.toFixed(g.dec),
+        redzone_from: g.red!=null ? +(g.min+(g.max-g.min)*g.red).toFixed(2) : null,
+        bbox:[x,y,size,size] });
+}
+
+/* ---------- 3.2 Семисегментный индикатор ---------- */
+const SEG = {"0":"abcdef","1":"bc","2":"abdeg","3":"abcdg","4":"bcfg","5":"acdfg",
+             "6":"acdefg","7":"abc","8":"abcdefg","9":"abcdfg","-":"g"," ":""};
+function segPolys(x,y,w,h,t){
+  const hp=(px,py,pw)=>[[px,py+t/2],[px+t/2,py],[px+pw-t/2,py],[px+pw,py+t/2],[px+pw-t/2,py+t],[px+t/2,py+t]];
+  const vp=(px,py,ph)=>[[px+t/2,py],[px+t,py+t/2],[px+t,py+ph-t/2],[px+t/2,py+ph],[px,py+ph-t/2],[px,py+t/2]];
+  const g=1.5, hh=h/2;
+  return { a:hp(x+g,y,w-2*g), g:hp(x+g,y+hh-t/2,w-2*g), d:hp(x+g,y+h-t,w-2*g),
+           f:vp(x,y+g,hh-g), b:vp(x+w-t,y+g,hh-g),
+           e:vp(x,y+hh,hh-g), c:vp(x+w-t,y+hh,hh-g) };
+}
+function drawSevenSeg(d){
+  { const v = ovr("disp", d.id); if (v !== undefined) d = Object.assign({}, d, {text:v}); }
+  const {x,y,w,h} = d;
+  const winW = 158, winH = h-18;
+  const win = { x:x+w-winW-10, y:y+9, w:winW, h:winH };
+
+  /* корпус прибора: шильдик слева, светодиодное окно справа */
+  ctx.drawImage(cached("ss:"+d.id+w+h, w, h, c=>{
+    const bg=c.createLinearGradient(0,0,0,h);
+    bg.addColorStop(0,"#333e49"); bg.addColorStop(.5,"#212a33"); bg.addColorStop(1,"#131a21");
+    rr(c,1,1,w-2,h-2,6); c.fillStyle=bg; c.fill();
+    c.strokeStyle="#070c11"; c.lineWidth=2; c.stroke();
+    rr(c,3,3,w-6,4,2); c.fillStyle="rgba(255,255,255,.07)"; c.fill();
+    /* винты крепления */
+    for (const [sx,sy] of [[11,11],[11,h-11]]){
+      c.beginPath(); c.arc(sx,sy,3.4,0,7); c.fillStyle="#59667300"; c.fill();
+      c.strokeStyle="#4a5764"; c.lineWidth=1.2; c.stroke();
+    }
+    /* шильдик */
+    const words = d.label.split(" ");
+    const lines = d.label.length>15 && words.length>1
+      ? [words.slice(0,Math.ceil(words.length/2)).join(" "), words.slice(Math.ceil(words.length/2)).join(" ")]
+      : [d.label];
+    const plateW = win.x-x-32;
+    lines.forEach((ln,i)=> txt(c, ln, 22, h/2-4+(i-(lines.length-1)/2)*15+(lines.length>1?0:2),
+        {s:12.5,w:"700",c:"#c3d3e0",ls:0.7,max:plateW}));
+    txt(c, d.unit, 22, h/2+22, {s:11.5,w:"600",c:"#7f97ab",max:plateW});
+    /* окно индикатора */
+    rr(c, win.x-x, win.y-y, win.w, win.h, 4); c.fillStyle="#05090c"; c.fill();
+    c.strokeStyle="#000"; c.lineWidth=2; c.stroke();
+    rr(c, win.x-x+1.5, win.y-y+1.5, win.w-3, win.h-3, 3);
+    c.strokeStyle="#1d2731"; c.lineWidth=1; c.stroke();
+  }), x, y);
+
+  const s    = d.text;
+  const n    = s.replace(/\./g,"").length;
+  const dots = (s.match(/\./g)||[]).length;
+  const availW = win.w - 20;
+  /* пропорции как у настоящих индикаторов: ширина цифры ≈ 0,6 высоты */
+  let dw = availW / (n + 0.35*dots + 0.24*(n+dots-1));
+  let dh = Math.min(win.h-14, dw/0.60);
+  dw = Math.min(dw, dh*0.60);
+  const gap  = dw*0.24, dotW = dw*0.35;
+  const t    = Math.max(3.5, dh*0.155);
+  const totW = n*dw + dots*dotW + (n+dots-1)*gap;
+  const col  = d.color || "#ff3b30";
+  const dim  = "rgba(90,16,11,0.42)";
+
+  let px = win.x + win.w - 10 - totW;          // цифры прижаты вправо
+  const py = win.y + (win.h-dh)/2;
+  const SK = 0.07;                              // наклон, как у настоящих LED
+  /* габарит с учётом наклона: низ символа смещён влево на SK*высоту */
+  const skBox = (bx,by,bw,bh)=>[+(bx-SK*bh).toFixed(1), +by.toFixed(1),
+                                +(bw+SK*bh).toFixed(1), +bh.toFixed(1)];
+  const digits = [];
+  ctx.save();
+  ctx.transform(1,0,-SK,1, py*SK, 0);
+  for (const ch of s){
+    if (ch==="."){
+      ctx.beginPath(); ctx.rect(px, py+dh-t, t, t);
+      ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=9; ctx.fill(); ctx.shadowBlur=0;
+      digits.push({char:".", bbox:skBox(px-SK*(dh-t), py+dh-t, t, t)});
+      px += dotW+gap; continue;
+    }
+    const P  = segPolys(px, py, dw, dh, t);
+    const on = SEG[ch] !== undefined ? SEG[ch] : "";
+    for (const k of "abcdefg"){
+      const poly = P[k], lit = on.includes(k);
+      ctx.beginPath(); ctx.moveTo(poly[0][0],poly[0][1]);
+      for (let i=1;i<poly.length;i++) ctx.lineTo(poly[i][0],poly[i][1]);
+      ctx.closePath();
+      ctx.fillStyle = lit ? col : dim;
+      if (lit){ ctx.shadowColor=col; ctx.shadowBlur=11; }
+      ctx.fill(); ctx.shadowBlur=0;
+    }
+    digits.push({char:ch, bbox:skBox(px, py, dw, dh)});
+    px += dw+gap;
+  }
+  ctx.restore();
+
+  reg({ id:d.id, type:"sevenseg", label:d.label, unit:d.unit,
+        text:s, value:d.value!=null?+(+d.value).toFixed(3):null,
+        digit_count:n, digits, color:col,
+        display_bbox:[win.x,win.y,win.w,win.h], bbox:[x,y,w,h] });
+}
+
+/* ---------- 3.3 Столбчатый индикатор ---------- */
+function drawBar(b){
+  { const v = ovr("bar", b.id); if (v !== undefined) b = Object.assign({}, b, {value:v}); }
+  const {x,y,w,h} = b;
+  /* цифровое значение занимает правое поле, шкала — всё остальное,
+     поэтому заливка и цифры никогда не накладываются друг на друга */
+  const NUMW = 84;
+  const BX = 10, BY = 21, BW = w - 20 - NUMW, BH = h - 27;
+  ctx.drawImage(cached("bar:"+b.id+w+h, w, h, c=>{
+    rr(c,1,1,w-2,h-2,5); c.fillStyle="#131c25"; c.fill();
+    c.strokeStyle="#243544"; c.lineWidth=1; c.stroke();
+    txt(c,b.label,10,15,{s:11,w:"600",c:"#93a9bb",max:w-NUMW-70});
+    txt(c,b.unit ,w-10-NUMW,15,{s:10.5,w:"400",c:"#5e7688",a:"right",max:60});
+    /* сегментированная шкала-подложка */
+    rr(c,BX,BY,BW,BH,3); c.fillStyle="#080d12"; c.fill();
+    c.strokeStyle="#1b2836"; c.lineWidth=1; c.stroke();
+    for(let i=1;i<20;i++){ const sx=BX+BW*i/20;
+      c.beginPath(); c.moveTo(sx,BY+1); c.lineTo(sx,BY+BH-1);
+      c.strokeStyle= i%5===0?"#2b3f52":"#16222d"; c.lineWidth=1; c.stroke(); }
+  }), x, y);
+  const bx=x+BX, by=y+BY, bw=BW, bh=BH;
+  const f = clamp((b.value-b.min)/(b.max-b.min),0,1);
+  const col = b.crit&&b.crit() ? "#ff4757" : b.warn&&b.warn() ? "#f7b731" : (b.color||"#00e5a0");
+  const g = ctx.createLinearGradient(bx,0,bx+bw,0);
+  g.addColorStop(0,col+"66"); g.addColorStop(1,col);
+  ctx.fillStyle=g; ctx.fillRect(bx+1, by+1, Math.max(0,bw-2)*f, bh-2);
+  ctx.fillStyle="rgba(255,255,255,.28)"; ctx.fillRect(bx+1, by+1, Math.max(0,bw-2)*f, 2);
+  txt(ctx, b.value.toFixed(b.dec), x+w-10, y+h-9, {s:15,w:"700",c:col,a:"right",f:mono,max:NUMW-6});
+
+  reg({ id:b.id, type:"bargraph", label:b.label, unit:b.unit,
+        value:+b.value.toFixed(3), min:b.min, max:b.max, fill_frac:+f.toFixed(4),
+        color:col, digital_text:b.value.toFixed(b.dec),
+        fill_bbox:[bx+1, by+1, +(Math.max(0,bw-2)*f).toFixed(1), bh-2],
+        track_bbox:[bx+1, by+1, +(Math.max(0,bw-2)).toFixed(1), bh-2], bbox:[x,y,w,h] });
+}
+
+/* ---------- 3.4 Сигнальная лампа ---------- */
+function drawLamp(l){
+  { const v = ovr("lamp", l.id); if (v !== undefined) l = Object.assign({}, l, {state:v}); }
+  const {x,y,w,h} = l;
+  const COL = { green:["#00e5a0","#0b3a2c"], red:["#ff4757","#3d1116"],
+                amber:["#f7b731","#3b2b0c"], blue:["#38bdf8","#0d2c40"], white:["#e8f2fa","#2a323a"] };
+  const [on,off] = COL[l.color]||COL.green;
+  const blink = l.state==="blink" && (Math.floor(CLK()/450)%2===0);
+  const lit = l.state==="on" || blink;
+
+  rr(ctx,x,y,w,h,5); ctx.fillStyle="#161f28"; ctx.fill();
+  ctx.strokeStyle="#26394b"; ctx.lineWidth=1; ctx.stroke();
+  const cx=x+18, cy=y+h/2, r=11;
+  const g=ctx.createRadialGradient(cx-3,cy-4,1,cx,cy,r);
+  g.addColorStop(0, lit?"#ffffff":off); g.addColorStop(.35, lit?on:off); g.addColorStop(1, lit?on:"#0c1218");
+  if (lit){ ctx.shadowColor=on; ctx.shadowBlur=16; }
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.fillStyle=g; ctx.fill(); ctx.shadowBlur=0;
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.strokeStyle="#0a0f14"; ctx.lineWidth=2; ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(cx-3,cy-4,4.5,2.6,-0.5,0,7); ctx.fillStyle="rgba(255,255,255,.45)"; ctx.fill();
+  txt(ctx,l.label,x+36,y+h/2+4,{s:11.5,w:"600",c: lit?"#dceaf5":"#5f7488",ls:0.5});
+
+  reg({ id:l.id, type:"lamp", label:l.label, color:l.color,
+        state: l.state, is_lit: lit, bbox:[x,y,w,h], led_center:[cx,cy], led_radius:r });
+}
+
+/* ---------- 3.5 Блинкер щита тревог ---------- */
+const annAck = {};
+function ackAnn(){ for (const k in annAck) annAck[k]=true; }
+function drawAnn(a){
+  { const v = ovr("ann", a.id); if (v !== undefined){ a = Object.assign({}, a, {active:v}); annAck[a.id] = true; } }
+  const {x,y,w,h} = a;
+  const active = a.active;
+  const unack  = active && !annAck[a.id];
+  if (active && annAck[a.id]===undefined) annAck[a.id]=false;
+  if (!active) annAck[a.id]=undefined;
+  const blink = unack && (Math.floor(CLK()/380)%2===0);
+  const lit = active && (!unack || blink);
+  const base = a.sev==="alarm" ? "#ff3b46" : "#f7b731";
+
+  rr(ctx,x,y,w,h,3);
+  ctx.fillStyle = lit ? (a.sev==="alarm"?"#5c0e15":"#4a3608") : "#131b23"; ctx.fill();
+  ctx.strokeStyle = lit ? base : "#25384a"; ctx.lineWidth = lit?1.8:1; ctx.stroke();
+  if (lit){
+    ctx.save(); rr(ctx,x,y,w,h,3); ctx.clip();
+    const g=ctx.createLinearGradient(0,y,0,y+h);
+    g.addColorStop(0, a.sev==="alarm"?"#ff6b74":"#ffd479"); g.addColorStop(1,"rgba(0,0,0,0)");
+    ctx.globalAlpha=.28; ctx.fillStyle=g; ctx.fillRect(x,y,w,h); ctx.restore();
+  }
+  const words = a.label.split(" ");
+  const lines = words.length>2 ? [words.slice(0,Math.ceil(words.length/2)).join(" "), words.slice(Math.ceil(words.length/2)).join(" ")] : [a.label];
+  const fs = 12;
+  lines.forEach((ln,i)=> txt(ctx, ln, x+w/2, y+h/2+4+(i-(lines.length-1)/2)*14,
+        {s:fs, w:"700", c: lit ? (a.sev==="alarm"?"#ffe3e5":"#fff0cc") : "#3f5468", a:"center", ls:0.7}));
+
+  reg({ id:a.id, type:"annunciator", label:a.label, severity:a.sev,
+        state: !active ? "off" : (unack ? "blink" : "on"), is_lit:lit, bbox:[x,y,w,h] });
+}
+
+/* ---------- 3.6 Физическая кнопка ---------- */
+const HIT = [];
+function drawButton(b){
+  { const v = ovr("btn", b.id); if (v !== undefined) b = Object.assign({}, b, {pressed:v}); }
+  const {x,y,w,h} = b;
+  const pressed = b.pressed;
+  const C = {green:["#1d8f57","#0d4d2f"], red:["#c62431","#6d1119"],
+             amber:["#c08a12","#6b4d08"], grey:["#3a4854","#212b34"]}[b.color||"grey"];
+  rr(ctx,x,y,w,h,6); ctx.fillStyle="#0b1116"; ctx.fill();
+  const g=ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0, pressed?C[1]:C[0]); g.addColorStop(1, pressed?C[0]:C[1]);
+  rr(ctx,x+3,y+3,w-6,h-(pressed?4:8),5); ctx.fillStyle=g; ctx.fill();
+  ctx.strokeStyle="#05090d"; ctx.lineWidth=1.5; ctx.stroke();
+  if (!pressed){ rr(ctx,x+5,y+5,w-10,4,3); ctx.fillStyle="rgba(255,255,255,.18)"; ctx.fill(); }
+  txt(ctx,b.label,x+w/2,y+h/2+(pressed?4:2),{s:13,w:"700",c:"#f2f8fc",a:"center",ls:1.1});
+  HIT.push({x:x+OFS[0], y:y+OFS[1], w, h, fn:b.fn});
+  reg({ id:b.id, type:"button", label:b.label, color:b.color||"grey",
+        state: pressed?"pressed":"released", bbox:[x,y,w,h] });
+}
+
+/* ---------- 3.7 Поворотный переключатель ---------- */
+function drawSwitch(s){
+  { const v = ovr("sel", s.id); if (v !== undefined) s = Object.assign({}, s, {value:v}); }
+  const {x,y,w,h} = s;
+  rr(ctx,x,y,w,h,5); ctx.fillStyle="#151e27"; ctx.fill();
+  ctx.strokeStyle="#26394b"; ctx.stroke();
+  const cx=x+w/2, cy=y+30, r=17;
+  const g=ctx.createRadialGradient(cx-5,cy-6,2,cx,cy,r);
+  g.addColorStop(0,"#5c6875"); g.addColorStop(1,"#20282f");
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,7); ctx.fillStyle=g; ctx.fill();
+  ctx.strokeStyle="#0a1016"; ctx.lineWidth=2; ctx.stroke();
+  const idx = s.options.indexOf(s.value);
+  const ang = (-135 + 270*idx/(s.options.length-1))*D2R - Math.PI/2;
+  ctx.save(); ctx.translate(cx,cy);
+  ctx.beginPath(); ctx.moveTo(Math.cos(ang)*4,Math.sin(ang)*4);
+  ctx.lineTo(Math.cos(ang)*(r-3),Math.sin(ang)*(r-3));
+  ctx.strokeStyle="#f2f8fc"; ctx.lineWidth=4; ctx.lineCap="round"; ctx.stroke(); ctx.restore();
+  s.options.forEach((o,i)=>{
+    const a=(-135+270*i/(s.options.length-1))*D2R - Math.PI/2;
+    txt(ctx,o,cx+Math.cos(a)*(r+17),cy+Math.sin(a)*(r+17)+3,
+        {s:9.5,w:o===s.value?"700":"400",c:o===s.value?"#38bdf8":"#5f7488",a:"center",max:52});
+  });
+  txt(ctx,s.label,x+w/2,y+h-8,{s:10.5,w:"600",c:"#8fa8bb",a:"center",ls:0.6,max:w-10});
+  HIT.push({x:x+OFS[0], y:y+OFS[1], w, h, fn:s.fn});
+  reg({ id:s.id, type:"selector", label:s.label, value:s.value,
+        options:s.options, position_index:idx, bbox:[x,y,w,h] });
+}
+
+/* ---------- 3.8 Табло уставки с кнопками «больше / меньше» ---------- */
+function drawSetpoint(sp){
+  const {x,y,w,h,id,label,text,unit,color,locked} = sp;
+  const bw = 52, gap = 6, dw = w - 2*bw - 2*gap;
+  drawButton({ id:id+"_dn", label:"−", color:"grey", x, y, w:bw, h,
+               pressed:false, fn: locked?()=>{}:sp.dn });
+  drawButton({ id:id+"_up", label:"+", color:"grey", x:x+w-bw, y, w:bw, h,
+               pressed:false, fn: locked?()=>{}:sp.up });
+  const dx = x+bw+gap;
+  rr(ctx,dx,y,dw,h,5); ctx.fillStyle="#070d12"; ctx.fill();
+  ctx.strokeStyle= locked ? "#2b3742" : "#2f556e"; ctx.lineWidth=1.6; ctx.stroke();
+  txt(ctx,label,dx+8,y+14,{s:9.5,w:"600",c:"#7f97ab",max:dw-16});
+  txt(ctx,text, dx+dw-30, y+h-10,
+      {s:20,w:"700",c: locked?"#4d6478":(color||"#28e07a"),a:"right",f:mono,max:dw-46});
+  txt(ctx,unit, dx+dw-8,  y+h-11, {s:10,w:"600",c:"#5f7488",a:"right",max:26});
+  if (locked) txt(ctx,"АВТО",dx+dw-8,y+14,{s:9,w:"700",c:"#38bdf8",a:"right"});
+  reg({ id, type:"text_readout", label, text, unit,
+        value:parseFloat(text), state: locked?"locked":"manual", bbox:[dx,y,dw,h] });
+}
+
+/* ####################################################################
+   4. МНЕМОСХЕМА P&ID
+   #################################################################### */
+const STEEL = "#5b7186", PIPE_D = "#2b3a48";
+
+function pipe(x1,y1,x2,y2,wd){
+  wd = wd||9;
+  ctx.lineCap="butt";
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.strokeStyle="#101a22"; ctx.lineWidth=wd+4; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.strokeStyle=PIPE_D; ctx.lineWidth=wd; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.strokeStyle="rgba(255,255,255,.10)"; ctx.lineWidth=Math.max(1,wd*0.28); ctx.stroke();
+}
+function flow(x1,y1,x2,y2,on,col,wd){
+  if(!on) return;
+  ctx.save();
+  ctx.setLineDash([9,13]); ctx.lineDashOffset = -(CLK()/38)%22;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+  ctx.strokeStyle=col||"#00e5a0"; ctx.lineWidth=wd||5; ctx.lineCap="round"; ctx.stroke();
+  ctx.restore();
+}
+function flange(x,y,vert){
+  ctx.fillStyle="#48596b";
+  if (vert) ctx.fillRect(x-9,y-3,18,6); else ctx.fillRect(x-3,y-9,6,18);
+}
+/* задвижка (клиновая) с маховиком */
+function drawValve(v){
+  { const o = ovr("valve", v.id); if (o !== undefined) v = Object.assign({}, v, {open:o}); }
+  const {x,y} = v, s = v.s||17;
+  const openPct = v.open;
+  const col = openPct>95 ? "#00e5a0" : openPct<5 ? "#ff4757" : "#f7b731";
+  ctx.beginPath();
+  ctx.moveTo(x-s,y-s*0.72); ctx.lineTo(x,y); ctx.lineTo(x-s,y+s*0.72); ctx.closePath();
+  ctx.moveTo(x+s,y-s*0.72); ctx.lineTo(x,y); ctx.lineTo(x+s,y+s*0.72); ctx.closePath();
+  ctx.fillStyle=col; ctx.fill(); ctx.strokeStyle="#0a1016"; ctx.lineWidth=1.6; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y-s-9); ctx.strokeStyle=STEEL; ctx.lineWidth=2.6; ctx.stroke();
+  if (v.actuator){
+    rr(ctx,x-13,y-s-25,26,16,3); ctx.fillStyle="#42556a"; ctx.fill(); ctx.strokeStyle="#0a1016"; ctx.stroke();
+    txt(ctx,"FC",x,y-s-13,{s:9,w:"700",c:"#cfe0ee",a:"center"});
+  } else {
+    ctx.beginPath(); ctx.ellipse(x,y-s-11,12,3.6,0,0,7); ctx.strokeStyle=STEEL; ctx.lineWidth=2.6; ctx.stroke();
+  }
+  const halfW = Math.max(s+5, 30);
+  txt(ctx,v.tag,x,y+s+16,{s:10.5,w:"700",c:"#8fa8bb",a:"center",max:halfW*2});
+  if (v.showPct) txt(ctx,openPct.toFixed(0)+" %",x,y+s+29,{s:11,w:"700",c:col,a:"center",f:mono});
+  const top = y - s - (v.actuator?27:15), botOff = s + (v.showPct?34:21);
+  reg({ id:v.id, type:"valve", label:v.tag, opening_pct:+openPct.toFixed(1),
+        state: openPct>95?"open": openPct<5?"closed":"throttled",
+        symbol:"gate", sym_rel:[halfW, y-top, s],
+        bbox:[x-halfW, top, halfW*2, (y+botOff)-top] });
+}
+/* обратный клапан */
+function drawCheck(o){
+  { const v = ovr("valve", o.id); if (v !== undefined) o = Object.assign({}, o, {on: v>50}); }
+  const {x,y,on} = o;
+  ctx.beginPath(); ctx.moveTo(x-13,y-10); ctx.lineTo(x+13,y); ctx.lineTo(x-13,y+10); ctx.closePath();
+  ctx.fillStyle = on?"#2c5f4c":"#33404c"; ctx.fill(); ctx.strokeStyle="#0a1016"; ctx.lineWidth=1.6; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x+13,y-11); ctx.lineTo(x+13,y+11); ctx.strokeStyle=STEEL; ctx.lineWidth=2.4; ctx.stroke();
+  txt(ctx,o.tag,x,y+26,{s:10.5,w:"700",c:"#8fa8bb",a:"center",max:60});
+  reg({ id:o.id, type:"valve", label:o.tag, opening_pct: on?100:0,
+        state: on?"open":"closed", symbol:"check", sym_rel:[30, 14, 13],
+        bbox:[x-30,y-14,60,44] });
+}
+/* предохранительный клапан со свечой */
+function drawPSV(o){
+  { const v = ovr("valve", o.id); if (v !== undefined) o = Object.assign({}, o, {open: v>50}); }
+  const {x,y} = o, open = o.open;
+  ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x,y-10); ctx.strokeStyle=STEEL; ctx.lineWidth=3; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x-9,y-10); ctx.lineTo(x,y-18); ctx.lineTo(x-9,y-26); ctx.closePath();
+  ctx.moveTo(x+9,y-10); ctx.lineTo(x,y-18); ctx.lineTo(x+9,y-26); ctx.closePath();
+  ctx.fillStyle= open?"#ff4757":"#33404c"; ctx.fill(); ctx.strokeStyle="#0a1016"; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x,y-26); ctx.lineTo(x,y-38); ctx.lineTo(x+8,y-43);
+  ctx.strokeStyle=STEEL; ctx.lineWidth=2.4; ctx.stroke();
+  if (open) flow(x,y-10,x,y-38,true,"#38bdf8",3);
+  /* шильдик справа от стойки — внутрь аппарата не залезает */
+  txt(ctx,o.tag,x+13,y-12,{s:10,w:"700",c: open?"#ff8a95":"#8fa8bb",max:46});
+  reg({ id:o.id, type:"valve", label:o.tag, opening_pct: open?100:0,
+        state: open?"open":"closed", symbol:"psv", sym_rel:[11, 46, 9],
+        bbox:[x-11,y-46,72,46] });
+}
+/* блочный аппарат (АГЗУ, подогреватель, узел учёта, дренажная ёмкость) */
+function drawApparatus(o){
+  { const v = ovr("app", o.id); if (v !== undefined) o = Object.assign({}, o, {on:v}); }
+  const {x,y,w,h,id,tag,sub,rows} = o;
+  const g = ctx.createLinearGradient(0,y,0,y+h);
+  g.addColorStop(0,"#3b4855"); g.addColorStop(.42,"#232d37"); g.addColorStop(1,"#161d24");
+  rr(ctx,x,y,w,h,5); ctx.fillStyle=g; ctx.fill();
+  ctx.strokeStyle= o.on ? "#2f7a63" : "#0a1016"; ctx.lineWidth=2; ctx.stroke();
+  rr(ctx,x+2,y+2,w-4,4,2); ctx.fillStyle="rgba(255,255,255,.08)"; ctx.fill();
+  /* ребристая обшивка блок-бокса */
+  ctx.strokeStyle="rgba(255,255,255,.045)"; ctx.lineWidth=1;
+  for (let i=x+9;i<x+w-6;i+=9){ ctx.beginPath(); ctx.moveTo(i,y+9); ctx.lineTo(i,y+h-6); ctx.stroke(); }
+  ctx.beginPath(); ctx.arc(x+w-13, y+13, 4.6, 0, 7);
+  ctx.fillStyle = o.on ? "#00e5a0" : "#2b3742"; ctx.fill();
+  if (o.on){ ctx.shadowColor="#00e5a0"; ctx.shadowBlur=10; ctx.fill(); ctx.shadowBlur=0; }
+  txt(ctx,tag, x+9, y+19, {s:12,w:"700",c:"#d3e0ec",ls:0.6,max:w-30});
+  if (sub) txt(ctx,sub, x+9, y+33, {s:10,w:"400",c:"#7f97ab",max:w-18});
+  (rows||[]).forEach((r,i)=>{
+    const yy = y+h-9-(rows.length-1-i)*15;
+    txt(ctx,r[0], x+9,   yy, {s:10,w:"600",c:"#7f97ab",max:w*0.52});
+    txt(ctx,r[1], x+w-9, yy, {s:12.5,w:"700",c:r[2]||"#38bdf8",a:"right",f:mono,max:w*0.44});
+  });
+  reg({ id, type:"apparatus", label:tag, sublabel:sub||null,
+        state: o.on?"running":"stopped",
+        readouts:(rows||[]).map(r=>({name:r[0], text:r[1], value:parseFloat(r[1])})),
+        bbox:[x,y,w,h] });
+}
+/* вертикальный аппарат-каплеуловитель */
+function drawKO(o){
+  const {x,y,w,h,id,tag} = o, lvl = clamp(o.level,0,1);
+  const g = ctx.createLinearGradient(x,0,x+w,0);
+  g.addColorStop(0,"#2c3742"); g.addColorStop(.3,"#55677a"); g.addColorStop(1,"#1c242c");
+  ctx.beginPath();
+  ctx.moveTo(x,y+11); ctx.quadraticCurveTo(x+w/2,y-8,x+w,y+11);
+  ctx.lineTo(x+w,y+h-11); ctx.quadraticCurveTo(x+w/2,y+h+8,x,y+h-11); ctx.closePath();
+  ctx.fillStyle=g; ctx.fill(); ctx.strokeStyle="#0a1016"; ctx.lineWidth=2; ctx.stroke();
+  const ix=x+6, iy=y+13, iw=w-12, ih=h-26;
+  ctx.fillStyle="#070c10"; ctx.fillRect(ix,iy,iw,ih);
+  const ly = iy+ih*(1-lvl);
+  const lg = ctx.createLinearGradient(0,ly,0,iy+ih);
+  lg.addColorStop(0,"#6a4a1c"); lg.addColorStop(1,"#241a09");
+  ctx.fillStyle=lg; ctx.fillRect(ix,ly,iw,iy+ih-ly);
+  ctx.fillStyle="#9a6d28"; ctx.fillRect(ix,ly,iw,2.5);
+  /* сетчатая насадка */
+  ctx.strokeStyle="rgba(160,185,210,.4)"; ctx.lineWidth=1;
+  for (let i=0;i<5;i++){ ctx.beginPath(); ctx.moveTo(ix+2,iy+7+i*5); ctx.lineTo(ix+iw-2,iy+7+i*5); ctx.stroke(); }
+  txt(ctx,tag, x+w/2, y+h+16, {s:10.5,w:"700",c:"#8fa8bb",a:"center",max:w+40});
+  txt(ctx,(lvl*100).toFixed(0)+" %", x+w/2, y+h+29, {s:11,w:"700",c:"#f7b731",a:"center",f:mono});
+  reg({ id, type:"vessel_level", label:tag, unit:"%", value:+(lvl*100).toFixed(2),
+        level_pct:+(lvl*100).toFixed(2),
+        liquid_bbox:[ix, +ly.toFixed(1), iw, +(iy+ih-ly).toFixed(1)],
+        bbox:[x-4,y-9,w+8,h+43] });
+}
+/* центробежный насос */
+function drawPumpSym(p){
+  { const v = ovr("pump", p.id); if (v !== undefined) p = Object.assign({}, p, {on:v}); }
+  const {x,y} = p, r = 19;
+  ctx.beginPath(); ctx.arc(x,y,r,0,7);
+  ctx.fillStyle = p.on?"#12513f":"#232e39"; ctx.fill();
+  ctx.strokeStyle = p.on?"#00e5a0":"#3c4c5c"; ctx.lineWidth=2.2; ctx.stroke();
+  ctx.save(); ctx.translate(x,y); ctx.rotate(p.on ? CLK()/140 : 0);
+  for(let i=0;i<3;i++){ ctx.rotate(Math.PI*2/3);
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.quadraticCurveTo(r*0.6,-r*0.25,r*0.82,r*0.2);
+    ctx.strokeStyle=p.on?"#7dffd6":"#54677a"; ctx.lineWidth=2.4; ctx.stroke(); }
+  ctx.restore();
+  ctx.fillStyle="#2b3a48"; ctx.fillRect(x-r-4,y+r-2,(r+4)*2,7);
+  txt(ctx,p.tag,x,y+r+22,{s:10.5,w:"700",c:"#8fa8bb",a:"center"});
+  reg({ id:p.id, type:"pump", label:p.tag, state:p.on?"running":"stopped",
+        symbol:"pump", sym_rel:[r+6, r+4, r],
+        bbox:[x-r-6,y-r-4,(r+6)*2,r*2+30] });
+}
+/* волна на поверхности жидкости */
+function waveTop(x,w,y,amp,ph){
+  ctx.beginPath(); ctx.moveTo(x,y);
+  for(let i=0;i<=w;i+=6) ctx.lineTo(x+i, y + Math.sin(i/26 + ph)*amp);
+  return y;
+}
+
+/* --- Скважина в разрезе --- */
+const GRD = 75;                     // отметка устья от верха панели скважины
+function drawWell(x,y,w,h){
+  const top=y+GRD, bot=y+h-26, L=K.Lwell;
+  const dep = d => top + (bot-top)*clamp(d/L,0,1);
+  ctx.drawImage(cached("wellbg"+w+"x"+h,w,h,c=>{
+    const H0 = h-GRD-26;            // высота разреза в пикселях
+    /* горные породы слоями */
+    const strata=[["#141d25",0],["#111a21",.18],["#16202a",.34],["#101920",.5],["#17222c",.66],["#121c24",.8]];
+    strata.forEach(([col,f])=>{ c.fillStyle=col; c.fillRect(0,GRD+H0*f,w,H0*0.2+2); });
+    c.fillStyle="#0a1219"; c.fillRect(0,0,w,GRD);
+    c.strokeStyle="#31445a"; c.lineWidth=1.5;
+    c.beginPath(); c.moveTo(0,GRD); c.lineTo(w,GRD); c.stroke();
+    for(let i=0;i<w;i+=13){ c.beginPath(); c.moveTo(i,GRD); c.lineTo(i+7,GRD-5);
+      c.strokeStyle="#31445a"; c.lineWidth=1; c.stroke(); }
+    /* продуктивный пласт */
+    const py=GRD+H0*0.87;
+    const gg=c.createLinearGradient(0,py,0,py+H0*0.13);
+    gg.addColorStop(0,"#3a2b13"); gg.addColorStop(1,"#221808");
+    c.fillStyle=gg; c.fillRect(0,py,w,H0*0.13+26);
+    c.strokeStyle="#7a5a24"; c.lineWidth=1.2;
+    c.beginPath(); c.moveTo(0,py); c.lineTo(w,py); c.stroke();
+    for(let i=0;i<w;i+=9) for(let j=0;j<5;j++){
+      c.beginPath(); c.arc(i+(j%2)*4, py+9+j*11, 1.5, 0, 7); c.fillStyle="#6b5426"; c.fill(); }
+    txt(c,"ПЛАСТ БС-10",6,py+15,{s:10,w:"700",c:"#a5813a",ls:0.6,max:w*0.6});
+    /* шкала глубин */
+    for(let d=0; d<=2400; d+=200){
+      const yy = GRD+H0*(d/2400);
+      c.beginPath(); c.moveTo(w-26,yy); c.lineTo(w-19,yy); c.strokeStyle="#3d5568"; c.lineWidth=1; c.stroke();
+      txt(c,String(d),w-29,yy+3.5,{s:8.5,c:"#54708a",a:"right",f:mono});
+    }
+    txt(c,"м",w-29,GRD-4,{s:8.5,c:"#54708a",a:"right"});
+  }), x, y);
+
+  const cx = Math.round(x + w*0.42), cw = 30;
+  /* обсадная колонна */
+  ctx.fillStyle="#070c11"; ctx.fillRect(cx-cw/2, top, cw, bot-top);
+  ctx.strokeStyle="#44586c"; ctx.lineWidth=2;
+  ctx.strokeRect(cx-cw/2, top, cw, bot-top);
+
+  /* столб жидкости в затрубе */
+  const ly = dep(S.h);
+  const lg = ctx.createLinearGradient(0,ly,0,bot);
+  lg.addColorStop(0,"#4a3418"); lg.addColorStop(1,"#1c1409");
+  ctx.fillStyle=lg; ctx.fillRect(cx-cw/2+2, ly, cw-4, bot-ly);
+  ctx.save(); ctx.beginPath(); ctx.rect(cx-cw/2+2, ly-6, cw-4, 14); ctx.clip();
+  waveTop(cx-cw/2+2, cw-4, ly, 1.8, CLK()/300);
+  ctx.lineTo(cx+cw/2, ly+10); ctx.lineTo(cx-cw/2, ly+10); ctx.closePath();
+  ctx.fillStyle="#6b4a1f"; ctx.fill(); ctx.restore();
+  ctx.beginPath(); ctx.moveTo(cx-cw/2-12, ly); ctx.lineTo(cx+cw/2+12, ly);
+  ctx.strokeStyle="#f7b731"; ctx.lineWidth=1.6; ctx.stroke();
+  txt(ctx,"Ндин "+S.h.toFixed(0)+" м", cx+cw/2+15, ly+4,
+      {s:11.5,w:"700",c:"#f7b731",f:mono,max:x+w-32-(cx+cw/2+15)});
+
+  /* НКТ */
+  ctx.fillStyle="#101a22"; ctx.fillRect(cx-7, top-8, 14, dep(K.Lpump)-top+8);
+  ctx.strokeStyle="#4a6076"; ctx.lineWidth=1;
+  ctx.strokeRect(cx-7, top-8, 14, dep(K.Lpump)-top+8);
+  flow(cx, dep(K.Lpump), cx, top-6, S.Q>0.5, "#00e5a0", 6);
+
+  /* насос и ПЭД */
+  const py0 = dep(K.Lpump);
+  rr(ctx,cx-13,py0,26,34,3); ctx.fillStyle= S.run?"#17332c":"#1a232c"; ctx.fill();
+  ctx.strokeStyle= S.run?"#00e5a0":"#3c4c5c"; ctx.lineWidth=1.8; ctx.stroke();
+  for(let i=0;i<5;i++){ ctx.beginPath(); ctx.moveTo(cx-13,py0+5+i*6); ctx.lineTo(cx+13,py0+5+i*6);
+    ctx.strokeStyle= S.run?"#0d6b53":"#26323d"; ctx.lineWidth=1.4; ctx.stroke(); }
+  rr(ctx,cx-11,py0+38,22,28,3);
+  ctx.fillStyle= S.tMot>LIM.tWarn ? "#4a1218" : "#1a232c"; ctx.fill();
+  ctx.strokeStyle= S.tMot>LIM.tWarn ? "#ff4757" : (S.run?"#f7b731":"#3c4c5c"); ctx.lineWidth=1.8; ctx.stroke();
+  const lblW = x+w-32-(cx+21);
+  txt(ctx,"ЭЦН "+K.Lpump+" м", cx+21, py0+16, {s:10.5,w:"700",c:"#8fa8bb",max:lblW});
+  txt(ctx,"ПЭД "+S.tMot.toFixed(0)+" °C", cx+21, py0+54,
+      {s:10.5,w:"700",c: S.tMot>LIM.tWarn?"#ff8a95":"#8fa8bb", max:lblW});
+  /* кабель */
+  ctx.beginPath(); ctx.moveTo(cx+13,py0+52); ctx.lineTo(cx+18,py0+52); ctx.lineTo(cx+18,top-8);
+  ctx.strokeStyle="#5a4520"; ctx.lineWidth=3; ctx.stroke();
+
+  /* перфорация и приток */
+  for(let i=0;i<4;i++){
+    const yy = dep(2250+i*40);
+    ctx.beginPath(); ctx.moveTo(cx-cw/2,yy); ctx.lineTo(cx-cw/2-13,yy-3);
+    ctx.moveTo(cx+cw/2,yy); ctx.lineTo(cx+cw/2+13,yy-3);
+    ctx.strokeStyle="#c07a2a"; ctx.lineWidth=2; ctx.stroke();
+    if (S.Qin>0.5){
+      flow(cx-cw/2-13,yy-3,cx-cw/2,yy,true,"#38bdf8",2.5);
+      flow(cx+cw/2+13,yy-3,cx+cw/2,yy,true,"#38bdf8",2.5);
+    }
+  }
+  /* Врезки параметров — узким столбцом слева от обсадной колонны. Раньше они
+     ложились прямо на неё и делали часть шкалы уровня непрозрачной: измерение
+     столба жидкости упиралось в них и всегда возвращало один и тот же ответ. */
+  const tx = x+5, tw2 = Math.max(48, (cx - cw/2) - tx - 5);
+  const tagBox=(id,ty,tag,name,val,col)=>{
+    rr(ctx,tx,ty,tw2,44,4); ctx.fillStyle="rgba(6,11,15,.94)"; ctx.fill();
+    ctx.strokeStyle="#2b4054"; ctx.lineWidth=1; ctx.stroke();
+    txt(ctx,tag ,tx+5,ty+12,{s:8.5,w:"700",c:"#5f7488",max:tw2-10});
+    txt(ctx,name,tx+5,ty+24,{s:8.5,w:"600",c:"#7f97ab",max:tw2-10});
+    txt(ctx,val ,tx+5,ty+39,{s:11.5,w:"700",c:col||"#38bdf8",f:mono,max:tw2-10});
+    reg({id,type:"text_readout",label:tag+" "+name,text:val,value:parseFloat(val),
+         unit:"бар", bbox:[tx,ty,tw2,44]});
+  };
+  tagBox("txt_p_intake", bot-236, "PT-104","Р ПРИЁМА",  S.Ppi.toFixed(1));
+  tagBox("txt_p_bhp",    bot-186, "PT-105","Р ЗАБОЙНОЕ",S.Pwf.toFixed(1),"#a78bfa");
+  tagBox("txt_p_res",    bot-136, "—",     "Р ПЛАСТОВОЕ",S.Pr.toFixed(1),"#c9a227");
+  txt(ctx,"СКВАЖИНА 1247 · РАЗРЕЗ", x+6, y+16, {s:11.5,w:"700",c:"#8fa8bb",ls:0.8,max:w-12});
+
+  reg({ id:"mimic_well", type:"vessel_level", label:"Ствол скважины",
+        unit:"м", value:+S.h.toFixed(1), level_pct:+(100*(1-S.h/K.Lwell)).toFixed(2),
+        liquid_bbox:[cx-cw/2+2, +ly.toFixed(1), cw-4, +(bot-ly).toFixed(1)],
+        bbox:[x,y,w,h] });
+  return { headX:cx, headY:top };
+}
+
+/* --- Сепаратор с разделом фаз и смотровым стеклом --- */
+function drawSeparator(x,y,w,h){
+  const bx=x+10, by=y+34, bw=w-20, bh=h-64;
+  /* корпус */
+  ctx.save();
+  const body=ctx.createLinearGradient(0,by,0,by+bh);
+  body.addColorStop(0,"#5a6a79"); body.addColorStop(.28,"#38454f"); body.addColorStop(1,"#1b232b");
+  rr(ctx,bx,by,bw,bh,bh/2); ctx.fillStyle=body; ctx.fill();
+  ctx.strokeStyle="#0a1016"; ctx.lineWidth=2.4; ctx.stroke();
+  /* внутренность */
+  rr(ctx,bx+4,by+4,bw-8,bh-8,(bh-8)/2); ctx.clip();
+  ctx.fillStyle="#080d12"; ctx.fillRect(bx,by,bw,bh);
+
+  const li = by+4, lh = bh-8;
+  const surf = li + lh*(1-S.sepL);
+  const wFrac = S.wc;                                  // доля воды в жидкости
+  const wSurf = surf + (li+lh-surf)*(1-wFrac);
+  /* газовая шапка */
+  const gg=ctx.createLinearGradient(0,li,0,surf);
+  gg.addColorStop(0,"#1d2b38"); gg.addColorStop(1,"#141f29");
+  ctx.fillStyle=gg; ctx.fillRect(bx,li,bw,surf-li);
+  /* нефть */
+  const og=ctx.createLinearGradient(0,surf,0,wSurf);
+  og.addColorStop(0,"#6a4a1c"); og.addColorStop(1,"#2f2109");
+  ctx.fillStyle=og; ctx.fillRect(bx,surf,bw,wSurf-surf);
+  /* вода */
+  const wg=ctx.createLinearGradient(0,wSurf,0,li+lh);
+  wg.addColorStop(0,"#20536b"); wg.addColorStop(1,"#0d2735");
+  ctx.fillStyle=wg; ctx.fillRect(bx,wSurf,bw,li+lh-wSurf);
+  /* волна на поверхности нефти */
+  ctx.beginPath(); ctx.moveTo(bx,surf);
+  for(let i=0;i<=bw;i+=5) ctx.lineTo(bx+i, surf+Math.sin(i/22+CLK()/420)*2.2);
+  ctx.lineTo(bx+bw,surf+7); ctx.lineTo(bx,surf+7); ctx.closePath();
+  ctx.fillStyle="#8a6122"; ctx.fill();
+  /* межфазная граница */
+  ctx.beginPath(); ctx.moveTo(bx,wSurf); ctx.lineTo(bx+bw,wSurf);
+  ctx.strokeStyle="#57b3d8"; ctx.setLineDash([7,5]); ctx.lineWidth=1.6; ctx.stroke(); ctx.setLineDash([]);
+  /* пузырьки газа */
+  for(let i=0;i<14;i++){
+    const ph=(CLK()/900+i*0.7)%1;
+    const bxx=bx+16+((i*67)%(bw-32));
+    const byy=li+lh-6-(li+lh-surf-6)*ph;
+    if (byy>surf){ ctx.beginPath(); ctx.arc(bxx,byy,1.6+((i%3)*0.7),0,7);
+      ctx.fillStyle="rgba(180,220,255,"+(0.5*(1-ph)+0.12)+")"; ctx.fill(); }
+  }
+  /* каплеотбойник и перегородка */
+  ctx.strokeStyle="rgba(150,175,200,.45)"; ctx.lineWidth=1.4;
+  for(let i=0;i<7;i++){ ctx.beginPath(); ctx.moveTo(bx+bw*0.70+i*4, li+4); ctx.lineTo(bx+bw*0.70+i*4, li+lh*0.32); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(bx+bw*0.62, li+lh*0.28); ctx.lineTo(bx+bw*0.62, li+lh); ctx.strokeStyle="rgba(150,175,200,.35)"; ctx.lineWidth=3; ctx.stroke();
+  ctx.restore();
+
+  /* смотровое стекло сбоку */
+  const sgx = bx-16, sgy=by+8, sgh=bh-16;
+  rr(ctx,sgx-5,sgy-4,12,sgh+8,4); ctx.fillStyle="#2b3a48"; ctx.fill();
+  ctx.strokeStyle="#0a1016"; ctx.lineWidth=1.4; ctx.stroke();
+  ctx.fillStyle="#060a0e"; ctx.fillRect(sgx-2,sgy,6,sgh);
+  const sgl = sgy + sgh*(1-S.sepL);
+  ctx.fillStyle="#8a6122"; ctx.fillRect(sgx-2,sgl,6,sgh-(sgl-sgy));
+  ctx.fillStyle="rgba(255,255,255,.22)"; ctx.fillRect(sgx-2,sgl,6,2);
+
+  /* шильдик и показания */
+  txt(ctx,"НГС-1 · СЕПАРАТОР 1 СТУПЕНИ", x+10, y+21, {s:12,w:"700",c:"#8fa8bb",ls:0.8,max:w-24});
+  const cellW = (w-24)/3;
+  const info=(i,k,v,col)=>{
+    const ix=x+12+i*cellW;
+    txt(ctx,k,ix,y+h-21,{s:9.5,w:"600",c:"#7f97ab",max:cellW-8});
+    txt(ctx,v,ix,y+h-6,{s:13.5,w:"700",c:col,f:mono,max:cellW-8});
+  };
+  info(0,"LT-201 УРОВЕНЬ",(S.sepL*100).toFixed(1)+" %","#f7b731");
+  info(1,"PT-202 ДАВЛЕНИЕ",S.Psep.toFixed(2)+" бар","#38bdf8");
+  info(2,"TT-203 ТЕМПЕР.",S.Tsep.toFixed(1)+" °C","#ff9f43");
+
+  reg({ id:"sep_level", type:"vessel_level", label:"НГС-1 уровень жидкости", unit:"%",
+        value:+(S.sepL*100).toFixed(2), level_pct:+(S.sepL*100).toFixed(2),
+        liquid_bbox:[bx+4, +surf.toFixed(1), bw-8, +(li+lh-surf).toFixed(1)],
+        interface_y:+wSurf.toFixed(1), oil_frac:+(1-wFrac).toFixed(3),
+        /* Внутри аппарата мешают раздел фаз, пузырьки и каплеотбойник, а заливка
+           идёт градиентом. Смотровое стекло — ровный столбик без всего этого,
+           по нему уровень читается однозначно, как его и читает оператор. */
+        measure_bbox:[sgx-2, sgy, 6, sgh],
+        bbox:[x-13,y,w+13,h] });
+  return { top:by, bottom:by+bh, right:bx+bw };
+}
+
+/* --- Вертикальный резервуар с внутренним уровнем --- */
+function drawTank(t){
+  const {x,y,w,h,id,tag,vol,cap,color,unit} = t;
+  const bx=x+14, by=y+40, bw=w-28, bh=h-70;
+  /* крыша */
+  ctx.beginPath(); ctx.moveTo(bx-7,by); ctx.lineTo(x+w/2,by-20); ctx.lineTo(bx+bw+7,by); ctx.closePath();
+  const rg=ctx.createLinearGradient(0,by-20,0,by); rg.addColorStop(0,"#63748a"); rg.addColorStop(1,"#33404e");
+  ctx.fillStyle=rg; ctx.fill(); ctx.strokeStyle="#0a1016"; ctx.lineWidth=1.8; ctx.stroke();
+  /* обечайка */
+  const sg=ctx.createLinearGradient(bx,0,bx+bw,0);
+  sg.addColorStop(0,"#2d3944"); sg.addColorStop(.28,"#55677a"); sg.addColorStop(.62,"#3b4956"); sg.addColorStop(1,"#1e262e");
+  ctx.fillStyle=sg; ctx.fillRect(bx,by,bw,bh);
+  ctx.strokeStyle="#0a1016"; ctx.lineWidth=2; ctx.strokeRect(bx,by,bw,bh);
+
+  /* «вырез» — вид внутрь */
+  const ix=bx+9, iy=by+7, iw=bw-18, ih=bh-14;
+  ctx.fillStyle="#060a0e"; ctx.fillRect(ix,iy,iw,ih);
+  ctx.strokeStyle="#141d25"; ctx.lineWidth=1; ctx.strokeRect(ix,iy,iw,ih);
+  const f = clamp(vol/cap,0,1);
+  const ly = iy+ih*(1-f);
+  const lg = ctx.createLinearGradient(0,ly,0,iy+ih);
+  if (color==="oil"){ lg.addColorStop(0,"#7a5420"); lg.addColorStop(1,"#2a1d08"); }
+  else              { lg.addColorStop(0,"#256a88"); lg.addColorStop(1,"#0e2c3c"); }
+  ctx.fillStyle=lg; ctx.fillRect(ix,ly,iw,iy+ih-ly);
+  /* волна */
+  ctx.save(); ctx.beginPath(); ctx.rect(ix,iy,iw,ih); ctx.clip();
+  ctx.beginPath(); ctx.moveTo(ix,ly);
+  for(let i=0;i<=iw;i+=5) ctx.lineTo(ix+i, ly+Math.sin(i/19+CLK()/500)*1.8);
+  ctx.lineTo(ix+iw,ly+6); ctx.lineTo(ix,ly+6); ctx.closePath();
+  ctx.fillStyle= color==="oil" ? "#a06f28" : "#3a8db0"; ctx.fill();
+  ctx.restore();
+
+  /* понтон / поплавок уровнемера с тросом */
+  ctx.beginPath(); ctx.moveTo(x+w/2, iy); ctx.lineTo(x+w/2, ly-4);
+  ctx.strokeStyle="#8fa8bb"; ctx.lineWidth=1; ctx.stroke();
+  rr(ctx,x+w/2-11,ly-6,22,7,2); ctx.fillStyle="#c9d6e2"; ctx.fill();
+  ctx.strokeStyle="#0a1016"; ctx.lineWidth=1; ctx.stroke();
+
+  /* мерная рейка снаружи */
+  for(let i=0;i<=10;i++){
+    const yy=iy+ih*(1-i/10);
+    ctx.beginPath(); ctx.moveTo(bx+bw+3,yy); ctx.lineTo(bx+bw+(i%5===0?14:8),yy);
+    ctx.strokeStyle="#54708a"; ctx.lineWidth=1; ctx.stroke();
+    if(i%5===0) txt(ctx,(i*10)+"",bx+bw+17,yy+3.5,{s:9,c:"#54708a",f:mono});
+  }
+  /* Табло объёма — на юбке под обечайкой, а не внутри. Внутри оно перекрывало бы
+     столб жидкости и делало часть шкалы уровня непрозрачной для измерения. */
+  const pw=bw, ph=25, px=bx, py=y+h-29;
+  rr(ctx,px,py,pw,ph,3); ctx.fillStyle="#070d12"; ctx.fill();
+  ctx.strokeStyle="#2b4054"; ctx.lineWidth=1; ctx.stroke();
+  txt(ctx, vol.toFixed(0)+" "+unit, px+7, py+18,
+      {s:15,w:"700",c: color==="oil"?"#f7b731":"#38bdf8",f:mono,max:pw*0.52});
+  txt(ctx,(f*100).toFixed(1)+" %", px+pw-7, py+18,
+      {s:15,w:"700",c: f>0.86?"#ff4757": f<0.22?"#f7b731":"#00e5a0",a:"right",f:mono,max:pw*0.34});
+
+  const tl = tag.split("·");
+  tl.forEach((ln,i)=> txt(ctx, ln.trim(), x+w/2, y+16+i*13,
+      {s:11.5,w:"700",c:"#8fa8bb",a:"center",ls:0.5,max:w-8}));
+  txt(ctx,"НОМ. "+cap+" "+unit, x+w/2, y+h-3, {s:9,c:"#5f7488",a:"center",max:w-16});
+
+  reg({ id, type:"vessel_level", label:tag, unit,
+        value:+vol.toFixed(1), capacity:cap, level_pct:+(f*100).toFixed(2),
+        liquid_bbox:[ix, +ly.toFixed(1), iw, +(iy+ih-ly).toFixed(1)],
+        digital_text: vol.toFixed(0),
+        bbox:[x,y,w,h] });
+}
+
+/* ####################################################################
+   5. ТРЕНДЫ
+   #################################################################### */
+function drawTrend(tr){
+  const {x,y,w,h,data,series,ymin,ymax,title} = tr;
+  ctx.drawImage(cached("tr:"+tr.id+w+h, w, h, c=>{
+    rr(c,1,1,w-2,h-2,5); c.fillStyle="#0c141b"; c.fill();
+    c.strokeStyle="#213141"; c.lineWidth=1; c.stroke();
+    txt(c,title,11,18,{s:11.5,w:"700",c:"#8fa8bb",ls:0.8});
+  }), x, y);
+  const L=x+44, T=y+26, PW=w-58, PH=h-46;
+  ctx.strokeStyle="#18242f"; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){ const yy=T+PH*i/4;
+    ctx.beginPath(); ctx.moveTo(L,yy+.5); ctx.lineTo(L+PW,yy+.5); ctx.stroke();
+    txt(ctx,(ymax-(ymax-ymin)*i/4).toFixed(0),L-6,yy+4,{s:9.5,c:"#4d6478",a:"right",f:mono}); }
+  for(let i=0;i<=6;i++){ const xx=L+PW*i/6;
+    ctx.beginPath(); ctx.moveTo(xx+.5,T); ctx.lineTo(xx+.5,T+PH); ctx.stroke(); }
+  if (data.length>1){
+    series.forEach((s,si)=>{
+      ctx.beginPath(); ctx.strokeStyle=s.c; ctx.lineWidth=1.7; ctx.lineJoin="round";
+      data.forEach((row,i)=>{
+        const v=clamp(row[si],ymin,ymax);
+        const px=L+PW*i/(data.length-1), py=T+PH*(1-(v-ymin)/(ymax-ymin));
+        i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+      });
+      ctx.stroke();
+      const v=clamp(data[data.length-1][si],ymin,ymax);
+      ctx.beginPath(); ctx.arc(L+PW, T+PH*(1-(v-ymin)/(ymax-ymin)), 2.6, 0, 7);
+      ctx.fillStyle=s.c; ctx.fill();
+    });
+  }
+  let lx=L;
+  series.forEach(s=>{ ctx.fillStyle=s.c; ctx.fillRect(lx,y+h-13,11,3);
+    txt(ctx,s.n,lx+15,y+h-9,{s:9.5,c:"#7f97ab"}); lx += 15+ctx.measureText(s.n).width+13; });
+  reg({ id:tr.id, type:"trend", label:title, series:series.map(s=>s.n),
+        y_min:ymin, y_max:ymax, plot_bbox:[L,T,PW,PH], bbox:[x,y,w,h] });
+}
+
+/* ####################################################################
+   6. КОМПОНОВКА ПАНЕЛИ
+   #################################################################### */
+const GA = [
+  {id:"gauge_pwh", label:"Р БУФЕРНОЕ",  unit:"бар", min:0,max:100, major:5,minor:5, dec:1, amber:.65,red:.8, face:"light"},
+  {id:"gauge_pcas",label:"Р ЗАТРУБНОЕ", unit:"бар", min:0,max:100, major:5,minor:5, dec:1, amber:.55,red:.75,face:"light"},
+  {id:"gauge_ppi", label:"Р НА ПРИЁМЕ", unit:"бар", min:0,max:200, major:4,minor:5, dec:1, green:.3, face:"dark"},
+  {id:"gauge_q",   label:"ДЕБИТ ЖИДК.", unit:"м3/сут",min:0,max:120,major:6,minor:4, dec:1, green:.75,face:"dark"},
+  {id:"gauge_i",   label:"ТОК ПЭД",     unit:"А",   min:0,max:60,  major:6,minor:5, dec:1, amber:.64,red:.77,face:"light"},
+  {id:"gauge_t",   label:"ТЕМП. ПЭД",   unit:"°C",  min:0,max:200, major:4,minor:5, dec:0, amber:.525,red:.65,face:"light"}
+];
+const ANNS = [
+  {id:"ann_trip",  label:"ЗСП ОТКЛЮЧЕНИЕ",  sev:"alarm", f:()=>S.tripped},
+  {id:"ann_temp",  label:"ПЕРЕГРЕВ ПЭД",    sev:"alarm", f:()=>S.tMot>LIM.tWarn},
+  {id:"ann_cur",   label:"ПЕРЕГРУЗ ТОКА",   sev:"alarm", f:()=>S.I>K.Inom*LIM.iWarn},
+  {id:"ann_iso",   label:"НИЗКАЯ ИЗОЛЯЦИЯ", sev:"alarm", f:()=>S.iso<LIM.isoWarn},
+  {id:"ann_sub",   label:"НИЗКОЕ ПОГРУЖЕНИЕ",sev:"warn", f:()=>S.run&&S.subm<LIM.submWarn},
+  {id:"ann_gas",   label:"ВЫСОКИЙ ГАЗ",     sev:"warn",  f:()=>S.gas>0.30},
+  {id:"ann_cas",   label:"ВЫС. Р ЗАТРУБ",   sev:"warn",  f:()=>S.Pcas>55},
+  {id:"ann_vib",   label:"ВИБРАЦИЯ",        sev:"warn",  f:()=>S.vib>9},
+  {id:"ann_wc",    label:"ОБВОДНЁННОСТЬ",   sev:"warn",  f:()=>S.wc>0.85},
+  {id:"ann_asp",   label:"АСПО В НКТ",      sev:"warn",  f:()=>S.clog>2.2},
+  {id:"ann_seph",  label:"ВЫС. УРОВЕНЬ НГС",sev:"alarm", f:()=>S.sepL>0.85},
+  {id:"ann_tank",  label:"РВС ЗАПОЛНЕН",    sev:"warn",  f:()=>S.tankV/K.Vtank>0.86}
+];
+
+/* ####################################################################
+   5a. МНЕМОСХЕМА ЦЕЛИКОМ
+   Сетка выдержана так, чтобы габариты аппаратов и их подписи
+   гарантированно не пересекались (проверяется тестом геометрии).
+   #################################################################### */
+function drawMimic(){
+  rr(ctx,12,70,900,700,7); ctx.fillStyle="#0c141b"; ctx.fill();
+  ctx.strokeStyle="#213141"; ctx.lineWidth=1; ctx.stroke();
+  txt(ctx,"ТЕХНОЛОГИЧЕСКАЯ СХЕМА СБОРА И ПОДГОТОВКИ",24,90,{s:11.5,w:"700",c:"#5f7488",ls:1.3,max:520});
+
+  const on = S.Q > 0.5;            // есть подача из скважины
+  const yA = 145;                  // отметка выкидной линии
+
+  /* ---------- 1. скважина ---------- */
+  const wh = drawWell(20, 100, 206, 655);
+
+  /* ---------- 2. фонтанная арматура ---------- */
+  pipe(wh.headX, wh.headY, wh.headX, 158, 12);
+  rr(ctx, wh.headX-15, 131, 30, 27, 3);
+  ctx.fillStyle = on ? "#1d5347" : "#44525f"; ctx.fill();
+  ctx.strokeStyle = on ? "#00e5a0" : "#0a1016"; ctx.lineWidth=1.6; ctx.stroke();
+  rr(ctx, wh.headX-9, 124, 18, 8, 2); ctx.fillStyle = on ? "#2a7c68" : "#5c6b79"; ctx.fill();
+  txt(ctx,"ФА", wh.headX, yA+4, {s:10,w:"700",c: on ? "#9dffe0" : "#dae6f0",a:"center"});
+  reg({id:"eq_xtree", type:"apparatus", label:"ФА фонтанная арматура",
+       state: on ? "running" : "stopped", bbox:[wh.headX-16,123,32,36]});
+
+  /* ---------- 3. выкидная линия: штуцер, обратный клапан, задвижка ---------- */
+  pipe(wh.headX+15, yA, 452, yA, 10);
+  flow(wh.headX+15, yA, 452, yA, on, "#00e5a0", 5);
+  drawValve({id:"valve_choke", tag:"ШТУЦЕР FCV-101", x:262, y:yA, s:14,
+             open:ui.choke, actuator:true, showPct:true});
+  drawCheck({id:"valve_nrv", tag:"NRV-101", x:336, y:yA, on});
+  drawValve({id:"valve_zd102", tag:"ЗД-102", x:404, y:yA, s:14, open:100});
+
+  /* ---------- 4. АГЗУ и путевой подогреватель ---------- */
+  drawApparatus({ id:"eq_agzu", x:452, y:104, w:144, h:82, on:S.run,
+    tag:"АГЗУ «СПУТНИК»", sub:"замерная установка",
+    rows:[["FT-201 РАСХОД", S.Q.toFixed(1), "#00e5a0"],
+          ["PT-202 Р ЛИНИИ", S.Pwh.toFixed(1), "#38bdf8"]] });
+  pipe(596, yA, 616, yA, 10); flow(596, yA, 616, yA, on, "#00e5a0", 5);
+  drawApparatus({ id:"eq_heater", x:616, y:104, w:144, h:82, on:ui.heat!==false && S.run,
+    tag:"ПТБ-10 ПОДОГРЕВ", sub:"путевой подогреватель",
+    rows:[["TT-204 t ВЫХОД", (28+S.Q*0.28).toFixed(1), "#ff9f43"],
+          ["ГОРЕЛКА", S.run?"РАБОТА":"СТОП", S.run?"#00e5a0":"#7f97ab"]] });
+
+  /* ---------- 5. сепаратор 1 ступени ---------- */
+  pipe(760, yA, 790, yA, 10); pipe(790, yA, 790, 280, 10); pipe(790, 280, 780, 280, 10);
+  flow(760, yA, 790, yA, on, "#00e5a0", 5);
+  flow(790, yA, 790, 280, on, "#00e5a0", 5);
+  const sep = drawSeparator(372, 205, 418, 145);
+  drawPSV({ id:"valve_psv", tag:"ППК-1", x:700, y:sep.top, open:S.Psep>9.5 });
+
+  /* ---------- 6. газовая линия и каплеуловитель ---------- */
+  pipe(430, sep.top, 430, 207, 7);
+  pipe(430, 207, 346, 207, 7);
+  pipe(346, 207, 346, 270, 7);
+  pipe(346, 270, 320, 270, 7);
+  const gasOn = S.run && S.gas > 0.02;
+  flow(430, sep.top, 430, 207, gasOn, "#38bdf8", 4);
+  flow(430, 207, 346, 207, gasOn, "#38bdf8", 4);
+  flow(346, 270, 320, 270, gasOn, "#38bdf8", 4);
+  drawKO({ id:"eq_ko", tag:"КУ-1 · ГАЗ НА ГФУ", x:260, y:225, w:60, h:110,
+           level: clamp(S.gas*1.4, 0, 1) });
+  pipe(290, 225, 290, 203, 7);
+  ctx.beginPath(); ctx.moveTo(290,196); ctx.lineTo(285,206); ctx.lineTo(295,206); ctx.closePath();
+  ctx.fillStyle="#38bdf8"; ctx.fill();
+  flow(290, 225, 290, 203, gasOn, "#38bdf8", 4);
+  /* дренаж каплеуловителя в общий коллектор */
+  pipe(320, 330, 360, 330, 6); pipe(360, 330, 360, 430, 6);
+
+  /* ---------- 7. сброс жидкости через регулятор уровня ---------- */
+  const liq = S.sepOut > 1;
+  pipe(560, sep.bottom, 560, 381, 9);
+  drawValve({id:"valve_lv", tag:"LV-201", x:560, y:395, s:14, open:S.lv*100,
+             actuator:true, showPct:true});
+  pipe(560, 409, 560, 430, 9);
+  pipe(330, 430, 700, 430, 9);
+  pipe(330, 430, 330, 468, 9); pipe(700, 430, 700, 468, 9);
+  flow(560, sep.bottom, 560, 381, liq, "#c98a2b", 5);
+  flow(560, 430, 330, 430, liq, "#c98a2b", 5);
+  flow(560, 430, 700, 430, liq, "#38bdf8", 5);
+  flow(330, 430, 330, 468, liq, "#c98a2b", 5);
+  flow(700, 430, 700, 468, liq, "#38bdf8", 5);
+
+  /* ---------- 8. товарный парк ---------- */
+  drawTank({id:"tank_oil", tag:"РВС-1 · НЕФТЬ ТОВАРНАЯ", x:250, y:445, w:170, h:185,
+            vol:S.tankV, cap:K.Vtank, color:"oil", unit:"м3"});
+  drawTank({id:"tank_wat", tag:"РВС-2 · ПОДТОВАРНАЯ ВОДА", x:620, y:445, w:160, h:185,
+            vol:S.wtankV, cap:K.Vwtank, color:"water", unit:"м3"});
+
+  /* ---------- 9. насосы, узел учёта, напорный коллектор ---------- */
+  pipe(410, 600, 410, 690, 8); pipe(410, 690, 451, 690, 8);
+  drawPumpSym({id:"pump_ship", tag:"ЦНС-1 ОТКАЧКА", x:470, y:690, on:S.shipPump});
+  pipe(489, 690, 540, 690, 8);
+  drawApparatus({ id:"eq_sikn", x:540, y:662, w:160, h:60, on:S.shipPump,
+    tag:"СИКН · УЗЕЛ УЧЁТА", rows:[["FQ-301 ОТКАЧКА", S.shipQ.toFixed(0), "#00e5a0"]] });
+  pipe(700, 690, 745, 690, 8); pipe(745, 690, 745, 752, 8);
+  pipe(770, 600, 770, 690, 8); pipe(770, 690, 811, 690, 8);
+  drawPumpSym({id:"pump_water", tag:"ЦНС-2 БКНС", x:830, y:690, on:S.wPump});
+  pipe(849, 690, 880, 690, 8); pipe(880, 690, 880, 752, 8);
+  pipe(745, 752, 880, 752, 8);
+  flow(410, 600, 410, 690, S.shipPump, "#c98a2b", 4);
+  flow(489, 690, 540, 690, S.shipPump, "#00e5a0", 4);
+  flow(700, 690, 745, 752, S.shipPump, "#00e5a0", 4);
+  flow(770, 600, 770, 690, S.wPump, "#38bdf8", 4);
+  flow(849, 690, 880, 752, S.wPump, "#38bdf8", 4);
+  flow(745, 752, 880, 752, S.shipPump||S.wPump, "#00e5a0", 4);
+  txt(ctx,"В НАПОРНЫЙ НЕФТЕПРОВОД / НА БКНС", 250, 752,
+      {s:10.5,w:"600",c:"#7f97ab",ls:0.4,max:300});
+
+  /* ---------- 10. дренажная ёмкость и вторичные показания ---------- */
+  drawApparatus({ id:"eq_drain", x:792, y:445, w:108, h:76, on:false,
+    tag:"ЕП-1 ДРЕНАЖ", sub:"подземная ёмкость",
+    rows:[["УРОВЕНЬ", (12+S.clog*7).toFixed(0)+" %", "#f7b731"]] });
+
+  const box=(id,bx,by,bw,bh,name,val,unit,col)=>{
+    rr(ctx,bx,by,bw,bh,4); ctx.fillStyle="rgba(9,15,20,.92)"; ctx.fill();
+    ctx.strokeStyle="#243544"; ctx.lineWidth=1; ctx.stroke();
+    txt(ctx,name,bx+8,by+14,{s:9.5,w:"600",c:"#7f97ab",max:bw-16});
+    txt(ctx,val ,bx+8,by+bh-9,{s:15,w:"700",c:col,f:mono,max:bw*0.6});
+    txt(ctx,unit,bx+bw-8,by+bh-9,{s:9.5,c:"#5f7488",a:"right",max:bw*0.34});
+    reg({id,type:"text_readout",label:name,text:val,unit,value:parseFloat(val),bbox:[bx,by,bw,bh]});
+  };
+  box("txt_sep_out",  432,445,176,42,"СБРОС ЖИДКОСТИ ИЗ НГС", S.sepOut.toFixed(1),"м3/сут","#c98a2b");
+  box("txt_ship",     432,493,176,42,"ОТКАЧКА ТОВАРНОЙ НЕФТИ",S.shipQ.toFixed(0), "м3/сут","#00e5a0");
+  box("txt_watercut", 432,541,176,42,"ОБВОДНЁННОСТЬ",         (S.wc*100).toFixed(1),"%","#38bdf8");
+  box("txt_gas",      432,589,176,42,"ГАЗ НА ПРИЁМЕ НАСОСА",  (S.gas*100).toFixed(0),"%","#a78bfa");
+  box("txt_p_sep",    792,530,108,42,"Р СЕПАРАТОРА",          S.Psep.toFixed(2),"бар","#38bdf8");
+  box("txt_t_sep",    792,578,108,42,"t СЕПАРАТОРА",          S.Tsep.toFixed(1),"°C","#ff9f43");
+}
+
+function render(){
+  ANN = []; HIT.length = 0;
+
+  /* фон панели */
+  const bg = ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,"#0b131a"); bg.addColorStop(.5,"#080e14"); bg.addColorStop(1,"#0a1118");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  /* ---------- шапка ---------- */
+  const hg=ctx.createLinearGradient(0,0,0,60);
+  hg.addColorStop(0,"#16222d"); hg.addColorStop(1,"#0c141b");
+  ctx.fillStyle=hg; ctx.fillRect(0,0,W,60);
+  ctx.fillStyle="#1e2d3a"; ctx.fillRect(0,60,W,1.5);
+  txt(ctx,"АСУ ТП ДОБЫЧИ · КУСТ 12 · СКВАЖИНА 1247 · УЭЦН-5-50-2000",18,26,{s:16,w:"700",c:"#e7f2fa",ls:1.4});
+  txt(ctx,"НГДУ «СЕВЕРНОЕ» · ЦДНГ-3 · АРМ ОПЕРАТОРА ДНГ",18,47,{s:11,w:"400",c:"#5f7488",ls:1.6});
+  txt(ctx,fmtClock(S.t), W-20, 26, {s:17,w:"700",c:"#9fd6ff",a:"right",f:mono});
+  txt(ctx,"НАРАБОТКА "+(S.runtime/3600).toFixed(0)+" ч   ·   ДОБЫТО "+S.cumOil.toFixed(0)+" т",
+      W-20, 47, {s:11,w:"600",c:"#5f7488",a:"right",ls:1});
+  const PILL = { alarm:["АВАРИЯ · ПЕРЕГРЕВ ПЭД","#ff4757","#3a0a0f"],
+                 run:["НАСОС В РАБОТЕ","#00e5a0","#062b21"],
+                 apv:["ОЖИДАНИЕ АПВ","#f7b731","#2e2206"],
+                 stop:["ОСТАНОВЛЕН","#8fa8bb","#151f28"] };
+  const st = (OVR && OVR.pill) ? PILL[OVR.pill]
+           : S.tripped ? ["АВАРИЯ · "+S.tripReason,"#ff4757","#3a0a0f"]
+           : S.run     ? PILL.run
+           : S.restartAt!==null ? PILL.apv : PILL.stop;
+  const stw = 330;
+  rr(ctx, W/2-stw/2, 11, stw, 38, 5); ctx.fillStyle=st[2]; ctx.fill();
+  ctx.strokeStyle=st[1]; ctx.lineWidth=1.8; ctx.stroke();
+  txt(ctx, st[0], W/2, 36, {s:16,w:"700",c:st[1],a:"center",ls:1.8});
+  reg({id:"hdr_state",type:"status_text",label:"Состояние объекта",text:st[0],
+       bbox:[W/2-stw/2,11,stw,38]});
+  reg({id:"hdr_clock",type:"status_text",label:"Модельное время",text:fmtClock(S.t),
+       bbox:[W-260,10,244,24]});
+
+  blk("mimic", drawMimic);
+
+  /* ---------- манометры ---------- */
+  const GV = [S.Pwh, S.Pcas, S.Ppi, S.Q, S.I, S.tMot];
+  blk("gauges", ()=> GA.forEach((g,i)=>{
+    const col=i%3, row=(i/3)|0;
+    drawGauge(Object.assign({}, g, { x:928+col*228, y:76+row*228, r:96, value:GV[i] }));
+  }));
+
+  /* ---------- семисегментные индикаторы ---------- */
+  /* n — число знаков целой части, d — число знаков после запятой (фикс. разрядность табло) */
+  const pad = (v,n,d)=>{
+    const parts = Math.min(Math.abs(v), Math.pow(10,n)-Math.pow(10,-d)).toFixed(d).split(".");
+    return parts[0].padStart(n,"0") + (d ? "."+parts[1] : "");
+  };
+  const fHz = S.run ? ui.f*S.starting : 0;
+  const DS = [
+    {id:"disp_q",  label:"ДЕБИТ ЖИДКОСТИ", unit:"м3/сут", text:pad(S.Q,3,1),           value:S.Q},
+    {id:"disp_wc", label:"ОБВОДНЁННОСТЬ",  unit:"%",      text:pad(S.wc*100,3,1),      value:S.wc*100,      color:"#ffb020"},
+    {id:"disp_lvl",label:"ДИНАМ. УРОВЕНЬ", unit:"м",      text:pad(S.h,4,0),           value:S.h,           color:"#ffb020"},
+    {id:"disp_f",  label:"ЧАСТОТА ЧРП",    unit:"Гц",     text:pad(fHz,2,1),           value:fHz,           color:"#28e07a"},
+    {id:"disp_oil",label:"НАКОПЛ. НЕФТЬ",  unit:"т",      text:pad(S.cumOil,5,0),      value:S.cumOil,      color:"#28e07a"},
+    {id:"disp_run",label:"НАРАБОТКА",      unit:"ч",      text:pad(S.runtime/3600,5,0),value:S.runtime/3600}
+  ];
+  blk("displays", ()=> DS.forEach((d,i)=>{
+    const col=i%2, row=(i/2)|0;
+    drawSevenSeg(Object.assign({}, d, { x:928+col*346, y:534+row*78, w:334, h:74 }));
+  }));
+
+  /* ---------- правая колонна ---------- */
+  blk("right", ()=>{
+  rr(ctx,1620,70,288,700,7); ctx.fillStyle="#0c141b"; ctx.fill();
+  ctx.strokeStyle="#213141"; ctx.stroke();
+  txt(ctx,"ЩИТ СИГНАЛИЗАЦИИ",1632,90,{s:12,w:"700",c:"#5f7488",ls:1.4});
+  ANNS.forEach((a,i)=>{
+    const col=i%2, row=(i/2)|0;
+    drawAnn({id:a.id,label:a.label,sev:a.sev,active:!!a.f(),
+             x:1630+col*136, y:100+row*54, w:130, h:48});
+  });
+  txt(ctx,"СОСТОЯНИЕ",1632,442,{s:12,w:"700",c:"#5f7488",ls:1.4});
+  const LAMPS = [
+    {id:"lamp_run", label:"НАСОС В РАБОТЕ", color:"green", state:S.run?"on":"off"},
+    {id:"lamp_stop",label:"ОСТАНОВЛЕН",     color:"amber", state:!S.run&&!S.tripped?"on":"off"},
+    {id:"lamp_trip",label:"АВАРИЯ ЗСП",     color:"red",   state:S.tripped?"blink":"off"},
+    {id:"lamp_auto",label:"АВТОРЕГУЛЯТОР",  color:"blue",  state:ui.auto?"on":"off"},
+    {id:"lamp_apv", label:"АПВ ГОТОВ",      color:"green", state:ui.apv?(S.restartAt!==null?"blink":"on"):"off"},
+    {id:"lamp_inh", label:"ДОЗАТОР ИНГИБ.", color:"blue",  state:ui.inh?"on":"off"}
+  ];
+  LAMPS.forEach((l,i)=> drawLamp(Object.assign({},l,{x:1630, y:452+i*30, w:268, h:26})));
+
+  drawButton({id:"btn_start",label:"ПУСК",  color:"green",x:1630,y:640,w:130,h:52, pressed:S.run,     fn:cmdStart});
+  drawButton({id:"btn_stop", label:"СТОП",  color:"amber",x:1768,y:640,w:130,h:52, pressed:!S.run,    fn:cmdStop});
+  drawButton({id:"btn_estop",label:"АВАР. СТОП",color:"red",x:1630,y:700,w:130,h:52,pressed:S.tripped,fn:cmdEstop});
+  drawButton({id:"btn_ack",  label:"КВИТ.", color:"grey", x:1768,y:700,w:130,h:52, pressed:false,     fn:cmdAck});
+  });
+
+  /* ---------- пульт оператора ---------- */
+  blk("console", ()=>{
+  rr(ctx,1620,780,288,288,7); ctx.fillStyle="#0c141b"; ctx.fill();
+  ctx.strokeStyle="#213141"; ctx.lineWidth=1; ctx.stroke();
+  txt(ctx,"ПУЛЬТ УПРАВЛЕНИЯ РЕЖИМОМ",1632,800,{s:11,w:"700",c:"#5f7488",ls:1,max:264});
+
+  drawSetpoint({ id:"sp_freq", x:1630, y:810, w:268, h:48,
+    label:"ЗАДАНИЕ ЧРП · МОЩНОСТЬ НАСОСА", text:ui.f.toFixed(1), unit:"Гц",
+    color:"#28e07a", locked:ui.auto,
+    dn:()=>{ ui.f = clamp(ui.f-0.5,35,65); syncUI(); },
+    up:()=>{ ui.f = clamp(ui.f+0.5,35,65); syncUI(); } });
+
+  drawSetpoint({ id:"sp_choke", x:1630, y:864, w:268, h:48,
+    label:"ШТУЦЕР НА УСТЬЕ", text:String(ui.choke), unit:"%",
+    color:"#ffb020", locked:false,
+    dn:()=>{ ui.choke = clamp(ui.choke-5,20,100); syncUI(); },
+    up:()=>{ ui.choke = clamp(ui.choke+5,20,100); syncUI(); } });
+
+  drawSwitch({ id:"sw_mode", x:1630, y:918, w:128, h:86, label:"РЕЖИМ ЧРП",
+    options:["РУЧН","АВТО"], value: ui.auto?"АВТО":"РУЧН",
+    fn:()=>{ ui.auto = !ui.auto; syncUI();
+             alarm("info","РЕЖ","Регулятор уровня: "+(ui.auto?"АВТОМАТ":"РУЧНОЙ")); } });
+
+  drawButton({id:"btn_inh",  label:"ИНГИБИТОР", color: ui.inh?"green":"grey",
+    x:1766,y:918,w:132,h:40, pressed:ui.inh,
+    fn:()=>{ ui.inh=!ui.inh; alarm("info","РЕЖ","Дозатор ингибитора: "+(ui.inh?"ВКЛ":"ОТКЛ")); }});
+  drawButton({id:"btn_flush",label:"ПРОМЫВКА", color:"grey",
+    x:1766,y:964,w:132,h:40, pressed:false,
+    fn:()=>{ S.clog = 1+(S.clog-1)*0.25;
+             alarm("ok","ТЕХ","Промывка НКТ горячей нефтью — потери снижены"); }});
+
+  drawButton({id:"btn_apv",  label:"АПВ", color: ui.apv?"green":"grey",
+    x:1630,y:1012,w:130,h:44, pressed:ui.apv,
+    fn:()=>{ ui.apv=!ui.apv; syncUI(); alarm("info","РЕЖ","АПВ: "+(ui.apv?"ВКЛ":"ОТКЛ")); }});
+  drawButton({id:"btn_repair",label:"ТКРС", color:"grey",
+    x:1768,y:1012,w:130,h:44, pressed:false, fn:cmdRepair});
+  });
+
+  /* ---------- нижний ряд: столбчатые индикаторы ---------- */
+  const BARS = [
+    {id:"bar_load",label:"ЗАГРУЗКА ПЭД",  unit:"%",  min:0,max:150,dec:0,value:S.load*100, warn:()=>S.load>1, crit:()=>S.load>1.3},
+    {id:"bar_sub", label:"ПОГРУЖЕНИЕ",    unit:"м",  min:0,max:1200,dec:0,value:S.subm, color:"#38bdf8",
+      warn:()=>S.run&&S.subm<LIM.submWarn, crit:()=>S.run&&S.subm<LIM.submTrip},
+    {id:"bar_eff", label:"КПД НАСОСА",    unit:"%",  min:0,max:65, dec:0,value:S.eff*100, color:"#a78bfa"},
+    {id:"bar_gas", label:"ГАЗ НА ПРИЁМЕ", unit:"%",  min:0,max:60, dec:0,value:S.gas*100, color:"#f7b731", warn:()=>S.gas>0.3},
+    {id:"bar_vib", label:"ВИБРАЦИЯ",      unit:"мм/с",min:0,max:20,dec:1,value:S.vib, warn:()=>S.vib>9, crit:()=>S.vib>14},
+    {id:"bar_iso", label:"СОПР. ИЗОЛЯЦИИ",unit:"кОм",min:0,max:300,dec:0,value:S.iso, color:"#38bdf8",
+      warn:()=>S.iso<LIM.isoWarn, crit:()=>S.iso<LIM.isoTrip}
+  ];
+  blk("bars", ()=>{
+  rr(ctx,12,780,460,288,7); ctx.fillStyle="#0c141b"; ctx.fill(); ctx.strokeStyle="#213141"; ctx.stroke();
+  txt(ctx,"ВТОРИЧНЫЕ ПАРАМЕТРЫ",24,800,{s:12,w:"700",c:"#5f7488",ls:1.4});
+  BARS.forEach((b,i)=> drawBar(Object.assign({},b,{x:22, y:806+i*43, w:440, h:40})));
+  });
+
+  /* ---------- тренды ---------- */
+  blk("trends", ()=>{
+  drawTrend({id:"trend_p", x:482,y:780,w:370,h:240, title:"ДАВЛЕНИЯ И УРОВЕНЬ · 24 ч",
+    data:hist.p, ymin:0, ymax:220,
+    series:[{n:"Р приём, бар",c:"#38bdf8"},{n:"Р забой, бар",c:"#a78bfa"},{n:"Ндин, ×10 м",c:"#f7b731"}]});
+  drawTrend({id:"trend_q", x:860,y:780,w:370,h:240, title:"ДЕБИТ И ОБВОДНЁННОСТЬ · 24 ч",
+    data:hist.q, ymin:0, ymax:110,
+    series:[{n:"Qж, м3/сут",c:"#00e5a0"},{n:"Qн, т/сут",c:"#ff9f43"},{n:"Обв., %",c:"#38bdf8"}]});
+  drawTrend({id:"trend_e", x:1238,y:780,w:370,h:240, title:"ЭЛЕКТРИЧЕСКИЕ ПАРАМЕТРЫ · 24 ч",
+    data:hist.e, ymin:0, ymax:150,
+    series:[{n:"Ток, А",c:"#f7b731"},{n:"t ПЭД, °C",c:"#ff4757"},{n:"Загрузка, %",c:"#00e5a0"}]});
+  });
+
+  /* ---------- журнал событий: отдельная полоса, ничего не перекрывает ---------- */
+  blk("log", ()=>{
+  rr(ctx,482,1026,1126,42,5); ctx.fillStyle="#0c141b"; ctx.fill();
+  ctx.strokeStyle="#213141"; ctx.lineWidth=1; ctx.stroke();
+  txt(ctx,"ЖУРНАЛ",492,1042,{s:10,w:"700",c:"#5f7488",ls:1.1});
+  const COLS={crit:"#ff4757",warn:"#f7b731",info:"#38bdf8",ok:"#00e5a0"};
+  log.slice(0,2).forEach((e,i)=>{
+    const yy=1042+i*15;
+    txt(ctx,e.t.slice(0,8),556,yy,{s:10.5,c:"#4d6478",f:mono});
+    txt(ctx,e.tag,622,yy,{s:10.5,w:"700",c:COLS[e.lvl],max:56});
+    txt(ctx,e.msg,682,yy,{s:10.5,c:"#9fb6c9",max:918});
+  });
+  reg({id:"log_banner", type:"status_text", label:"Журнал событий",
+       text: log.length ? (log[0].tag+": "+log[0].msg) : "", bbox:[482,1026,1126,42]});
+  });
+
+  if (showBox) drawOverlay();
+}
+
+/* подсветка разметки поверх панели */
+function drawOverlay(){
+  const C = { gauge:"#00e5a0", sevenseg:"#ff4757", bargraph:"#38bdf8", lamp:"#f7b731",
+              annunciator:"#ff9f43", button:"#a78bfa", selector:"#a78bfa", valve:"#00d1ff",
+              pump:"#00d1ff", apparatus:"#c084fc", vessel_level:"#ff5ea8", trend:"#5f7488",
+              text_readout:"#8fa8bb", status_text:"#8fa8bb" };
+  ctx.save(); ctx.lineWidth=1.6; ctx.font="10px "+mono;
+  for (const o of ANN){
+    const c = C[o.type]||"#fff";
+    ctx.strokeStyle=c; ctx.strokeRect(o.bbox[0]+.5,o.bbox[1]+.5,o.bbox[2],o.bbox[3]);
+    ctx.fillStyle="rgba(0,0,0,.72)";
+    const lbl = o.type+" · "+o.id;
+    const tw = ctx.measureText(lbl).width+8;
+    ctx.fillRect(o.bbox[0], o.bbox[1]-13, tw, 13);
+    ctx.fillStyle=c; ctx.fillText(lbl, o.bbox[0]+4, o.bbox[1]-3);
+    if (o.type==="gauge"){
+      ctx.beginPath(); ctx.moveTo(o.center[0],o.center[1]); ctx.lineTo(o.needle_tip[0],o.needle_tip[1]);
+      ctx.strokeStyle="#fff"; ctx.stroke();
+    }
+    if (o.digits) for (const d of o.digits){
+      ctx.strokeStyle="rgba(255,255,255,.5)"; ctx.strokeRect(d.bbox[0]+.5,d.bbox[1]+.5,d.bbox[2],d.bbox[3]); }
+  }
+  ctx.restore();
+}
+
+/* ####################################################################
+   7. ЦИКЛ
+   #################################################################### */
+function step(){
+  if (!paused){
+    const dtT = 0.1*speed, n = clamp(Math.ceil(dtT/20),1,40);
+    for (let i=0;i<n;i++){ physics(dtT/n); protections(dtT/n); }
+    if (S.t - hist.last > 600){
+      hist.last = S.t;
+      hist.p.push([S.Ppi,S.Pwf,S.h/10]);
+      hist.q.push([S.Q,S.Qoil,S.wc*100]);
+      hist.e.push([S.I,S.tMot,S.load*100]);
+      ["p","q","e"].forEach(k=>{ if(hist[k].length>144) hist[k].shift(); });
+    }
+  }
+  render();
+  requestAnimationFrame(step);
+}
+
+/* ####################################################################
+   8. ВВОД
+   #################################################################### */
+cv.addEventListener("click", e=>{
+  const r = cv.getBoundingClientRect();
+  const x = (e.clientX-r.left)*W/r.width, y = (e.clientY-r.top)*H/r.height;
+  for (const h of HIT) if (x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h){ h.fn(); return; }
+});
+const $ = id => document.getElementById(id);
+function syncUI(){
+  $("vFreq").textContent = ui.f.toFixed(1)+" Гц";
+  $("vChoke").textContent = ui.choke+" %";
+  $("sFreq").value = ui.f; $("sFreq").disabled = ui.auto;
+  $("bAuto").classList.toggle("on", ui.auto);
+  $("bApv").classList.toggle("on", ui.apv);
+  $("bPause").classList.toggle("on", paused);
+  $("bBox").classList.toggle("on", showBox);
+}
+$("bStart").onclick = cmdStart;  $("bStop").onclick = cmdStop;
+$("bAck").onclick   = cmdAck;    $("bRepair").onclick = cmdRepair;
+$("bAuto").onclick  = ()=>{ ui.auto=!ui.auto; syncUI(); };
+$("bApv").onclick   = ()=>{ ui.apv =!ui.apv;  syncUI(); };
+$("bPause").onclick = ()=>{ paused=!paused;   syncUI(); };
+$("bBox").onclick   = ()=>{ showBox=!showBox; syncUI(); };
+$("sFreq").oninput  = e=>{ ui.f=+e.target.value; syncUI(); };
+$("sChoke").oninput = e=>{ ui.choke=+e.target.value; syncUI(); };
+$("selSpeed").onchange = e=> speed=+e.target.value;
+
+/* ---- компоновка щита ---- */
+function setLayout(id){
+  if (!LAYOUTS[id] || id===LAY) return;
+  LAY = id; $("selLay").value = id;
+  alarm("info","КОМП", LAYOUTS[id].name+" — "+LAYOUTS[id].note);
+}
+LAY_IDS.forEach(k=>{
+  const o = document.createElement("option");
+  o.value = k; o.textContent = LAYOUTS[k].name; $("selLay").appendChild(o);
+});
+$("selLay").value = LAY;
+$("selLay").onchange = e=> setLayout(e.target.value);
+$("bLayNext").onclick = ()=> setLayout(LAY_IDS[(LAY_IDS.indexOf(LAY)+1) % LAY_IDS.length]);
+document.querySelectorAll("[data-f]").forEach(b=> b.onclick=()=>inject(b.dataset.f));
+document.addEventListener("keydown", e=>{
+  if (/INPUT|SELECT/.test(e.target.tagName)) return;
+  if (e.code==="Space"){ e.preventDefault(); paused=!paused; syncUI(); }
+  if (e.key==="s"||e.key==="ы") S.run?cmdStop():cmdStart();
+  if (e.key==="b"||e.key==="и"){ showBox=!showBox; syncUI(); }
+  if (e.key==="l"||e.key==="д") setLayout(LAY_IDS[(LAY_IDS.indexOf(LAY)+1) % LAY_IDS.length]);
+});
+
+/* ####################################################################
+   9. ЭКСПОРТ ДЛЯ CV
+   #################################################################### */
+
+/* ---- 9.1 ZIP (метод store) ---- */
+const CRC_T = (()=>{ const t=new Uint32Array(256);
+  for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c = c&1 ? 0xEDB88320^(c>>>1) : c>>>1; t[n]=c>>>0; }
+  return t; })();
+function crc32(u8){ let c=0xFFFFFFFF; for(let i=0;i<u8.length;i++) c=CRC_T[(c^u8[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function zipBuild(files){
+  const enc = new TextEncoder(), parts = [], central = [];
+  let off = 0;
+  const d = new Date(), dosT = ((d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1))&0xFFFF;
+  const dosD = (((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF;
+  for (const f of files){
+    const name = enc.encode(f.name), data = f.data, crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true); lh.setUint16(4,20,true); lh.setUint16(6,0x0800,true);
+    lh.setUint16(8,0,true); lh.setUint16(10,dosT,true); lh.setUint16(12,dosD,true);
+    lh.setUint32(14,crc,true); lh.setUint32(18,data.length,true); lh.setUint32(22,data.length,true);
+    lh.setUint16(26,name.length,true); lh.setUint16(28,0,true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true); ch.setUint16(4,20,true); ch.setUint16(6,20,true);
+    ch.setUint16(8,0x0800,true); ch.setUint16(10,0,true); ch.setUint16(12,dosT,true); ch.setUint16(14,dosD,true);
+    ch.setUint32(16,crc,true); ch.setUint32(20,data.length,true); ch.setUint32(24,data.length,true);
+    ch.setUint16(28,name.length,true); ch.setUint32(42,off,true);
+    central.push(new Uint8Array(ch.buffer), name);
+    off += 30+name.length+data.length;
+  }
+  let cSize = 0; for (const p of central) cSize += p.length;
+  const eo = new DataView(new ArrayBuffer(22));
+  eo.setUint32(0,0x06054b50,true); eo.setUint16(8,files.length,true); eo.setUint16(10,files.length,true);
+  eo.setUint32(12,cSize,true); eo.setUint32(16,off,true);
+  const all = parts.concat(central, [new Uint8Array(eo.buffer)]);
+  let total=0; for(const p of all) total+=p.length;
+  const out = new Uint8Array(total); let o=0;
+  for (const p of all){ out.set(p,o); o+=p.length; }
+  return out;
+}
+function b64ToBytes(b64){
+  const bin = atob(b64), u8 = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+  return u8;
+}
+function download(name, bytes, mime){
+  const blob = new Blob([bytes], {type:mime||"application/octet-stream"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ---- 9.2 Аугментации ---- */
+const aug2 = document.createElement("canvas"); aug2.width=W; aug2.height=H;
+const actx = aug2.getContext("2d", { willReadFrequently:true });
+
+function randAug(rnd){
+  return { rot_deg: (rnd()*2-1)*2.2,
+           scale  : 0.94 + rnd()*0.10,
+           dx     : (rnd()*2-1)*26,
+           dy     : (rnd()*2-1)*18,
+           brightness: 0.80 + rnd()*0.42,
+           contrast  : 0.86 + rnd()*0.30,
+           noise     : rnd()*0.055,
+           blur      : rnd()<0.35 ? 0.4+rnd()*1.5 : 0,
+           glare     : rnd()<0.45,
+           glare_x   : rnd()*W, glare_y: rnd()*H, glare_r: 220+rnd()*520,
+           scanlines : rnd()<0.30,
+           vignette  : 0.10+rnd()*0.35,
+           jpeg_q    : 0.62+rnd()*0.33 };
+}
+/* матрица аффинного преобразования, применяемая к базовому кадру */
+function augMatrix(a){
+  const cx=W/2, cy=H/2, r=a.rot_deg*D2R, s=a.scale;
+  const cos=Math.cos(r)*s, sin=Math.sin(r)*s;
+  //  [x'] = [cos -sin][x-cx] + [cx+dx]
+  return { a:cos, b:sin, c:-sin, d:cos,
+           e: cx + a.dx - cos*cx + sin*cy,
+           f: cy + a.dy - sin*cx - cos*cy };
+}
+const applyM = (m,p)=> [ m.a*p[0]+m.c*p[1]+m.e, m.b*p[0]+m.d*p[1]+m.f ];
+function bboxT(m, bb){
+  const pts=[[bb[0],bb[1]],[bb[0]+bb[2],bb[1]],[bb[0]+bb[2],bb[1]+bb[3]],[bb[0],bb[1]+bb[3]]].map(p=>applyM(m,p));
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const x=Math.min(...xs), y=Math.min(...ys);
+  return { bbox:[+x.toFixed(1), +y.toFixed(1), +(Math.max(...xs)-x).toFixed(1), +(Math.max(...ys)-y).toFixed(1)],
+           quad: pts.map(p=>[+p[0].toFixed(1),+p[1].toFixed(1)]) };
+}
+function applyAug(a){
+  actx.setTransform(1,0,0,1,0,0);
+  actx.fillStyle="#05080b"; actx.fillRect(0,0,W,H);
+  const m = augMatrix(a);
+  actx.setTransform(m.a,m.b,m.c,m.d,m.e,m.f);
+  if (a.blur>0) actx.filter = "blur("+a.blur.toFixed(2)+"px)";
+  actx.drawImage(cv,0,0);
+  actx.filter="none";
+  actx.setTransform(1,0,0,1,0,0);
+
+  /* яркость / контраст / шум — по пикселям */
+  const img = actx.getImageData(0,0,W,H), p = img.data;
+  const br = a.brightness, ct = a.contrast, nz = a.noise*255;
+  for (let i=0;i<p.length;i+=4){
+    for (let k=0;k<3;k++){
+      let v = p[i+k]*br;
+      v = (v-128)*ct+128;
+      if (nz) v += (Math.random()*2-1)*nz;
+      p[i+k] = v<0?0:v>255?255:v;
+    }
+  }
+  actx.putImageData(img,0,0);
+
+  if (a.glare){
+    const g = actx.createRadialGradient(a.glare_x,a.glare_y,0,a.glare_x,a.glare_y,a.glare_r);
+    g.addColorStop(0,"rgba(255,255,245,.42)"); g.addColorStop(.5,"rgba(255,255,245,.12)");
+    g.addColorStop(1,"rgba(255,255,245,0)");
+    actx.fillStyle=g; actx.fillRect(0,0,W,H);
+  }
+  if (a.scanlines){
+    actx.fillStyle="rgba(0,0,0,.13)";
+    for (let y=0;y<H;y+=3) actx.fillRect(0,y,W,1);
+  }
+  const vg = actx.createRadialGradient(W/2,H/2,H*0.35,W/2,H/2,H*0.95);
+  vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,"+a.vignette.toFixed(2)+")");
+  actx.fillStyle=vg; actx.fillRect(0,0,W,H);
+  return m;
+}
+
+/* ---- 9.3 Сбор аннотации кадра ---- */
+const TYPES = ["gauge","sevenseg","bargraph","lamp","annunciator","button","selector",
+               "valve","pump","apparatus","vessel_level","trend","text_readout","status_text"];
+function frameAnnotation(m, a){
+  const objs = ANN.map(o=>{
+    const t = m ? bboxT(m,o.bbox) : {bbox:o.bbox.map(v=>+(+v).toFixed(1)),
+      quad:[[o.bbox[0],o.bbox[1]],[o.bbox[0]+o.bbox[2],o.bbox[1]],
+            [o.bbox[0]+o.bbox[2],o.bbox[1]+o.bbox[3]],[o.bbox[0],o.bbox[1]+o.bbox[3]]]};
+    const r = Object.assign({}, o, t);
+    if (o.center)     r.center     = applyM(m||{a:1,b:0,c:0,d:1,e:0,f:0}, o.center).map(v=>+v.toFixed(1));
+    if (o.needle_tip) r.needle_tip = applyM(m||{a:1,b:0,c:0,d:1,e:0,f:0}, o.needle_tip).map(v=>+v.toFixed(1));
+    if (o.radius && m) r.radius = +(o.radius*(a?a.scale:1)).toFixed(1);
+    if (o.digits) r.digits = o.digits.map(d=>Object.assign({char:d.char}, bboxT(m||{a:1,b:0,c:0,d:1,e:0,f:0}, d.bbox)));
+    for (const k of ["liquid_bbox","fill_bbox","display_bbox","plot_bbox"])
+      if (o[k]) r[k] = bboxT(m||{a:1,b:0,c:0,d:1,e:0,f:0}, o[k]).bbox;
+    /* обрезка по границам кадра — часть объектов может уйти за край при аугментации */
+    const [bx,by,bw,bh] = r.bbox;
+    const x0=clamp(bx,0,W), y0=clamp(by,0,H), x1=clamp(bx+bw,0,W), y1=clamp(by+bh,0,H);
+    r.bbox_clipped = [+x0.toFixed(1), +y0.toFixed(1), +(x1-x0).toFixed(1), +(y1-y0).toFixed(1)];
+    r.visible_frac = +(bw*bh>0 ? Math.max(0,(x1-x0))*Math.max(0,(y1-y0))/(bw*bh) : 0).toFixed(3);
+    r.truncated = r.visible_frac < 0.999;
+    return r;
+  }).filter(o=> o.visible_frac > 0.02);
+  return {
+    image_width:W, image_height:H,
+    layout_signature: layoutSignature(),
+    layout_id: LAY, layout_name: LAYOUTS[LAY].name,
+    /* габариты блоков в этом кадре. Скрипт сверки ищет блоки в изображении
+       и сравнивает найденное с этими числами — сами числа ему не подсказка. */
+    blocks: blockRects(),
+    sim_time_s:+S.t.toFixed(1), sim_clock:fmtClock(S.t),
+    plant_state:{
+      pump_running:S.run, tripped:S.tripped, trip_reason:S.tripReason||null,
+      freq_hz:+ui.f.toFixed(2), choke_pct:ui.choke, auto_level:ui.auto,
+      q_liquid_m3d:+S.Q.toFixed(2), q_oil_td:+S.Qoil.toFixed(2), watercut:+S.wc.toFixed(4),
+      p_wellhead_bar:+S.Pwh.toFixed(2), p_casing_bar:+S.Pcas.toFixed(2),
+      p_intake_bar:+S.Ppi.toFixed(2), p_bottomhole_bar:+S.Pwf.toFixed(2), p_reservoir_bar:+S.Pr.toFixed(2),
+      dynamic_level_m:+S.h.toFixed(1), submergence_m:+S.subm.toFixed(1),
+      motor_current_a:+S.I.toFixed(2), motor_temp_c:+S.tMot.toFixed(1), motor_load:+S.load.toFixed(3),
+      insulation_kohm:+S.iso.toFixed(1), vibration_mms:+S.vib.toFixed(2), gas_fraction:+S.gas.toFixed(3),
+      sep_level_pct:+(S.sepL*100).toFixed(2), tank_oil_m3:+S.tankV.toFixed(1), tank_water_m3:+S.wtankV.toFixed(1)
+    },
+    augmentation: a || null,
+    objects: objs
+  };
+}
+
+/* ---- 9.4 Один кадр ---- */
+function shot(){
+  render();
+  const png = b64ToBytes(cv.toDataURL("image/png").split(",")[1]);
+  const ann = frameAnnotation(null, null);
+  ann.image = "panel.png";
+  download("panel.png", png, "image/png");
+  setTimeout(()=>download("panel.json",
+    new TextEncoder().encode(JSON.stringify(ann,null,2)), "application/json"), 350);
+}
+
+/* ---- 9.5 Пакетная генерация датасета ---- */
+function mulberry(seed){ return ()=>{ seed|=0; seed=seed+0x6D2B79F5|0;
+  let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+
+async function generate(){
+  const n    = clamp(+$("nFrames").value||100, 1, 2000);
+  const fmt  = $("selFmt").value;
+  const useA = $("cAug").checked;
+  const useL = $("cLay").checked;
+  const savedLayGen = LAY;
+  const rnd  = mulberry(Date.now()&0xffffff);
+  const wasPaused = paused; paused = true;
+
+  $("prog").style.display="block"; $("bGen").disabled=true;
+  const files = [], coco = { info:{description:"Нефтедобывающая АСУ ТП — синтетический стенд для CV",
+      version:"1.0", date_created:new Date().toISOString()},
+    images:[], annotations:[], categories: TYPES.map((t,i)=>({id:i+1, name:t})) };
+  let annId = 1;
+
+  /* начальное состояние — случайный, но физичный режим */
+  initState(); S.run = true; S.h = 300+rnd()*1500;
+
+  for (let i=0;i<n;i++){
+    /* каждые ~7 кадров — прыжок в другой физически допустимый режим,
+       иначе соседние кадры слишком похожи и датасет не покрывает диапазоны */
+    if (i%7===0){
+      /* компоновка меняется вместе с режимом: иначе датасет учит не прибор,
+         а его место на щите */
+      if (useL) LAY = LAY_IDS[Math.floor(rnd()*LAY_IDS.length)];
+      S.h      = 200 + rnd()*1850;
+      S.wc     = 0.05 + rnd()*0.90;
+      S.clog   = 1 + rnd()*4;
+      S.iso    = rnd()<0.2 ? 3+rnd()*40 : 60+rnd()*220;
+      S.J      = K.J0*(0.35+rnd()*1.1);
+      S.leak   = rnd()<0.2 ? rnd()*0.5 : 0;
+      S.tMot   = 20 + rnd()*130;
+      S.Pcas   = 5 + rnd()*70;
+      S.Pr     = 150 + rnd()*70;
+      S.sepL   = 0.05 + rnd()*0.92;
+      S.tankV  = rnd()*K.Vtank;
+      S.wtankV = rnd()*K.Vwtank;
+      S.cumOil = rnd()*9000; S.runtime = rnd()*9000*3600; S.cumLiq = rnd()*20000;
+      S.t      = rnd()*86400*400;
+      S.run    = rnd()<0.72; S.starting = S.run?1:0;
+      S.tripped= !S.run && rnd()<0.45;
+      S.tripReason = S.tripped ? ["ПЕРЕГРЕВ ПЭД","ПЕРЕГРУЗ ТОКА","НИЗК. ИЗОЛЯЦИЯ","СРЫВ ПОДАЧИ","АВАР. ОСТАНОВ"][Math.floor(rnd()*5)] : "";
+      ui.inh   = rnd()<0.5; ui.auto = rnd()<0.4; ui.apv = rnd()<0.8;
+      for (const k in annAck) annAck[k] = rnd()<0.5;   // часть тревог неквитирована → мигают
+    }
+    /* случайное воздействие оператора */
+    if (rnd()<0.30) ui.f = 35+rnd()*30;
+    if (rnd()<0.25) ui.choke = 20+Math.round(rnd()*80);
+    if (rnd()<0.10) ui.auto = rnd()<0.5;
+    if (rnd()<0.06) inject(["clog","skin","leak","iso","water"][Math.floor(rnd()*5)]);
+    if (rnd()<0.05) cmdRepair();
+    if (rnd()<0.08) S.run ? cmdStop() : cmdStart();
+    if (rnd()<0.06) cmdEstop();
+    if (rnd()<0.10) cmdAck();
+    if (S.tripped && rnd()<0.4) { cmdAck(); cmdStart(); }
+    if (!S.run && !S.tripped && S.restartAt===null && rnd()<0.5) cmdStart();
+    /* прогон 10–90 минут модельного времени */
+    const mins = 10+Math.floor(rnd()*80);
+    for (let k=0;k<mins*6;k++){ physics(10); protections(10); }
+    if (S.t-hist.last>600){ hist.last=S.t;
+      hist.p.push([S.Ppi,S.Pwf,S.h/10]); hist.q.push([S.Q,S.Qoil,S.wc*100]); hist.e.push([S.I,S.tMot,S.load*100]);
+      ["p","q","e"].forEach(k2=>{ if(hist[k2].length>144) hist[k2].shift(); }); }
+
+    render();
+    let m=null, a=null, src=cv;
+    if (useA){ a = randAug(rnd); m = applyAug(a); src = aug2; }
+
+    const ext  = fmt==="png" ? "png" : "jpg";
+    const mime = fmt==="png" ? "image/png" : "image/jpeg";
+    const url  = fmt==="png" ? src.toDataURL("image/png") : src.toDataURL("image/jpeg", a?a.jpeg_q:0.9);
+    const bytes = b64ToBytes(url.split(",")[1]);
+    const nm = "frame_"+String(i+1).padStart(5,"0");
+
+    files.push({ name:"images/"+nm+"."+ext, data:bytes });
+    const ann = frameAnnotation(m, a);
+    ann.image = "images/"+nm+"."+ext;
+    files.push({ name:"annotations/"+nm+".json",
+                 data:new TextEncoder().encode(JSON.stringify(ann,null,1)) });
+
+    coco.images.push({ id:i+1, file_name:"images/"+nm+"."+ext, width:W, height:H,
+                       layout_id: ann.layout_id });
+    for (const o of ann.objects){
+      coco.annotations.push({ id:annId++, image_id:i+1,
+        category_id: TYPES.indexOf(o.type)+1,
+        bbox:o.bbox, area:+(o.bbox[2]*o.bbox[3]).toFixed(1), iscrowd:0,
+        attributes:{ tag_id:o.id, label:o.label,
+          value: o.value!==undefined?o.value:null,
+          text : o.text || o.digital_text || null,
+          state: o.state || null,
+          angle_deg: o.angle_deg!==undefined?o.angle_deg:null,
+          unit : o.unit || null } });
+    }
+    if (i%2===0 || i===n-1){
+      $("prog").firstElementChild.style.width = ((i+1)/n*100).toFixed(1)+"%";
+      await new Promise(r=>setTimeout(r,0));
+    }
+  }
+  files.push({ name:"annotations_coco.json", data:new TextEncoder().encode(JSON.stringify(coco)) });
+  files.push({ name:"README.txt", data:new TextEncoder().encode(README(n,fmt,useA)) });
+
+  LAY = savedLayGen; $("selLay").value = LAY;
+  download("scada_cv_dataset_"+n+".zip", zipBuild(files), "application/zip");
+  $("prog").style.display="none"; $("prog").firstElementChild.style.width="0";
+  $("bGen").disabled=false; paused = wasPaused;
+}
+function README(n,fmt,useA){
+return `СИНТЕТИЧЕСКИЙ ДАТАСЕТ: ЩИТ АСУ ТП НЕФТЕДОБЫЧИ
+================================================
+Кадров: ${n}   Формат: ${fmt.toUpperCase()}   Разрешение: ${W}x${H}
+Аугментации: ${useA ? "включены" : "выключены"}
+
+СТРУКТУРА
+  images/frame_XXXXX.${fmt==="png"?"png":"jpg"}   изображение щита
+  annotations/frame_XXXXX.json                    полная разметка кадра
+  annotations_coco.json                           сводная разметка в формате COCO
+
+ТИПЫ ОБЪЕКТОВ (categories)
+  gauge         аналоговый манометр: value, min, max, angle_deg, center,
+                needle_tip, radius, redzone_from, digital_text
+  sevenseg      семисегментный индикатор: text, value, digits[] c bbox каждой цифры
+  bargraph      столбчатый индикатор: value, fill_frac, fill_bbox
+  lamp          сигнальная лампа: state = on | off | blink, is_lit
+  annunciator   окно щита тревог: state, severity = alarm | warn
+  button        кнопка: state = pressed | released
+  valve         арматура: opening_pct, state = open | throttled | closed
+  pump          насосный агрегат: state = running | stopped
+  vessel_level  аппарат с уровнем: level_pct, liquid_bbox (граница жидкости)
+  trend         тренд: plot_bbox, y_min, y_max, series[]
+  text_readout  текстовое табло: text, value, unit
+  status_text   строка состояния
+
+ГЕОМЕТРИЯ
+  bbox = [x, y, w, h] в пикселях изображения (после аугментации).
+  quad = 4 угла исходного прямоугольника после поворота — для повёрнутых рамок.
+  Углы стрелок: шкала начинается на ${A0} град и разворачивается на ${ASWEEP} град
+  по часовой стрелке в системе координат canvas (ось Y вниз).
+  value связано с углом линейно: angle = ${A0} + ${ASWEEP} * (value-min)/(max-min).
+
+ЭТАЛОН ЗНАЧЕНИЙ
+  plant_state в каждом JSON — истинное состояние модели на момент кадра;
+  используйте его для сверки результатов распознавания.
+
+ПАРАМЕТРЫ АУГМЕНТАЦИИ
+  augmentation: поворот, масштаб, сдвиг, яркость, контраст, шум, размытие,
+  блик, строчная структура, виньетирование, качество JPEG.
+`;
+}
+$("bGen").onclick  = generate;
+$("bShot").onclick = shot;
+
+/* ####################################################################
+   9.6 ЭТАЛОННЫЕ ОБРАЗЦЫ ДЛЯ cv2.matchTemplate
+
+   Шаблоны нарезаются из того же холста, что и кадры датасета, поэтому
+   совпадают с ними пиксель в пиксель — обязательное условие для
+   matchTemplate, который не инвариантен ни к масштабу, ни к повороту.
+   #################################################################### */
+const cropCv = document.createElement("canvas");
+function cropPNG(bbox){
+  const x = clamp(Math.floor(bbox[0]), 0, W-1), y = clamp(Math.floor(bbox[1]), 0, H-1);
+  const w = clamp(Math.ceil(bbox[0]+bbox[2]) - x, 1, W-x);
+  const h = clamp(Math.ceil(bbox[1]+bbox[3]) - y, 1, H-y);
+  cropCv.width=w; cropCv.height=h;
+  const c = cropCv.getContext("2d");
+  c.clearRect(0,0,w,h); c.drawImage(cv, x,y,w,h, 0,0,w,h);
+  return { bytes:b64ToBytes(cropCv.toDataURL("image/png").split(",")[1]), w, h, x, y };
+}
+/* Бинарная маска произвольной формы — рисуем ту же геометрию белым по чёрному */
+function maskPNG(w,h,fn){
+  cropCv.width=w; cropCv.height=h;
+  const c = cropCv.getContext("2d");
+  c.fillStyle="#000"; c.fillRect(0,0,w,h);
+  c.fillStyle="#fff"; c.strokeStyle="#fff"; c.lineCap="round"; c.lineJoin="round";
+  fn(c);
+  return b64ToBytes(cropCv.toDataURL("image/png").split(",")[1]);
+}
+const findAnn = id => ANN.find(o=>o.id===id);
+
+/* Папка запоминается между запусками, чтобы повторная выгрузка шла без диалога */
+function idb(){
+  return new Promise((res,rej)=>{
+    const rq = indexedDB.open("scada-cv", 1);
+    rq.onupgradeneeded = ()=> rq.result.createObjectStore("h");
+    rq.onsuccess = ()=> res(rq.result); rq.onerror = ()=> rej(rq.error);
+  });
+}
+async function idbGet(k){
+  try{ const db = await idb();
+    return await new Promise(r=>{ const q = db.transaction("h").objectStore("h").get(k);
+      q.onsuccess=()=>r(q.result); q.onerror=()=>r(null); });
+  }catch(e){ return null; }
+}
+async function idbSet(k,v){
+  try{ const db = await idb();
+    db.transaction("h","readwrite").objectStore("h").put(v,k);
+  }catch(e){}
+}
+async function rememberedDir(){
+  const h = await idbGet("tplDir");
+  if (!h) return null;
+  try{
+    if (await h.queryPermission({mode:"readwrite"}) === "granted") return h;
+    if (await h.requestPermission({mode:"readwrite"}) === "granted") return h;
+  }catch(e){}
+  return null;
+}
+
+/* Куда писать: напрямую в выбранную папку либо, если браузер не умеет, в ZIP */
+async function makeWriter(){
+  if (window.showDirectoryPicker){
+    try{
+      const root = (await rememberedDir())
+                || await window.showDirectoryPicker({ mode:"readwrite", id:"cvtpl" });
+      await idbSet("tplDir", root);
+      const cache = { "": root };
+      const getDir = async p => {
+        if (cache[p]) return cache[p];
+        let d = root;
+        for (const part of p.split("/")) d = await d.getDirectoryHandle(part, {create:true});
+        return cache[p] = d;
+      };
+      return { mode:"папка", async write(path,bytes){
+          const i = path.lastIndexOf("/");
+          const d = await getDir(i<0 ? "" : path.slice(0,i));
+          const fh = await d.getFileHandle(path.slice(i+1), {create:true});
+          const wr = await fh.createWritable(); await wr.write(bytes); await wr.close();
+        }, async done(){ return "папку"; } };
+    }catch(e){ if (e && e.name==="AbortError") return null; }
+  }
+  const files = [];
+  return { mode:"архив", async write(path,bytes){ files.push({name:path,data:bytes}); },
+           async done(){ download("cv_templates.zip", zipBuild(files), "application/zip"); return "архив"; } };
+}
+
+async function exportTemplates(){
+  const wr = await makeWriter();
+  if (!wr) return;
+  const stepDeg = +$("selAng").value;
+  const man = { panel:{width:W,height:H},
+                created: new Date().toISOString(),
+                layout_id: LAY, layout_name: LAYOUTS[LAY].name,
+                /* габариты блоков той компоновки, из которой нарезаны образцы.
+                   По ним скрипт сверки вырезает из reference/frame.png опорные
+                   куски и ищет блоки в кадре — так снимается привязка к
+                   координатам прибора. */
+                blocks: null,
+                gauge_angle_step_deg: stepDeg,
+                gauge_scale:{ start_deg:A0, sweep_deg:ASWEEP },
+                layout_signature: null,   // заполняется ниже: защита от устаревших эталонов
+                note:"Шаблоны вырезаны из кадра 1:1. cv2.matchTemplate требует тот же масштаб — сверяйте с кадрами, выгруженными без аугментаций.",
+                templates:[] };
+  const enc = new TextEncoder();
+  let done = 0, total = 1;
+  const bar = $("prog"); bar.style.display="block"; $("bTpl").disabled = true;
+  const tick = async ()=>{ bar.firstElementChild.style.width = (done/total*100).toFixed(1)+"%";
+                           if (done % 12 === 0) await new Promise(r=>setTimeout(r,0)); };
+
+  /* --- фиксируем сцену: установившийся режим, остановленные часы анимации --- */
+  const wasPaused = paused, savedS = JSON.parse(JSON.stringify(S)), savedUi = Object.assign({},ui);
+  const savedHist = JSON.parse(JSON.stringify(hist));
+  paused = true; CLK = ()=>0;
+  initState(); S.run = true; S.starting = 1; ui.f = 50; ui.choke = 100;
+  for (let i=0;i<300*60;i++){ physics(1); protections(1); }
+  S.t = 12*3600 + 34*60 + 56;
+
+  const put = async (path, bytes, meta)=>{ await wr.write(path, bytes); man.templates.push(meta); done++; await tick(); };
+  const shootOne = async (path, id, meta)=>{
+    const o = findAnn(id); if (!o) return null;
+    const im = cropPNG(o.bbox);
+    await put(path, im.bytes, Object.assign({ file:path, object_id:id, class:o.type,
+      label:o.label||null, w:im.w, h:im.h, anchor:[im.x,im.y], mask:null }, meta||{}));
+    return o;
+  };
+
+  const GID = GA.map(g=>g.id);
+  const nAng = Math.floor(ASWEEP/stepDeg)+1;
+  /* эталоны режутся в текущей компоновке, контрольные кадры — в выбранных */
+  const TPL_LAY  = LAY;
+  const VAL_LAYS = $("selVal").value === "all" ? LAY_IDS.slice() : [LAY];
+  total = nAng + 12 + 2+2+2+3+2+2+2+2+1+4+1 + 14*VAL_LAYS.length + 2;
+
+  /* ---------- 1. контрольный кадр ---------- */
+  OVR = null; render();
+  man.layout_signature = layoutSignature();
+  await wr.write("reference/frame.png", b64ToBytes(cv.toDataURL("image/png").split(",")[1]));
+  await wr.write("reference/frame.json", enc.encode(JSON.stringify(frameAnnotation(null,null),null,1)));
+  done++; await tick();
+
+  /* ---------- 2. манометры: полный оборот стрелки ---------- */
+  for (let k=0;k<nAng;k++){
+    const ang = A0 + k*stepDeg;
+    const gv = {};
+    GA.forEach(g=> gv[g.id] = g.min + (g.max-g.min)*(ang-A0)/ASWEEP);
+    OVR = { gauge:gv }; render();
+    for (const g of GA){
+      const o = findAnn(g.id); const im = cropPNG(o.bbox);
+      await wr.write("templates/gauge/"+g.id+"_a"+String(Math.round(ang)).padStart(3,"0")+".png", im.bytes);
+      man.templates.push({ file:"templates/gauge/"+g.id+"_a"+String(Math.round(ang)).padStart(3,"0")+".png",
+        object_id:g.id, class:"gauge", label:g.label, unit:g.unit,
+        angle_deg:+ang.toFixed(2), value:+gv[g.id].toFixed(4), min:g.min, max:g.max,
+        w:im.w, h:im.h, anchor:[im.x,im.y], mask:"masks/"+g.id+"_dial.png" });
+    }
+    done++; await tick();
+  }
+  /* круглая маска циферблата — углы корпуса из сравнения исключаются */
+  for (const g of GA){
+    const o = findAnn(g.id);
+    await wr.write("masks/"+g.id+"_dial.png",
+      maskPNG(Math.ceil(o.bbox[2]), Math.ceil(o.bbox[3]), c=>{
+        c.beginPath(); c.arc(o.bbox[2]/2, o.bbox[3]/2, o.radius+2, 0, 7); c.fill(); }));
+  }
+
+  /* ---------- 3. знакоместа семисегментных индикаторов ---------- */
+  OVR = null; render();
+  const dispInfo = ANN.filter(o=>o.type==="sevenseg")
+                      .map(o=>({ id:o.id, label:o.label, unit:o.unit, color:o.color,
+                                 pattern:o.text, dotIdx:o.digits.findIndex(d=>d.char===".") }));
+  for (const glyph of ["0","1","2","3","4","5","6","7","8","9"," "]){
+    const dv = {};
+    dispInfo.forEach(d=> dv[d.id] = d.pattern.replace(/\d/g, glyph));
+    OVR = { disp:dv }; render();
+    for (const d of dispInfo){
+      const o = findAnn(d.id);
+      const cell = o.digits.find(x=>x.char!==".");
+      const im = cropPNG(cell.bbox);
+      const nm = "templates/sevenseg/"+d.id+"_"+(glyph===" "?"blank":glyph)+".png";
+      await wr.write(nm, im.bytes);
+      man.templates.push({ file:nm, object_id:d.id, class:"sevenseg_digit",
+        label:d.label, unit:d.unit, char:(glyph===" "?"":glyph), color:d.color,
+        w:im.w, h:im.h, anchor:[im.x,im.y], mask:null });
+    }
+    done++; await tick();
+  }
+  /* десятичная точка там, где она есть */
+  OVR = null; render();
+  for (const d of dispInfo){
+    if (d.dotIdx < 0) continue;
+    const o = findAnn(d.id), im = cropPNG(o.digits[d.dotIdx].bbox);
+    const nm = "templates/sevenseg/"+d.id+"_dot.png";
+    await wr.write(nm, im.bytes);
+    man.templates.push({ file:nm, object_id:d.id, class:"sevenseg_digit", label:d.label,
+      char:".", w:im.w, h:im.h, anchor:[im.x,im.y], mask:null });
+  }
+  done++; await tick();
+
+  /* ---------- 4. приборы с дискретными состояниями ---------- */
+  const seen = new Set();
+  const twoState = async (kind, ids, states)=>{
+    for (const st of states){
+      const map = {}; ids.forEach(id=> map[id] = st.v);
+      OVR = { [kind]: map }; render();
+      for (const id of ids){
+        const o = findAnn(id); if (!o) continue;
+        /* у двухпозиционной арматуры «прикрыт» совпадает с «закрыт» — дубли не пишем */
+        const key = id+"|"+(o.state||st.n); if (seen.has(key)) continue; seen.add(key);
+        const nm = "templates/"+o.type+"/"+id+"_"+(o.state||st.n)+".png";
+        const im = cropPNG(o.bbox);
+        await wr.write(nm, im.bytes);
+        man.templates.push({ file:nm, object_id:id, class:o.type, label:o.label||null,
+          state:o.state, w:im.w, h:im.h, anchor:[im.x,im.y],
+          mask: (o.type==="valve"||o.type==="pump") ? "masks/"+id+".png" : null,
+          opening_pct: o.opening_pct!==undefined ? o.opening_pct : undefined });
+      }
+      done++; await tick();
+    }
+  };
+  OVR=null; render();
+  const idsOf = t => ANN.filter(o=>o.type===t).map(o=>o.id);
+  await twoState("lamp", idsOf("lamp"),   [{v:"on",n:"on"},{v:"off",n:"off"}]);
+  await twoState("ann",  idsOf("annunciator"), [{v:true,n:"on"},{v:false,n:"off"}]);
+  await twoState("btn",  idsOf("button"), [{v:true,n:"pressed"},{v:false,n:"released"}]);
+  await twoState("pump", idsOf("pump"),   [{v:true,n:"running"},{v:false,n:"stopped"}]);
+  await twoState("app",  idsOf("apparatus"), [{v:true,n:"running"},{v:false,n:"stopped"}]);
+  await twoState("valve",idsOf("valve"),  [{v:0,n:"closed"},{v:50,n:"throttled"},{v:100,n:"open"}]);
+
+  /* поворотные переключатели — по образцу на каждое положение */
+  OVR = null; render();
+  const selOpts = {}; ANN.filter(o=>o.type==="selector").forEach(o=> selOpts[o.id]=o.options);
+  const allOpts = [...new Set(Object.values(selOpts).flat())];
+  for (const opt of allOpts){
+    const map = {}; for (const id in selOpts) if (selOpts[id].includes(opt)) map[id]=opt;
+    OVR = { sel:map }; render();
+    for (const id in map){
+      const o = findAnn(id), im = cropPNG(o.bbox);
+      const nm = "templates/selector/"+id+"_"+opt.toLowerCase()+".png";
+      await wr.write(nm, im.bytes);
+      man.templates.push({ file:nm, object_id:id, class:"selector", label:o.label,
+        state:opt, options:o.options, position_index:o.position_index,
+        w:im.w, h:im.h, anchor:[im.x,im.y], mask:null });
+    }
+    done++; await tick();
+  }
+
+  /* маски для арматуры и насосов — фон под ними меняется от трубы к трубе */
+  OVR = null; render();
+  for (const o of ANN.filter(x=>x.type==="valve"||x.type==="pump")){
+    const bw = Math.ceil(o.bbox[2]), bh = Math.ceil(o.bbox[3]);
+    const [cx0, cy0, sz] = o.sym_rel;
+    await wr.write("masks/"+o.id+".png", maskPNG(bw,bh,c=>{
+      if (o.symbol==="pump"){
+        c.beginPath(); c.arc(cx0, cy0, sz+2, 0, 7); c.fill();
+        c.fillRect(cx0-sz-5, cy0+sz-3, (sz+5)*2, 9);
+        c.fillRect(4, bh-16, bw-8, 14);                       // шильдик
+      } else if (o.symbol==="check"){
+        c.beginPath(); c.moveTo(cx0-sz-2, cy0-12); c.lineTo(cx0+sz+2, cy0);
+        c.lineTo(cx0-sz-2, cy0+12); c.closePath(); c.fill();
+        c.fillRect(cx0+sz-1, cy0-13, 4, 26);                  // седло
+        c.fillRect(6, bh-15, bw-12, 13);
+      } else if (o.symbol==="psv"){
+        c.beginPath(); c.moveTo(cx0-sz-2, cy0-10); c.lineTo(cx0, cy0-18);
+        c.lineTo(cx0+sz+2, cy0-10); c.lineTo(cx0+sz+2, cy0-26);
+        c.lineTo(cx0, cy0-18); c.lineTo(cx0-sz-2, cy0-26); c.closePath(); c.fill();
+        c.fillRect(cx0-2, cy0-40, 5, 16);                     // свеча
+      } else {                                                 // клиновая задвижка
+        c.beginPath(); c.moveTo(cx0-sz-1, cy0-sz*0.8); c.lineTo(cx0, cy0);
+        c.lineTo(cx0-sz-1, cy0+sz*0.8); c.closePath();
+        c.moveTo(cx0+sz+1, cy0-sz*0.8); c.lineTo(cx0, cy0);
+        c.lineTo(cx0+sz+1, cy0+sz*0.8); c.closePath(); c.fill();
+        c.fillRect(cx0-3, cy0-sz-12, 6, sz+12);               // шпиндель
+        c.fillRect(6, bh-15, bw-12, 13);
+      }
+    }));
+  }
+
+  /* ---------- 5. столбчатые индикаторы: пустой и полный ---------- */
+  for (const st of [{f:0,n:"empty"},{f:1,n:"full"}]){
+    const map = {};
+    ANN.filter(o=>o.type==="bargraph").forEach(o=> map[o.id] = o.min + (o.max-o.min)*st.f);
+    OVR = { bar:map }; render();
+    for (const id of Object.keys(map)){
+      const o = findAnn(id), im = cropPNG(o.bbox);
+      const nm = "templates/bargraph/"+id+"_"+st.n+".png";
+      await wr.write(nm, im.bytes);
+      man.templates.push({ file:nm, object_id:id, class:"bargraph", label:o.label, unit:o.unit,
+        value:o.value, min:o.min, max:o.max, fill_frac:st.f, w:im.w, h:im.h,
+        anchor:[im.x,im.y], mask:null,
+        /* дорожка шкалы в координатах шаблона — по ней меряется доля заливки */
+        fill_rect_rel:[+(o.track_bbox[0]-im.x).toFixed(1), +(o.track_bbox[1]-im.y).toFixed(1),
+                       +o.track_bbox[2].toFixed(1), +o.track_bbox[3].toFixed(1)] });
+    }
+    done++; await tick();
+  }
+
+  /* ---------- 6. аппараты с уровнем: пустой и полный ---------- */
+  OVR = null;
+  for (const st of [{f:0,n:"empty"},{f:1,n:"full"}]){
+    S.sepL = st.f; S.tankV = K.Vtank*st.f; S.wtankV = K.Vwtank*st.f;
+    S.gas = st.f*0.6; S.h = K.Lwell*(1-st.f);
+    render();
+    for (const o of ANN.filter(x=>x.type==="vessel_level")){
+      const im = cropPNG(o.bbox);
+      const nm = "templates/vessel_level/"+o.id+"_"+st.n+".png";
+      await wr.write(nm, im.bytes);
+      man.templates.push({ file:nm, object_id:o.id, class:"vessel_level", label:o.label,
+        unit:o.unit, level_pct:o.level_pct, w:im.w, h:im.h, anchor:[im.x,im.y], mask:null,
+        /* столб жидкости в координатах шаблона: у «full» это полный диапазон уровня */
+        liquid_rect_rel:[+(o.liquid_bbox[0]-im.x).toFixed(1), +(o.liquid_bbox[1]-im.y).toFixed(1),
+                         +o.liquid_bbox[2].toFixed(1), +o.liquid_bbox[3].toFixed(1)],
+        /* где именно мерить и какой доле шкалы соответствует эта область */
+        measure_rect_rel: o.measure_bbox
+          ? [+(o.measure_bbox[0]-im.x).toFixed(1), +(o.measure_bbox[1]-im.y).toFixed(1),
+             +o.measure_bbox[2].toFixed(1), +o.measure_bbox[3].toFixed(1)]
+          : [+(o.liquid_bbox[0]-im.x).toFixed(1), +(o.liquid_bbox[1]-im.y).toFixed(1),
+             +o.liquid_bbox[2].toFixed(1), +o.liquid_bbox[3].toFixed(1)],
+        measure_span_pct: 100 });
+    }
+    done++; await tick();
+  }
+  Object.assign(S, savedS); S.starting = 1;
+
+  /* ---------- 7. тренды с пустой историей ---------- */
+  hist = { p:[], q:[], e:[], last:-1e9 }; render();
+  for (const o of ANN.filter(x=>x.type==="trend"))
+    await shootOne("templates/trend/"+o.id+"_empty.png", o.id, { state:"empty" });
+  done++; await tick();
+
+  /* ---------- 8. строка состояния объекта ---------- */
+  for (const p of ["run","stop","apv","alarm"]){
+    OVR = { pill:p }; render();
+    const o = findAnn("hdr_state"), im = cropPNG(o.bbox);
+    const nm = "templates/status_text/hdr_state_"+p+".png";
+    await wr.write(nm, im.bytes);
+    man.templates.push({ file:nm, object_id:"hdr_state", class:"status_text",
+      label:o.label, text:o.text, state:p, w:im.w, h:im.h, anchor:[im.x,im.y], mask:null });
+    done++; await tick();
+  }
+
+  /* ---------- 9. текстовые табло (только для локализации) ---------- */
+  OVR = null; render();
+  for (const o of ANN.filter(x=>x.type==="text_readout"))
+    await shootOne("templates/text_readout/"+o.id+".png", o.id, { unit:o.unit||null });
+  done++; await tick();
+
+  /* ---------- 10. контрольный набор кадров ----------
+     Проверять распознавание на том же кадре, из которого нарезаны эталоны, —
+     проверка ни о чём. Поэтому выгружаем отдельный набор режимов: рабочие,
+     аварийные и крайние точки шкал. Каждый кадр идёт со своим JSON, где лежат
+     истинные значения модели на момент отрисовки. */
+  const SCEN = [
+    ["01_нормальный_режим_50гц", ()=>{ S.run=true; S.starting=1; ui.f=50;
+        for(let i=0;i<400*60;i++){ physics(1); protections(1); } }],
+    ["02_останов_уровень_восстановлен", ()=>{ S.run=false; S.starting=0; S.h=520;
+        for(let i=0;i<200*60;i++) physics(1); }],
+    ["03_авария_перегрев_пэд", ()=>{ S.run=false; S.starting=0; S.tripped=true;
+        S.tripReason="ПЕРЕГРЕВ ПЭД"; S.tMot=134; S.h=1650; S.iso=26; S.vib=11.4; }],
+    ["04_срыв_подачи_ожидание_апв", ()=>{ S.run=false; S.starting=0; S.h=2085;
+        S.restartAt=S.t+5400; S.tMot=96; ui.f=63; S.J=K.J0*0.35;
+        for(let i=0;i<20*60;i++) physics(1); }],
+    ["05_автомат_высокая_частота", ()=>{ S.run=true; S.starting=1; ui.auto=true;
+        ui.f=62.5; ui.subTgt=300; for(let i=0;i<300*60;i++){ physics(1); protections(1); } }],
+    ["06_штуцер_прижат_25", ()=>{ S.run=true; S.starting=1; ui.choke=25;
+        for(let i=0;i<300*60;i++){ physics(1); protections(1); } }],
+    ["07_высокая_обводнённость", ()=>{ S.run=true; S.starting=1; S.wc=0.92;
+        for(let i=0;i<200*60;i++){ physics(1); protections(1); } }],
+    ["08_парк_полный_откачка", ()=>{ S.run=true; S.starting=1;
+        for(let i=0;i<200*60;i++) physics(1);
+        S.tankV=K.Vtank*0.93; S.wtankV=K.Vwtank*0.90; S.shipPump=true; S.wPump=true;
+        S.shipQ=900; S.sepL=0.78; }],
+    ["09_парк_почти_пуст", ()=>{ S.run=true; S.starting=1;
+        for(let i=0;i<200*60;i++) physics(1);
+        S.tankV=K.Vtank*0.06; S.wtankV=K.Vwtank*0.09; S.sepL=0.11; }],
+    ["10_сепаратор_верхний_уровень", ()=>{ S.run=true; S.starting=1;
+        for(let i=0;i<200*60;i++) physics(1);
+        S.sepL=0.93; S.Psep=10.4; S.Tsep=52; }],
+    ["11_низкая_изоляция_предупреждение", ()=>{ S.run=true; S.starting=1; S.iso=17;
+        for(let i=0;i<200*60;i++) physics(1); S.iso=17; }],
+    ["12_нижний_край_шкал", ()=>{ S.run=false; S.starting=0;
+        S.Pwh=0; S.Pcas=0; S.Ppi=0; S.Pwf=0; S.Pr=0; S.Q=0; S.Qin=0; S.Qoil=0;
+        S.I=0; S.tMot=0; S.load=0; S.eff=0; S.gas=0; S.vib=0; S.iso=0; S.subm=0;
+        S.h=K.Lwell; S.wc=0; S.sepL=0.02; S.tankV=0; S.wtankV=0; S.Psep=0; S.Tsep=0;
+        S.cumOil=0; S.runtime=0; S.sepOut=0; S.shipQ=0; ui.f=35; ui.choke=20; }, true],
+    ["13_верхний_край_шкал", ()=>{ S.run=true; S.starting=1;
+        S.Pwh=98; S.Pcas=97; S.Ppi=196; S.Pwf=205; S.Pr=218; S.Q=118; S.Qin=118;
+        S.Qoil=58; S.I=58; S.tMot=196; S.load=1.48; S.eff=0.64; S.gas=0.58; S.vib=19.4;
+        S.iso=298; S.h=60; S.subm=1195; S.wc=0.97; S.sepL=0.97;
+        S.tankV=K.Vtank*0.99; S.wtankV=K.Vwtank*0.99; S.Psep=13.8; S.Tsep=88;
+        S.cumOil=99450; S.runtime=99000*3600; S.sepOut=290; S.shipQ=900;
+        S.shipPump=true; S.wPump=true; ui.f=65; ui.choke=100; }, true],
+    ["14_кольматация_и_аспо", ()=>{ S.run=true; S.starting=1; S.J=K.J0*0.45; S.clog=4.6;
+        S.leak=0.3; for(let i=0;i<300*60;i++){ physics(1); protections(1); } }]
+  ];
+  const savedLog = log.slice();
+  const index = [];
+  for (const layId of VAL_LAYS){
+    LAY = layId;
+    for (const [name, setup, raw] of SCEN){
+      initState(); OVR = null;
+      for (const k in annAck) delete annAck[k];   // тревоги неквитированы, как в жизни
+      log = [{lvl:"info",tag:"РЕЖИМ",msg:name.replace(/_/g," "),t:fmtClock(0)}];
+      setup();
+      if (!raw) physics(1);                        // производные величины согласуются
+      S.t = 3600*7 + 60*(index.length*7 + 5);
+      render();
+      const base = "validation/"+layId+"/"+name;
+      const png = b64ToBytes(cv.toDataURL("image/png").split(",")[1]);
+      const ann = frameAnnotation(null, null);
+      ann.image = base+".png";
+      ann.scenario = name;
+      await wr.write(base+".png", png);
+      await wr.write(base+".json", enc.encode(JSON.stringify(ann,null,1)));
+      index.push({ scenario:name, layout:layId, layout_name:LAYOUTS[layId].name,
+                   image:base+".png", truth:base+".json",
+                   layout_signature: ann.layout_signature,
+                   pump_running:ann.plant_state.pump_running,
+                   tripped:ann.plant_state.tripped });
+      done++; await tick();
+    }
+  }
+  LAY = TPL_LAY;
+  await wr.write("validation/index.json", enc.encode(JSON.stringify(
+    { layout_signature: man.layout_signature,
+      template_layout: TPL_LAY, layouts: VAL_LAYS, frames: index }, null, 1)));
+  log = savedLog;
+
+  /* ---------- завершение ---------- */
+  /* К какому блоку относится каждый образец. Проставляется одним проходом
+     по разметке: состояние приборов на это не влияет, а компоновка — та же,
+     в которой резались образцы. */
+  OVR = null; LAY = TPL_LAY; render();
+  const objBlock = {};
+  ANN.forEach(o=> objBlock[o.id] = o.block || null);
+  man.templates.forEach(t=> t.block = objBlock[t.object_id] || null);
+  man.blocks = blockRects();
+  /* Габариты блоков во всех компоновках. Скрипт сверки находит блоки в кадре
+     сам, а по этой таблице только называет получившуюся компоновку. */
+  man.layouts = {};
+  for (const id of LAY_IDS){
+    LAY = id;
+    man.layouts[id] = { name:LAYOUTS[id].name, note:LAYOUTS[id].note, blocks:blockRects() };
+  }
+  LAY = TPL_LAY;
+  man.block_titles = BLOCK_TITLE;
+  await wr.write("manifest.json", enc.encode(JSON.stringify(man,null,1)));
+  const where = await wr.done();
+
+  OVR = null; CLK = ()=>Date.now();
+  Object.assign(S, savedS); Object.assign(ui, savedUi); hist = savedHist; paused = wasPaused;
+  bar.style.display="none"; bar.firstElementChild.style.width="0"; $("bTpl").disabled=false;
+  alarm("ok","CV","Выгружено эталонов: "+man.templates.length+" в "+where);
+}
+$("bTpl").onclick = exportTemplates;
+
+/* ####################################################################
+   10. СТАРТ
+   #################################################################### */
+initState();
+alarm("info","СИСТ","Панель загружена. Скважина остановлена");
+alarm("info","СИСТ","Кнопки на щите кликабельны. B — показать разметку");
+syncUI();
+step();
+</script>
+</body>
+</html>

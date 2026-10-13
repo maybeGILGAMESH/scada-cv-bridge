@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Замеры SCADA-моста</title>
+<style>
+/* Отчёт стенда: сводка сверху, затем разделы по звеньям контура — канал, захват, чтение, весь контур. */
+:root{
+  --bg:#f3f2ee; --panel:#fcfcfb; --line:#dfded8; --fg:#121211; --fg2:#52514e; --muted:#7a7972;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --quiet:#c4c3bb; --crit:#d03b3b; --ok:#0b8f0b; --grid:#e8e7e2;
+  --sans:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; --serif:Georgia,"Times New Roman",serif;
+  --mono:Consolas,"Cascadia Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121312; --panel:#1b1c1a; --line:#30312e; --fg:#f0efec; --fg2:#c3c2b7; --muted:#8f8e86;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --quiet:#4a4b46; --crit:#e05555; --ok:#2fb52f; --grid:#2a2b28;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121312; --panel:#1b1c1a; --line:#30312e; --fg:#f0efec; --fg2:#c3c2b7; --muted:#8f8e86;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --quiet:#4a4b46; --crit:#e05555; --ok:#2fb52f; --grid:#2a2b28;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--sans)}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:28px}
+h1{font:400 30px/1.15 var(--serif);margin:0;text-wrap:balance}
+h2{font-size:17px;font-weight:600;margin:0;text-wrap:balance}
+h3{font-size:14px;font-weight:600;margin:0}
+p{margin:0}
+.lead{color:var(--fg2);max-width:72ch;margin-top:8px;font-size:15px}
+.lead b{color:var(--fg);font-weight:600}
+.meta{color:var(--muted);font-size:12px;margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:12px}
+.kpi,.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}
+.kpi{display:flex;flex-direction:column;gap:4px}
+.kpi .l{color:var(--muted);font-size:12px}
+.kpi .n{font:400 30px/1.1 var(--serif);font-variant-numeric:tabular-nums}
+.kpi .n small{font:13px var(--sans);color:var(--muted);margin-left:4px}
+section{display:flex;flex-direction:column;gap:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,27rem),1fr));gap:12px}
+.card{display:flex;flex-direction:column;gap:8px}
+.note{color:var(--muted);font-size:12px}
+.chart{position:relative;min-height:120px}
+.chart svg{display:block;width:100%;overflow:visible}
+.chart text{font:12px var(--sans)}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:6px;
+     box-shadow:0 4px 14px rgba(0,0,0,.14);padding:5px 9px;font-size:12px;white-space:nowrap;z-index:3}
+.tip .h{color:var(--fg2)}
+.seg{display:inline-flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:2px;align-self:flex-start;flex-wrap:wrap}
+.seg button{font:inherit;font-size:12px;border:0;background:transparent;color:var(--fg2);padding:5px 10px;border-radius:5px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--panel);color:var(--fg);box-shadow:0 0 0 1px var(--line)}
+.seg button:focus-visible{outline:2px solid var(--s1);outline-offset:1px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:600}
+td.r,th.r{text-align:right}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--fg2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.okc{color:var(--ok);font-weight:600}.badc{color:var(--crit);font-weight:600}
+.checks{columns:2 22rem;column-gap:24px;font-size:12.5px}
+.checks div{break-inside:avoid;padding:3px 0;border-bottom:1px solid var(--line);color:var(--fg2)}
+.checks b{font-weight:600;color:var(--fg)}
+footer{color:var(--muted);font-size:12px}
+@media (prefers-reduced-motion: no-preference){ .card{animation:in .35s ease-out both} @keyframes in{from{opacity:.4}to{opacity:1}} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Замеры SCADA-моста</h1>
+    <p class="lead" id="takeaway"></p>
+    <p class="meta" id="meta"></p>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section id="s-budget">
+    <div class="card">
+      <h2>Куда уходит время кадра</h2>
+      <p class="note">Медианы, мс: кодирование и декодирование JPEG q80, задержка TCP при 30 к/с, чтение кадра в сквозном прогоне по TCP.</p>
+      <div class="chart" id="c-budget"></div>
+    </div>
+  </section>
+
+  <section id="s-transport">
+    <h2>Транспорты «HDMI»-канала</h2>
+    <div class="seg" role="group" aria-label="Кодек кадра" id="codec-seg"></div>
+    <div class="grid">
+      <div class="card">
+        <h3>Задержка при 30 к/с</h3>
+        <p class="note">От отправки до полного приёма. Точка — медиана, черта — 95-й процентиль. WebSocket выделен.</p>
+        <div class="chart" id="c-lat"></div>
+      </div>
+      <div class="card">
+        <h3>Пропускная способность без ограничения</h3>
+        <p class="note">Кадров в секунду, логарифмическая шкала. Следующий кадр уходит, как только транспорт забрал предыдущий.</p>
+        <div class="chart" id="c-thr"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Все случаи для выбранного кодека</h3>
+      <p class="note">Источник и приёмник — разные процессы на одной машине. «Доставлено» — доля кадров, дошедших целиком.</p>
+      <div class="tw"><table id="t-transport"><thead><tr>
+        <th>Транспорт</th><th>Кодек</th><th>Режим</th><th class="r">к/с</th><th class="r">p50, мс</th><th class="r">p95, мс</th>
+        <th class="r">Доставлено, %</th><th class="r">Мбит/с</th><th class="r">CPU приём, %</th><th class="r">CPU источник, %</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="s-pipe">
+    <div class="grid">
+      <div class="card">
+        <h3>Кодеки</h3>
+        <p class="note">Кадр щита 1920×1080, одно ядро, медиана по 14 режимам.</p>
+        <div class="tw"><table id="t-codecs"><thead><tr>
+          <th>Кодек</th><th class="r">Размер, КБ</th><th class="r">Кодирование, мс</th><th class="r">Декодирование, мс</th>
+        </tr></thead><tbody></tbody></table></div>
+      </div>
+      <div class="card">
+        <h3>Захват с эмулятора</h3>
+        <p class="note">Chrome headless, щит в работе, JPEG 80. Потолок задаёт страница: щит рисуется около 30 раз в секунду.</p>
+        <div class="chart" id="c-cap"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-reader">
+    <h2>Способы чтения щита</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Время чтения кадра</h3>
+        <p class="note">Медиана, мс, логарифмическая шкала.</p>
+        <div class="legend"><span><i style="background:var(--quiet)"></i>кадр 1:1</span><span><i style="background:var(--s1)"></i>через KVM: 1280×800, JPEG 70</span><span><i style="background:var(--s3)"></i>живой поток</span></div>
+        <div class="chart" id="c-rt"></div>
+      </div>
+      <div class="card">
+        <h3>Ошибка манометров</h3>
+        <p class="note">% шкалы, кадр 1:1. Точка — средняя, черта — наибольшая. Подсказка угла в live/ цепляется за ложный пик, когда стрелка прыгает.</p>
+        <div class="chart" id="c-ge"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Точность по вариантам</h3>
+      <p class="note">Верно прочитанных объектов на 14 контрольных режимах; правила сверки — как в match_templates.py.</p>
+      <div class="tw"><table id="t-reader"><thead><tr>
+        <th>Вариант</th><th>Вход</th><th class="r">Верно</th><th class="r">Точность, %</th><th class="r">Манометры: ср. ошибка, %</th>
+        <th class="r">макс. ошибка, %</th><th class="r">Кадр, мс</th><th class="r">Первый кадр, мс</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+  </section>
+
+  <section id="s-e2e">
+    <h2>Весь контур</h2>
+    <div class="card">
+      <p class="note">Эмулятор → транспорт → распознавание → команда через HID → щит; итог сверяется с истинным состоянием модели. Цифры — срез одного прогона.</p>
+      <div class="tw"><table id="t-e2e"><thead><tr>
+        <th>Транспорт</th><th>Дата</th><th class="r">Канал, к/с</th><th class="r">p50, мс</th><th class="r">Чтение кадра, мс</th>
+        <th class="r">Захват → показания, мс</th><th class="r">RTT обратного канала, мс</th><th class="r">Проверки</th>
+      </tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="card">
+      <h3>Проверки</h3>
+      <div class="checks" id="checks"></div>
+    </div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script id="data" type="application/json">{"generated": "2026-10-13 11:10", "meta": {"date": "2026-10-12 22:03", "machine": "Intel64 Family 6 Model 165 Stepping 2, GenuineIntel, 12 лог. ядер, Windows 10, Python 3.10.0", "frame": "1920×1080", "seconds": 4.0}, "codecs": [{"codec": "jpeg q80", "kb": 291.0, "enc_ms": 9.44, "dec_ms": 12.41}, {"codec": "jpeg q95", "kb": 534.0, "enc_ms": 11.46, "dec_ms": 14.71}, {"codec": "png (быстрое)", "kb": 517.2, "enc_ms": 102.02, "dec_ms": 29.14}, {"codec": "raw BGR", "kb": 6075.0, "enc_ms": 1.96, "dec_ms": 0.01}], "transport": [{"transport": "tcp", "codec": "jpeg", "mode": "30", "fps": 30.0, "lat_ms_p50": 0.93, "lat_ms_p95": 1.21, "delivered_pct": 100.0, "mbit_s": 72.1, "cpu_rx_pct": 0.0, "cpu_pct": 0.4}, {"transport": "ws", "codec": "jpeg", "mode": "30", "fps": 30.0, "lat_ms_p50": 0.87, "lat_ms_p95": 1.99, "delivered_pct": 100.0, "mbit_s": 72.1, "cpu_rx_pct": 0.0, "cpu_pct": 1.2}, {"transport": "udp", "codec": "jpeg", "mode": "30", "fps": 30.0, "lat_ms_p50": 0.42, "lat_ms_p95": 1.04, "delivered_pct": 100.0, "mbit_s": 72.1, "cpu_rx_pct": 0.3, "cpu_pct": 0.0}, {"transport": "udp:1400", "codec": "jpeg", "mode": "30", "fps": 30.0, "lat_ms_p50": 4.19, "lat_ms_p95": 5.79, "delivered_pct": 100.0, "mbit_s": 72.1, "cpu_rx_pct": 0.0, "cpu_pct": 0.0}, {"transport": "pipe", "codec": "jpeg", "mode": "30", "fps": 30.0, "lat_ms_p50": 0.43, "lat_ms_p95": 1.06, "delivered_pct": 100.0, "mbit_s": 72.1, "cpu_rx_pct": 0.0, "cpu_pct": 1.6}, {"transport": "shm", "codec": "jpeg", "mode": "30", "fps": 30.0, "lat_ms_p50": 0.3, "lat_ms_p95": 0.68, "delivered_pct": 100.0, "mbit_s": 72.1, "cpu_rx_pct": 0.3, "cpu_pct": 0.0}, {"transport": "mjpeg", "codec": "jpeg", "mode": "30", "fps": 29.99, "lat_ms_p50": 0.87, "lat_ms_p95": 1.88, "delivered_pct": 100.0, "mbit_s": 72.1, "cpu_rx_pct": 0.0, "cpu_pct": 1.6}, {"transport": "tcp", "codec": "png", "mode": "30", "fps": 30.0, "lat_ms_p50": 1.21, "lat_ms_p95": 1.52, "delivered_pct": 100.0, "mbit_s": 128.2, "cpu_rx_pct": 0.0, "cpu_pct": 1.6}, {"transport": "ws", "codec": "png", "mode": "30", "fps": 30.0, "lat_ms_p50": 4.06, "lat_ms_p95": 6.2, "delivered_pct": 100.0, "mbit_s": 128.2, "cpu_rx_pct": 0.6, "cpu_pct": 1.2}, {"transport": "udp", "codec": "png", "mode": "30", "fps": 30.01, "lat_ms_p50": 2.61, "lat_ms_p95": 3.05, "delivered_pct": 100.0, "mbit_s": 128.2, "cpu_rx_pct": 1.1, "cpu_pct": 0.4}, {"transport": "udp:1400", "codec": "png", "mode": "30", "fps": 30.11, "lat_ms_p50": 11.97, "lat_ms_p95": 24.84, "delivered_pct": 100.0, "mbit_s": 128.6, "cpu_rx_pct": 3.8, "cpu_pct": 21.5}, {"transport": "pipe", "codec": "png", "mode": "30", "fps": 30.0, "lat_ms_p50": 0.92, "lat_ms_p95": 2.19, "delivered_pct": 100.0, "mbit_s": 128.2, "cpu_rx_pct": 0.0, "cpu_pct": 1.6}, {"transport": "shm", "codec": "png", "mode": "30", "fps": 30.02, "lat_ms_p50": 0.69, "lat_ms_p95": 0.85, "delivered_pct": 100.0, "mbit_s": 128.2, "cpu_rx_pct": 0.0, "cpu_pct": 0.0}, {"transport": "mjpeg", "codec": "png", "mode": "30", "fps": 30.0, "lat_ms_p50": 3.41, "lat_ms_p95": 4.48, "delivered_pct": 100.0, "mbit_s": 128.2, "cpu_rx_pct": 2.8, "cpu_pct": 0.8}, {"transport": "tcp", "codec": "raw", "mode": "30", "fps": 30.05, "lat_ms_p50": 13.92, "lat_ms_p95": 15.68, "delivered_pct": 100.0, "mbit_s": 1508.2, "cpu_rx_pct": 0.9, "cpu_pct": 6.6}, {"transport": "ws", "codec": "raw", "mode": "30", "fps": 29.11, "lat_ms_p50": 65.19, "lat_ms_p95": 104.69, "delivered_pct": 98.3, "mbit_s": 1460.9, "cpu_rx_pct": 47.3, "cpu_pct": 8.6}, {"transport": "udp", "codec": "raw", "mode": "30", "fps": 29.99, "lat_ms_p50": 9.5, "lat_ms_p95": 23.44, "delivered_pct": 100.0, "mbit_s": 1505.3, "cpu_rx_pct": 7.9, "cpu_pct": 11.7}, {"transport": "udp:1400", "codec": "raw", "mode": "30", "fps": 11.86, "lat_ms_p50": 87.06, "lat_ms_p95": 90.36, "delivered_pct": 100.0, "mbit_s": 602.6, "cpu_rx_pct": 0.3, "cpu_pct": 89.2}, {"transport": "pipe", "codec": "raw", "mode": "30", "fps": 30.04, "lat_ms_p50": 21.82, "lat_ms_p95": 23.32, "delivered_pct": 100.0, "mbit_s": 1507.7, "cpu_rx_pct": 29.3, "cpu_pct": 3.5}, {"transport": "shm", "codec": "raw", "mode": "30", "fps": 30.13, "lat_ms_p50": 2.6, "lat_ms_p95": 6.47, "delivered_pct": 100.0, "mbit_s": 1512.0, "cpu_rx_pct": 0.5, "cpu_pct": 2.0}, {"transport": "mjpeg", "codec": "raw", "mode": "30", "fps": 30.12, "lat_ms_p50": 19.64, "lat_ms_p95": 55.44, "delivered_pct": 100.0, "mbit_s": 1511.6, "cpu_rx_pct": 35.6, "cpu_pct": 2.3}, {"transport": "tcp", "codec": "jpeg", "mode": "max", "fps": 3812.2, "lat_ms_p50": 0.23, "lat_ms_p95": 0.42, "delivered_pct": 100.0, "mbit_s": 9089.5, "cpu_rx_pct": 0.3, "cpu_pct": 52.3}, {"transport": "ws", "codec": "jpeg", "mode": "max", "fps": 645.46, "lat_ms_p50": 8.02, "lat_ms_p95": 12.36, "delivered_pct": 100.0, "mbit_s": 1539.5, "cpu_rx_pct": 15.3, "cpu_pct": 2.7}, {"transport": "udp", "codec": "jpeg", "mode": "max", "fps": 4565.49, "lat_ms_p50": 0.25, "lat_ms_p95": 0.3, "delivered_pct": 100.0, "mbit_s": 10885.5, "cpu_rx_pct": 41.7, "cpu_pct": 97.7}, {"transport": "udp:1400", "codec": "jpeg", "mode": "max", "fps": 244.23, "lat_ms_p50": 4.18, "lat_ms_p95": 4.62, "delivered_pct": 100.0, "mbit_s": 582.9, "cpu_rx_pct": 36.3, "cpu_pct": 93.3}, {"transport": "pipe", "codec": "jpeg", "mode": "max", "fps": 4545.09, "lat_ms_p50": 0.25, "lat_ms_p95": 0.36, "delivered_pct": 100.0, "mbit_s": 10836.9, "cpu_rx_pct": 18.1, "cpu_pct": 5.9}, {"transport": "shm", "codec": "jpeg", "mode": "max", "fps": 18635.29, "lat_ms_p50": 0.06, "lat_ms_p95": 0.1, "delivered_pct": 96.7, "mbit_s": 44430.0, "cpu_rx_pct": 0.5, "cpu_pct": 95.3}, {"transport": "mjpeg", "codec": "jpeg", "mode": "max", "fps": 1354.25, "lat_ms_p50": 64.6, "lat_ms_p95": 82.52, "delivered_pct": 100.0, "mbit_s": 3229.3, "cpu_rx_pct": 77.0, "cpu_pct": 17.2}, {"transport": "tcp", "codec": "png", "mode": "max", "fps": 2399.99, "lat_ms_p50": 0.41, "lat_ms_p95": 0.71, "delivered_pct": 100.0, "mbit_s": 10169.8, "cpu_rx_pct": 1.2, "cpu_pct": 32.8}, {"transport": "ws", "codec": "png", "mode": "max", "fps": 262.57, "lat_ms_p50": 12.47, "lat_ms_p95": 29.88, "delivered_pct": 100.0, "mbit_s": 1113.6, "cpu_rx_pct": 8.5, "cpu_pct": 2.3}, {"transport": "udp", "codec": "png", "mode": "max", "fps": 2366.41, "lat_ms_p50": 15.24, "lat_ms_p95": 28.49, "delivered_pct": 91.0, "mbit_s": 10026.8, "cpu_rx_pct": 57.3, "cpu_pct": 84.8}, {"transport": "udp:1400", "codec": "png", "mode": "max", "fps": 139.2, "lat_ms_p50": 7.34, "lat_ms_p95": 8.01, "delivered_pct": 100.0, "mbit_s": 590.9, "cpu_rx_pct": 2.5, "cpu_pct": 94.1}, {"transport": "pipe", "codec": "png", "mode": "max", "fps": 2298.88, "lat_ms_p50": 0.44, "lat_ms_p95": 1.33, "delivered_pct": 100.0, "mbit_s": 9741.4, "cpu_rx_pct": 12.1, "cpu_pct": 13.7}, {"transport": "shm", "codec": "png", "mode": "max", "fps": 11494.37, "lat_ms_p50": 0.13, "lat_ms_p95": 0.19, "delivered_pct": 97.2, "mbit_s": 48701.5, "cpu_rx_pct": 3.8, "cpu_pct": 92.2}, {"transport": "mjpeg", "codec": "png", "mode": "max", "fps": 776.5, "lat_ms_p50": 82.66, "lat_ms_p95": 102.8, "delivered_pct": 100.0, "mbit_s": 3291.1, "cpu_rx_pct": 72.9, "cpu_pct": 2.0}, {"transport": "tcp", "codec": "raw", "mode": "max", "fps": 228.42, "lat_ms_p50": 5.75, "lat_ms_p95": 8.75, "delivered_pct": 100.0, "mbit_s": 11380.2, "cpu_rx_pct": 10.6, "cpu_pct": 5.9}, {"transport": "ws", "codec": "raw", "mode": "max", "fps": 23.17, "lat_ms_p50": 64.79, "lat_ms_p95": 283.43, "delivered_pct": 100.0, "mbit_s": 1166.1, "cpu_rx_pct": 41.0, "cpu_pct": 3.5}, {"transport": "udp", "codec": "raw", "mode": "max", "fps": 102.4, "lat_ms_p50": 41.45, "lat_ms_p95": 49.77, "delivered_pct": 68.0, "mbit_s": 5108.6, "cpu_rx_pct": 66.6, "cpu_pct": 86.6}, {"transport": "udp:1400", "codec": "raw", "mode": "max", "fps": 11.94, "lat_ms_p50": 86.22, "lat_ms_p95": 89.8, "delivered_pct": 100.0, "mbit_s": 607.2, "cpu_rx_pct": 1.4, "cpu_pct": 94.4}, {"transport": "pipe", "codec": "raw", "mode": "max", "fps": 130.46, "lat_ms_p50": 12.61, "lat_ms_p95": 15.07, "delivered_pct": 100.0, "mbit_s": 6504.7, "cpu_rx_pct": 65.6, "cpu_pct": 6.2}, {"transport": "shm", "codec": "raw", "mode": "max", "fps": 0.25, "lat_ms_p50": 20.89, "lat_ms_p95": 20.89, "delivered_pct": 0.1, "mbit_s": 25.0, "cpu_rx_pct": 63.9, "cpu_pct": 86.7}, {"transport": "mjpeg", "codec": "raw", "mode": "max", "fps": 40.23, "lat_ms_p50": 128.77, "lat_ms_p95": 150.22, "delivered_pct": 100.0, "mbit_s": 2014.3, "cpu_rx_pct": 76.8, "cpu_pct": 0.4}], "capture": [{"capture": "screencast", "frames": 136, "fps": 22.5, "interval_ms_p50": 42.5, "interval_ms_p95": 62.0, "kb": 271.9}, {"capture": "screenshot", "frames": 28, "fps": 4.6, "interval_ms_p50": 216.1, "interval_ms_p95": 243.0, "kb": 272.5}, {"capture": "canvas", "frames": 54, "fps": 8.9, "interval_ms_p50": 110.2, "interval_ms_p95": 118.0, "kb": 272.3}], "reader": [{"variant": "Шаблоны без подсказки", "ok": 919, "total": 924, "acc": 99.46, "gauge_ok": 84, "gauge_total": 84, "gauge_err_mean": 0.171, "gauge_err_max": 0.78, "first_ms": 6955, "ms_median": 5838, "fails": [["02_останов_уровень_восстановлен", "eq_xtree", "running", "stopped"], ["03_авария_перегрев_пэд", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "mimic_well", "15.17", "0"]], "degraded": false}, {"variant": "Шаблоны с подсказкой (live/)", "ok": 901, "total": 924, "acc": 97.51, "gauge_ok": 66, "gauge_total": 84, "gauge_err_mean": 7.882, "gauge_err_max": 65.122, "first_ms": 6710, "ms_median": 1987, "fails": [["02_останов_уровень_восстановлен", "eq_xtree", "running", "stopped"], ["02_останов_уровень_восстановлен", "gauge_i", "20.12", "0"], ["02_останов_уровень_восстановлен", "gauge_ppi", "67.89", "162.66"], ["02_останов_уровень_восстановлен", "gauge_q", "47.64", "0"], ["02_останов_уровень_восстановлен", "gauge_t", "74.19", "24"], ["03_авария_перегрев_пэд", "eq_xtree", "running", "stopped"], ["03_авария_перегрев_пэд", "gauge_i", "20.12", "0"], ["03_авария_перегрев_пэд", "gauge_q", "47.64", "0"], ["03_авария_перегрев_пэд", "gauge_t", "71.58", "133.91"], ["04_срыв_подачи_ожидание_апв", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "gauge_i", "20.12", "0"], ["04_срыв_подачи_ожидание_апв", "gauge_ppi", "57.73", "15.19"], ["04_срыв_подачи_ожидание_апв", "gauge_q", "47.64", "0"], ["05_автомат_высокая_частота", "gauge_t", "62.67", "97.65"], ["06_штуцер_прижат_25", "gauge_pwh", "22.31", "51.22"], ["06_штуцер_прижат_25", "gauge_q", "62.09", "42.17"], ["12_нижний_край_шкал", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "gauge_i", "20.12", "0"], ["12_нижний_край_шкал", "gauge_ppi", "77.05", "0"], ["12_нижний_край_шкал", "gauge_q", "47.64", "0"], ["12_нижний_край_шкал", "mimic_well", "15.17", "0"], ["13_верхний_край_шкал", "gauge_i", "18.93", "58"], ["13_верхний_край_шкал", "gauge_ppi", "65.95", "196"]], "degraded": false}, {"variant": "Стрелка, 1 поток", "ok": 919, "total": 924, "acc": 99.46, "gauge_ok": 84, "gauge_total": 84, "gauge_err_mean": 0.171, "gauge_err_max": 0.336, "first_ms": 718, "ms_median": 454, "fails": [["02_останов_уровень_восстановлен", "eq_xtree", "running", "stopped"], ["03_авария_перегрев_пэд", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "mimic_well", "15.17", "0"]], "degraded": false}, {"variant": "Стрелка, параллельно", "ok": 919, "total": 924, "acc": 99.46, "gauge_ok": 84, "gauge_total": 84, "gauge_err_mean": 0.171, "gauge_err_max": 0.336, "first_ms": 458, "ms_median": 173, "fails": [["02_останов_уровень_восстановлен", "eq_xtree", "running", "stopped"], ["03_авария_перегрев_пэд", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "mimic_well", "15.17", "0"]], "degraded": false}, {"variant": "Шаблоны без подсказки", "ok": 915, "total": 924, "acc": 99.03, "gauge_ok": 84, "gauge_total": 84, "gauge_err_mean": 0.177, "gauge_err_max": 0.676, "first_ms": 6918, "ms_median": 6286, "fails": [["02_останов_уровень_восстановлен", "eq_xtree", "running", "stopped"], ["03_авария_перегрев_пэд", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "mimic_well", "22.40", "13.94"], ["07_высокая_обводнённость", "sep_level", "60.58", "54.42"], ["11_низкая_изоляция_предупреждение", "sep_level", "60.58", "54.39"], ["12_нижний_край_шкал", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "mimic_well", "22.40", "0"], ["12_нижний_край_шкал", "sep_level", "8.26", "2"]], "degraded": true}, {"variant": "Шаблоны с подсказкой (live/)", "ok": 899, "total": 924, "acc": 97.29, "gauge_ok": 68, "gauge_total": 84, "gauge_err_mean": 7.386, "gauge_err_max": 65.167, "first_ms": 6231, "ms_median": 2045, "fails": [["02_останов_уровень_восстановлен", "eq_xtree", "running", "stopped"], ["02_останов_уровень_восстановлен", "gauge_i", "20.88", "0"], ["02_останов_уровень_восстановлен", "gauge_ppi", "67.05", "162.66"], ["02_останов_уровень_восстановлен", "gauge_q", "48.07", "0"], ["02_останов_уровень_восстановлен", "gauge_t", "74.15", "24"], ["03_авария_перегрев_пэд", "eq_xtree", "running", "stopped"], ["03_авария_перегрев_пэд", "gauge_i", "20.88", "0"], ["03_авария_перегрев_пэд", "gauge_q", "48.07", "0"], ["03_авария_перегрев_пэд", "gauge_t", "71.57", "133.91"], ["04_срыв_подачи_ожидание_апв", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "gauge_i", "20.88", "0"], ["04_срыв_подачи_ожидание_апв", "gauge_q", "48.07", "0"], ["04_срыв_подачи_ожидание_апв", "mimic_well", "22.39", "13.94"], ["05_автомат_высокая_частота", "gauge_t", "63.70", "97.65"], ["06_штуцер_прижат_25", "gauge_pwh", "22.23", "51.22"], ["07_высокая_обводнённость", "sep_level", "60.58", "54.42"], ["11_низкая_изоляция_предупреждение", "sep_level", "60.58", "54.39"], ["12_нижний_край_шкал", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "gauge_i", "20.88", "0"], ["12_нижний_край_шкал", "gauge_ppi", "89.81", "0"], ["12_нижний_край_шкал", "gauge_q", "48.07", "0"], ["12_нижний_край_шкал", "mimic_well", "22.39", "0"], ["12_нижний_край_шкал", "sep_level", "8.26", "2"], ["13_верхний_край_шкал", "gauge_i", "18.90", "58"], ["13_верхний_край_шкал", "gauge_ppi", "100.89", "196"]], "degraded": true}, {"variant": "Стрелка, 1 поток", "ok": 915, "total": 924, "acc": 99.03, "gauge_ok": 84, "gauge_total": 84, "gauge_err_mean": 0.326, "gauge_err_max": 0.73, "first_ms": 781, "ms_median": 434, "fails": [["02_останов_уровень_восстановлен", "eq_xtree", "running", "stopped"], ["03_авария_перегрев_пэд", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "mimic_well", "22.40", "13.94"], ["07_высокая_обводнённость", "sep_level", "60.58", "54.42"], ["11_низкая_изоляция_предупреждение", "sep_level", "60.58", "54.39"], ["12_нижний_край_шкал", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "mimic_well", "22.40", "0"], ["12_нижний_край_шкал", "sep_level", "8.26", "2"]], "degraded": true}, {"variant": "Стрелка, параллельно", "ok": 915, "total": 924, "acc": 99.03, "gauge_ok": 84, "gauge_total": 84, "gauge_err_mean": 0.326, "gauge_err_max": 0.73, "first_ms": 451, "ms_median": 164, "fails": [["02_останов_уровень_восстановлен", "eq_xtree", "running", "stopped"], ["03_авария_перегрев_пэд", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "eq_xtree", "running", "stopped"], ["04_срыв_подачи_ожидание_апв", "mimic_well", "22.40", "13.94"], ["07_высокая_обводнённость", "sep_level", "60.58", "54.42"], ["11_низкая_изоляция_предупреждение", "sep_level", "60.58", "54.39"], ["12_нижний_край_шкал", "eq_xtree", "running", "stopped"], ["12_нижний_край_шкал", "mimic_well", "22.40", "0"], ["12_нижний_край_шкал", "sep_level", "8.26", "2"]], "degraded": true}], "reader_live": {"needle+mt": 168.1, "full": 35.5}, "e2e": [{"transport": "shm", "date": "2026-10-12 22:52", "metrics": {"link_fps": 19.5, "lat_p50_ms": 0.41, "lat_p95_ms": 1.27, "read_ms": 111.0, "glass_ms": 160.0, "rtt_ms": 0.73, "cv_fps": 7.0}, "checks": [{"name": "лампа «НАСОС В РАБОТЕ»", "ok": true, "detail": "прочитано on, модель run=True"}, {"name": "частота ЧРП (индикатор)", "ok": true, "detail": "прочитано 50.0, задание модели 50"}, {"name": "задание ЧРП 45 Гц", "ok": true, "detail": "выполнено: частота 45.0 Гц (попыток: 1); модель f=45; 6326 мс"}, {"name": "штуцер 60 %", "ok": true, "detail": "выполнено: штуцер выставлен на 60 % (от упора, без обратной связи); модель 60 %"}, {"name": "останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on; модель run=False; 1640 мс"}, {"name": "компоновка B: пуск", "ok": true, "detail": "блоков сдвинуто 8; выполнено: на щите: lamp_run = on"}, {"name": "компоновка B: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "компоновка C: пуск", "ok": true, "detail": "блоков сдвинуто 6; выполнено: на щите: lamp_run = on"}, {"name": "компоновка C: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "компоновка D: пуск", "ok": true, "detail": "блоков сдвинуто 8; выполнено: на щите: lamp_run = on"}, {"name": "компоновка D: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "события копятся", "ok": true, "detail": "событий: 54"}, {"name": "подсказки уходят на экран щита", "ok": true, "detail": "полоса под щитом обновляется"}], "ok": true}, {"transport": "tcp", "capture": "screencast", "date": "2026-10-13 11:09", "metrics": {"link_fps": 18.87, "lat_p50_ms": 0.73, "lat_p95_ms": 1.68, "kb_per_frame": 288.6, "loss_pct": 0.0, "cv_fps": 9.0, "read_ms": 40, "read_objects": 12, "cached_objects": 69, "glass_ms": 99.4, "rtt_ms": 1.12, "raw_size": [1920, 1200]}, "checks": [{"name": "лампа «НАСОС В РАБОТЕ»", "ok": true, "detail": "прочитано on, модель run=True"}, {"name": "частота ЧРП (индикатор)", "ok": true, "detail": "прочитано 50.0, задание модели 50"}, {"name": "задание ЧРП 45 Гц", "ok": true, "detail": "выполнено: частота 45.0 Гц (попыток: 1); модель f=45; 6021 мс"}, {"name": "штуцер 60 %", "ok": true, "detail": "выполнено: штуцер выставлен на 60 % (от упора, без обратной связи); модель 60 %"}, {"name": "останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on; модель run=False; 1756 мс"}, {"name": "компоновка B: пуск", "ok": true, "detail": "блоков сдвинуто 7; выполнено: на щите: lamp_run = on"}, {"name": "компоновка B: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "компоновка C: пуск", "ok": true, "detail": "блоков сдвинуто 5; выполнено: на щите: lamp_run = on"}, {"name": "компоновка C: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "компоновка D: пуск", "ok": true, "detail": "блоков сдвинуто 7; выполнено: на щите: lamp_run = on"}, {"name": "компоновка D: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "события копятся", "ok": true, "detail": "событий: 53"}, {"name": "подсказки уходят на экран щита", "ok": true, "detail": "полоса под щитом обновляется"}], "ok": true}, {"transport": "ws", "date": "2026-10-12 22:51", "metrics": {"link_fps": 18.88, "lat_p50_ms": 1.45, "lat_p95_ms": 3.4, "read_ms": 87.0, "glass_ms": 168.4, "rtt_ms": 1.27, "cv_fps": 6.9}, "checks": [{"name": "лампа «НАСОС В РАБОТЕ»", "ok": true, "detail": "прочитано on, модель run=True"}, {"name": "частота ЧРП (индикатор)", "ok": true, "detail": "прочитано 50.0, задание модели 50"}, {"name": "задание ЧРП 45 Гц", "ok": true, "detail": "выполнено: частота 45.0 Гц (попыток: 1); модель f=45; 6247 мс"}, {"name": "штуцер 60 %", "ok": true, "detail": "выполнено: штуцер выставлен на 60 % (от упора, без обратной связи); модель 60 %"}, {"name": "останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on; модель run=False; 1815 мс"}, {"name": "компоновка B: пуск", "ok": true, "detail": "блоков сдвинуто 8; выполнено: на щите: lamp_run = on"}, {"name": "компоновка B: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "компоновка C: пуск", "ok": true, "detail": "блоков сдвинуто 6; выполнено: на щите: lamp_run = on"}, {"name": "компоновка C: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "компоновка D: пуск", "ok": true, "detail": "блоков сдвинуто 8; выполнено: на щите: lamp_run = on"}, {"name": "компоновка D: останов", "ok": true, "detail": "выполнено: на щите: lamp_stop = on"}, {"name": "события копятся", "ok": true, "detail": "событий: 56"}, {"name": "подсказки уходят на экран щита", "ok": true, "detail": "полоса под щитом обновляется"}], "ok": true}]}</script>
+<script>
+(function () {
+const D = JSON.parse(document.getElementById('data').textContent);
+const $ = id => document.getElementById(id);
+const NF = {};
+const fmt = (v, d = 1) => (v == null || isNaN(v)) ? '—'
+  : (NF[d] || (NF[d] = new Intl.NumberFormat('ru-RU', {maximumFractionDigits: d}))).format(v);
+const TR = {tcp:'TCP', ws:'WebSocket', udp:'UDP', 'udp:1400':'UDP, MTU 1400', pipe:'Локальный сокет', shm:'Общая память', mjpeg:'MJPEG (PiKVM)'};
+const ORDER = ['shm','pipe','udp','tcp','ws','mjpeg','udp:1400'];
+const SVGNS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs, parent) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const txt = (parent, x, y, s, o = {}) => { const t = el('text', {x, y, 'dominant-baseline':'central', 'text-anchor':o.anchor || 'start'}, parent); t.style.fill = o.color || 'var(--fg2)'; t.textContent = s; return t; };
+const hide = () => { $('tip').hidden = true; };
+function tip(ev, head, line) {
+  const t = $('tip'); t.replaceChildren();
+  const h = document.createElement('div'); h.className = 'h'; h.textContent = head; t.appendChild(h);
+  const l = document.createElement('div'); l.textContent = line; t.appendChild(l);
+  t.hidden = false;
+  const w = t.offsetWidth, x = ev.pageX + 14 + w > document.documentElement.scrollWidth ? ev.pageX - w - 14 : ev.pageX + 14;
+  t.style.left = x + 'px'; t.style.top = (ev.pageY - 12) + 'px';
+}
+document.addEventListener('scroll', hide, {passive: true});
+
+function measure(svg, labels) {
+  const t = el('text', {x: 0, y: -100}, svg); let w = 0;
+  labels.forEach(s => { t.textContent = s; w = Math.max(w, t.getComputedTextLength()); });
+  t.remove(); return Math.ceil(w);
+}
+function scale(o, x0, x1) {
+  if (o.log) { const a = Math.log10(o.min), b = Math.log10(o.max); return v => x0 + (Math.log10(Math.max(v, o.min)) - a) / (b - a) * (x1 - x0); }
+  return v => x0 + v / o.max * (x1 - x0);
+}
+function ticks(o) {
+  if (o.log) { const out = []; for (let p = Math.ceil(Math.log10(o.min)); 10 ** p <= o.max; p++) out.push(10 ** p); return out; }
+  const raw = o.max / 5, m = 10 ** Math.floor(Math.log10(raw)), st = [1, 2, 2.5, 5, 10].map(k => k * m).find(k => k >= raw);
+  const out = []; for (let v = 0; v <= o.max + 1e-9; v += st) out.push(+v.toFixed(6)); return out;
+}
+
+// Строки с подписью слева: столбцы (kind 'bar') или точка с чертой (kind 'range').
+function rowsChart(box, rows, o) {
+  box.replaceChildren();
+  const W = Math.max(300, box.clientWidth), rh = 30, top = 4, plotH = rows.length * rh, H = top + plotH + 26;
+  const narrow = W < 560;              // на узком экране подпись короче, подробности — в подсказке
+  const vt = r => o.valueText(r, narrow);
+  const svg = el('svg', {viewBox: `0 0 ${W} ${H}`, height: H, role: 'img', 'aria-label': o.aria}, box);
+  const lw = measure(svg, rows.map(o.label)) + 14;
+  const vw = measure(svg, rows.map(vt)) + 14;
+  const hi = Math.max(...rows.map(o.kind === 'range' ? o.hi : o.value));
+  const sc = {log: !!o.log, min: o.min || 1, max: o.log ? 10 ** Math.ceil(Math.log10(hi * 1.05)) : hi * 1.08};
+  const x = scale(sc, lw, W - vw);
+  const g0 = el('g', {}, svg);
+  let lastRight = -Infinity;
+  ticks(sc).forEach(v => {
+    const l = el('line', {x1: x(v), x2: x(v), y1: top, y2: top + plotH}, g0); l.style.stroke = 'var(--grid)';
+    const t = txt(g0, x(v), top + plotH + 14, o.log ? (v >= 1000 ? fmt(v / 1000, 0) + ' тыс.' : fmt(v, 1)) : fmt(v, 2), {anchor: 'middle', color: 'var(--muted)'});
+    // подпись, налезающая на предыдущую, не рисуется — линия сетки остаётся
+    const w = t.getComputedTextLength();
+    if (x(v) - w / 2 < lastRight + 8) t.remove(); else lastRight = x(v) + w / 2;
+  });
+  rows.forEach((r, i) => {
+    const cy = top + i * rh + rh / 2, g = el('g', {}, svg);
+    txt(g, lw - 10, cy, o.label(r), {anchor: 'end', color: 'var(--fg)'});
+    const c = o.color(r);
+    if (o.kind === 'range') {
+      const a = x(o.lo(r)), b = x(o.hi(r));
+      const ln = el('line', {x1: a, x2: b, y1: cy, y2: cy, 'stroke-width': 2, 'stroke-linecap': 'round'}, g); ln.style.stroke = c;
+      const cap = el('line', {x1: b, x2: b, y1: cy - 6, y2: cy + 6, 'stroke-width': 2}, g); cap.style.stroke = c;
+      const dot = el('circle', {cx: a, cy, r: 5, 'stroke-width': 2}, g); dot.style.fill = c; dot.style.stroke = 'var(--panel)';
+      txt(g, b + 8, cy, vt(r));
+    } else {
+      const x0 = x(sc.log ? sc.min : 0), w = Math.max(2, x(o.value(r)) - x0);
+      const bar = el('rect', {x: x0, y: cy - 9, width: w, height: 18, rx: 4}, g); bar.style.fill = c;
+      txt(g, x0 + w + 6, cy, vt(r));
+    }
+    const hit = el('rect', {x: 0, y: cy - rh / 2, width: W, height: rh}, g); hit.style.fill = 'transparent';
+    hit.addEventListener('mousemove', ev => tip(ev, o.label(r), o.tip(r)));
+    hit.addEventListener('mouseleave', hide);
+  });
+}
+
+function table(id, rows, cells) {
+  const tb = $(id).querySelector('tbody'); tb.replaceChildren();
+  rows.forEach(r => {
+    const tr = document.createElement('tr');
+    cells.forEach(([v, right, cls]) => {
+      const td = document.createElement('td'); td.textContent = v(r);
+      if (right) td.className = 'r';
+      if (cls && cls(r)) td.classList.add(cls(r));
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+
+// ── сводка ──
+const T = D.transport || [], R = D.reader || [], E = D.e2e || [];
+const find = (rows, f) => rows.find(f) || null;
+const tcp = find(T, r => r.transport === 'tcp' && r.codec === 'jpeg' && r.mode === '30');
+const fast = find(R, r => r.variant === 'Стрелка, параллельно' && !r.degraded);
+const fastK = find(R, r => r.variant === 'Стрелка, параллельно' && r.degraded);
+const tpl = find(R, r => r.variant === 'Шаблоны без подсказки' && !r.degraded);
+const codecQ = find(D.codecs || [], r => r.codec.startsWith('jpeg q80'));
+const e2tcp = find(E, r => r.transport === 'tcp');
+let budget = null;
+if (tcp && codecQ && e2tcp) {
+  budget = [['Кодирование JPEG', codecQ.enc_ms], ['Транспорт TCP', tcp.lat_ms_p50], ['Декодирование JPEG', codecQ.dec_ms], ['Чтение кадра', e2tcp.metrics.read_ms]]
+    .map(([stage, ms]) => ({stage, ms}));
+  const s = budget.reduce((a, r) => a + r.ms, 0); budget.forEach(r => r.share = r.ms / s);
+}
+const passed = E.reduce((a, e) => a + e.checks.filter(c => c.ok).length, 0), total = E.reduce((a, e) => a + e.checks.length, 0);
+const lead = $('takeaway');
+const add = (s, b) => { const n = b ? document.createElement('b') : document.createTextNode(s); if (b) n.textContent = s; lead.appendChild(n); };
+if (budget) { add('Транспорт занимает '); add(fmt(budget[1].share * 100, 1) + ' %', true); add(' времени кадра — выбирать его стоит по удобству, а не по скорости. '); }
+if (fast && tpl) { add('Узкое место — распознавание: стрелочный метод читает кадр за '); add(fmt(fast.ms_median, 0) + ' мс', true); add(' вместо '); add(fmt(tpl.ms_median / 1000, 1) + ' с', true); add(` (в ${fmt(tpl.ms_median / fast.ms_median, 0)} раз быстрее) с той же точностью.`); }
+$('meta').textContent = `${(D.meta && D.meta.machine) || ''} · отчёт собран ${D.generated}`;
+
+const K = [
+  tcp && ['TCP, задержка p50 при 30 к/с, JPEG', fmt(tcp.lat_ms_p50, 2), 'мс', 'бюджет кадра при 30 к/с — 33 мс'],
+  fast && ['Чтение кадра, стрелка, параллельно', fmt(fast.ms_median, 0), 'мс', tpl ? `шаблоны без подсказки: ${fmt(tpl.ms_median, 0)} мс` : ''],
+  fast && ['Точность на 14 контрольных режимах', fmt(fast.acc, 2), '%', fastK ? `через KVM: ${fmt(fastK.acc, 2)} %` : ''],
+  total && ['Сквозные проверки', fmt(passed, 0), `из ${fmt(total, 0)}`, `транспорты: ${E.map(e => TR[e.transport] || e.transport).join(', ')}`],
+].filter(Boolean);
+$('kpis').replaceChildren(...K.map(([l, n, u, s]) => {
+  const d = document.createElement('div'); d.className = 'kpi';
+  d.innerHTML = '<span class="l"></span><span class="n"><span></span><small></small></span><span class="l"></span>';
+  const sp = d.querySelectorAll('span'); sp[0].textContent = l; sp[2].textContent = n; d.querySelector('small').textContent = u; sp[3].textContent = s;
+  return d;
+}));
+
+// ── переключатель кодека ──
+let codec = 'jpeg';
+const CODECS = [['jpeg', 'JPEG q80'], ['png', 'PNG'], ['raw', 'Сырой BGR · 6 МБ']].filter(([c]) => T.some(r => r.codec === c));
+$('codec-seg').replaceChildren(...CODECS.map(([c, name]) => {
+  const b = document.createElement('button'); b.type = 'button'; b.id = 'cd-' + c; b.textContent = name;
+  b.setAttribute('aria-pressed', String(c === codec));
+  b.addEventListener('click', () => { codec = c; document.querySelectorAll('#codec-seg button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); draw(); });
+  return b;
+}));
+
+function draw() {
+  const S1 = 'var(--s1)', S2 = 'var(--s2)', S3 = 'var(--s3)', Q = 'var(--quiet)', CR = 'var(--crit)';
+  if (budget) rowsChart($('c-budget'), budget, {aria: 'Бюджет времени кадра', label: r => r.stage, value: r => r.ms,
+    valueText: r => fmt(r.ms, r.ms < 10 ? 2 : 0) + ' мс', color: r => r.stage === 'Транспорт TCP' ? S1 : Q,
+    tip: r => `${fmt(r.ms, 2)} мс · ${fmt(r.share * 100, 1)} % суммы`});
+  else $('s-budget').hidden = true;
+
+  if (T.length) {
+    const pick = mode => ORDER.map(t => find(T, r => r.transport === t && r.codec === codec && r.mode === mode)).filter(Boolean);
+    rowsChart($('c-lat'), pick('30'), {aria: 'Задержка транспортов', kind: 'range', label: r => TR[r.transport] || r.transport,
+      lo: r => r.lat_ms_p50, hi: r => r.lat_ms_p95,
+      valueText: (r, short) => short ? `${fmt(r.lat_ms_p50, 2)} мс` : `${fmt(r.lat_ms_p50, 2)} / ${fmt(r.lat_ms_p95, 2)} мс` + (r.delivered_pct < 100 ? ` · ${fmt(r.delivered_pct, 1)} % кадров` : (r.fps < 25 ? ` · ${fmt(r.fps, 0)} к/с` : '')),
+      color: r => r.transport === 'ws' ? S2 : S1,
+      tip: r => `p50 ${fmt(r.lat_ms_p50, 2)} мс · p95 ${fmt(r.lat_ms_p95, 2)} мс · ${fmt(r.fps, 1)} к/с · доставлено ${fmt(r.delivered_pct, 1)} %`});
+    rowsChart($('c-thr'), pick('max').filter(r => r.fps > 0), {aria: 'Пропускная способность', log: true, min: 0.1, label: r => TR[r.transport] || r.transport,
+      value: r => Math.max(0.1, r.fps), valueText: r => fmt(r.fps, r.fps < 10 ? 1 : 0) + ' к/с', color: r => r.transport === 'ws' ? S2 : S1,
+      tip: r => `${fmt(r.fps, 0)} к/с · p50 ${fmt(r.lat_ms_p50, 2)} мс · доставлено ${fmt(r.delivered_pct, 1)} % · CPU ${fmt(r.cpu_rx_pct, 0)} / ${fmt(r.cpu_pct, 0)} %`});
+    const all = ['30', 'max'].flatMap(m => ORDER.map(t => find(T, r => r.transport === t && r.codec === codec && r.mode === m)).filter(Boolean));
+    table('t-transport', all, [[r => TR[r.transport] || r.transport], [r => r.codec], [r => r.mode === '30' ? '30 к/с' : 'без огр.'],
+      [r => fmt(r.fps, 1), 1], [r => fmt(r.lat_ms_p50, 2), 1], [r => fmt(r.lat_ms_p95, 2), 1],
+      [r => fmt(r.delivered_pct, 1), 1, r => r.delivered_pct < 99 ? 'badc' : ''], [r => fmt(r.mbit_s, 0), 1],
+      [r => fmt(r.cpu_rx_pct, 1), 1], [r => fmt(r.cpu_pct, 1), 1]]);
+  } else $('s-transport').hidden = true;
+
+  if (D.capture) rowsChart($('c-cap'), D.capture, {aria: 'Захват с эмулятора', label: r => r.capture, value: r => r.fps,
+    valueText: r => fmt(r.fps, 1) + ' к/с', color: r => r.capture === 'screencast' ? S1 : Q,
+    tip: r => `${fmt(r.fps, 1)} к/с · интервал p50 ${fmt(r.interval_ms_p50, 0)} мс, p95 ${fmt(r.interval_ms_p95, 0)} мс · ${fmt(r.kb, 0)} КБ`});
+
+  if (R.length) {
+    const rows = R.map(r => ({...r, lab: `${r.variant} · ${r.degraded ? 'KVM' : '1:1'}`, kind: r.degraded ? 'kvm' : 'one'}));
+    const LIVE = {'needle+mt': 'Стрелка, параллельно', full: 'Стрелка + кэш'};
+    Object.entries(D.reader_live || {}).forEach(([k, v]) => rows.push({lab: `${LIVE[k] || k} · живой поток`, ms_median: v, kind: 'live'}));
+    rowsChart($('c-rt'), rows, {aria: 'Время чтения кадра', log: true, min: 10, label: r => r.lab, value: r => r.ms_median,
+      valueText: r => r.ms_median >= 1000 ? fmt(r.ms_median / 1000, 1) + ' с' : fmt(r.ms_median, 0) + ' мс',
+      color: r => r.kind === 'kvm' ? S1 : (r.kind === 'live' ? S3 : Q),
+      tip: r => `кадр ${fmt(r.ms_median, 0)} мс` + (r.first_ms ? ` · первый ${fmt(r.first_ms, 0)} мс · точность ${fmt(r.acc, 2)} %` : '')});
+    rowsChart($('c-ge'), R.filter(r => !r.degraded), {aria: 'Ошибка манометров', kind: 'range', label: r => r.variant,
+      lo: r => r.gauge_err_mean, hi: r => r.gauge_err_max,
+      valueText: (r, short) => short ? `до ${fmt(r.gauge_err_max, 2)} %` : `${fmt(r.gauge_err_mean, 2)} / ${fmt(r.gauge_err_max, 2)} %`,
+      color: r => r.gauge_err_max > 2 ? CR : S1, tip: r => `манометры ${r.gauge_ok} из ${r.gauge_total} · средняя ${fmt(r.gauge_err_mean, 3)} %, наибольшая ${fmt(r.gauge_err_max, 3)} % шкалы`});
+  } else $('s-reader').hidden = true;
+}
+
+// ── таблицы ──
+if (D.codecs) table('t-codecs', D.codecs, [[r => r.codec], [r => fmt(r.kb, 0), 1], [r => fmt(r.enc_ms, 2), 1], [r => fmt(r.dec_ms, 2), 1]]);
+if (R.length) table('t-reader', R, [[r => r.variant], [r => r.degraded ? 'через KVM' : 'кадр 1:1'], [r => `${r.ok} из ${r.total}`, 1],
+  [r => fmt(r.acc, 2), 1], [r => fmt(r.gauge_err_mean, 3), 1], [r => fmt(r.gauge_err_max, 2), 1, r => r.gauge_err_max > 2 ? 'badc' : ''],
+  [r => fmt(r.ms_median, 0), 1], [r => fmt(r.first_ms, 0), 1]]);
+if (E.length) {
+  table('t-e2e', E, [[r => TR[r.transport] || r.transport], [r => r.date || ''], [r => fmt(r.metrics.link_fps, 1), 1], [r => fmt(r.metrics.lat_p50_ms, 2), 1],
+    [r => fmt(r.metrics.read_ms, 0), 1], [r => fmt(r.metrics.glass_ms, 0), 1], [r => fmt(r.metrics.rtt_ms, 2), 1],
+    [r => `${r.checks.filter(c => c.ok).length} из ${r.checks.length}`, 1, r => r.checks.every(c => c.ok) ? 'okc' : 'badc']]);
+  const names = [...new Set(E.flatMap(e => e.checks.map(c => c.name)))];
+  $('checks').replaceChildren(...names.map(n => {
+    const d = document.createElement('div');
+    const b = document.createElement('b'); b.textContent = n; d.appendChild(b);
+    E.forEach(e => { const c = e.checks.find(x => x.name === n); if (!c) return;
+      const s = document.createElement('span'); s.className = c.ok ? 'okc' : 'badc';
+      s.textContent = `  ${c.ok ? '✔' : '✘'} ${TR[e.transport] || e.transport}`; s.title = c.detail; d.appendChild(s); });
+    return d;
+  }));
+} else $('s-e2e').hidden = true;
+$('foot').textContent = 'Собрано bridge/make_report.py из bridge/results/*.json. Пересобрать после новых замеров: python bridge/make_report.py';
+
+draw();
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(draw, 120); });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+})();
+</script>
+</body>
+</html>

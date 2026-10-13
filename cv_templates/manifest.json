@@ -1,0 +1,9063 @@
+{
+ "panel": {
+  "width": 1920,
+  "height": 1080
+ },
+ "created": "2026-08-13T13:36:49.942Z",
+ "gauge_angle_step_deg": 5,
+ "gauge_scale": {
+  "start_deg": 135,
+  "sweep_deg": 270
+ },
+ "layout_signature": "5bcdfa1cd49b1529",
+ "note": "Шаблоны вырезаны из кадра 1:1. cv2.matchTemplate требует тот же масштаб — сверяйте с кадрами, выгруженными без аугментаций.",
+ "templates": [
+  {
+   "file": "templates/gauge/gauge_pwh_a135.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 135,
+   "value": 0,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a135.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 135,
+   "value": 0,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a135.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 135,
+   "value": 0,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a135.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 135,
+   "value": 0,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a135.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 135,
+   "value": 0,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a135.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 135,
+   "value": 0,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a140.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 140,
+   "value": 1.8519,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a140.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 140,
+   "value": 1.8519,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a140.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 140,
+   "value": 3.7037,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a140.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 140,
+   "value": 2.2222,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a140.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 140,
+   "value": 1.1111,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a140.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 140,
+   "value": 3.7037,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a145.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 145,
+   "value": 3.7037,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a145.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 145,
+   "value": 3.7037,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a145.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 145,
+   "value": 7.4074,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a145.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 145,
+   "value": 4.4444,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a145.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 145,
+   "value": 2.2222,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a145.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 145,
+   "value": 7.4074,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a150.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 150,
+   "value": 5.5556,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a150.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 150,
+   "value": 5.5556,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a150.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 150,
+   "value": 11.1111,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a150.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 150,
+   "value": 6.6667,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a150.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 150,
+   "value": 3.3333,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a150.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 150,
+   "value": 11.1111,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a155.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 155,
+   "value": 7.4074,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a155.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 155,
+   "value": 7.4074,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a155.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 155,
+   "value": 14.8148,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a155.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 155,
+   "value": 8.8889,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a155.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 155,
+   "value": 4.4444,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a155.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 155,
+   "value": 14.8148,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a160.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 160,
+   "value": 9.2593,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a160.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 160,
+   "value": 9.2593,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a160.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 160,
+   "value": 18.5185,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a160.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 160,
+   "value": 11.1111,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a160.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 160,
+   "value": 5.5556,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a160.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 160,
+   "value": 18.5185,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a165.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 165,
+   "value": 11.1111,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a165.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 165,
+   "value": 11.1111,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a165.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 165,
+   "value": 22.2222,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a165.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 165,
+   "value": 13.3333,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a165.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 165,
+   "value": 6.6667,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a165.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 165,
+   "value": 22.2222,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a170.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 170,
+   "value": 12.963,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a170.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 170,
+   "value": 12.963,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a170.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 170,
+   "value": 25.9259,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a170.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 170,
+   "value": 15.5556,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a170.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 170,
+   "value": 7.7778,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a170.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 170,
+   "value": 25.9259,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a175.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 175,
+   "value": 14.8148,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a175.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 175,
+   "value": 14.8148,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a175.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 175,
+   "value": 29.6296,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a175.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 175,
+   "value": 17.7778,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a175.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 175,
+   "value": 8.8889,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a175.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 175,
+   "value": 29.6296,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a180.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 180,
+   "value": 16.6667,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a180.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 180,
+   "value": 16.6667,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a180.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 180,
+   "value": 33.3333,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a180.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 180,
+   "value": 20,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a180.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 180,
+   "value": 10,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a180.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 180,
+   "value": 33.3333,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a185.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 185,
+   "value": 18.5185,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a185.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 185,
+   "value": 18.5185,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a185.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 185,
+   "value": 37.037,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a185.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 185,
+   "value": 22.2222,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a185.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 185,
+   "value": 11.1111,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a185.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 185,
+   "value": 37.037,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a190.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 190,
+   "value": 20.3704,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a190.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 190,
+   "value": 20.3704,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a190.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 190,
+   "value": 40.7407,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a190.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 190,
+   "value": 24.4444,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a190.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 190,
+   "value": 12.2222,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a190.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 190,
+   "value": 40.7407,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a195.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 195,
+   "value": 22.2222,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a195.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 195,
+   "value": 22.2222,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a195.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 195,
+   "value": 44.4444,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a195.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 195,
+   "value": 26.6667,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a195.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 195,
+   "value": 13.3333,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a195.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 195,
+   "value": 44.4444,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a200.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 200,
+   "value": 24.0741,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a200.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 200,
+   "value": 24.0741,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a200.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 200,
+   "value": 48.1481,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a200.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 200,
+   "value": 28.8889,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a200.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 200,
+   "value": 14.4444,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a200.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 200,
+   "value": 48.1481,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a205.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 205,
+   "value": 25.9259,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a205.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 205,
+   "value": 25.9259,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a205.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 205,
+   "value": 51.8519,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a205.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 205,
+   "value": 31.1111,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a205.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 205,
+   "value": 15.5556,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a205.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 205,
+   "value": 51.8519,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a210.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 210,
+   "value": 27.7778,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a210.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 210,
+   "value": 27.7778,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a210.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 210,
+   "value": 55.5556,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a210.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 210,
+   "value": 33.3333,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a210.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 210,
+   "value": 16.6667,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a210.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 210,
+   "value": 55.5556,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a215.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 215,
+   "value": 29.6296,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a215.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 215,
+   "value": 29.6296,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a215.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 215,
+   "value": 59.2593,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a215.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 215,
+   "value": 35.5556,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a215.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 215,
+   "value": 17.7778,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a215.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 215,
+   "value": 59.2593,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a220.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 220,
+   "value": 31.4815,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a220.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 220,
+   "value": 31.4815,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a220.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 220,
+   "value": 62.963,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a220.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 220,
+   "value": 37.7778,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a220.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 220,
+   "value": 18.8889,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a220.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 220,
+   "value": 62.963,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a225.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 225,
+   "value": 33.3333,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a225.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 225,
+   "value": 33.3333,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a225.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 225,
+   "value": 66.6667,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a225.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 225,
+   "value": 40,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a225.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 225,
+   "value": 20,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a225.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 225,
+   "value": 66.6667,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a230.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 230,
+   "value": 35.1852,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a230.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 230,
+   "value": 35.1852,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a230.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 230,
+   "value": 70.3704,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a230.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 230,
+   "value": 42.2222,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a230.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 230,
+   "value": 21.1111,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a230.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 230,
+   "value": 70.3704,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a235.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 235,
+   "value": 37.037,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a235.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 235,
+   "value": 37.037,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a235.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 235,
+   "value": 74.0741,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a235.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 235,
+   "value": 44.4444,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a235.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 235,
+   "value": 22.2222,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a235.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 235,
+   "value": 74.0741,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a240.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 240,
+   "value": 38.8889,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a240.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 240,
+   "value": 38.8889,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a240.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 240,
+   "value": 77.7778,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a240.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 240,
+   "value": 46.6667,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a240.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 240,
+   "value": 23.3333,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a240.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 240,
+   "value": 77.7778,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a245.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 245,
+   "value": 40.7407,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a245.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 245,
+   "value": 40.7407,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a245.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 245,
+   "value": 81.4815,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a245.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 245,
+   "value": 48.8889,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a245.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 245,
+   "value": 24.4444,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a245.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 245,
+   "value": 81.4815,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a250.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 250,
+   "value": 42.5926,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a250.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 250,
+   "value": 42.5926,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a250.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 250,
+   "value": 85.1852,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a250.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 250,
+   "value": 51.1111,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a250.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 250,
+   "value": 25.5556,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a250.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 250,
+   "value": 85.1852,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a255.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 255,
+   "value": 44.4444,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a255.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 255,
+   "value": 44.4444,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a255.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 255,
+   "value": 88.8889,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a255.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 255,
+   "value": 53.3333,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a255.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 255,
+   "value": 26.6667,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a255.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 255,
+   "value": 88.8889,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a260.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 260,
+   "value": 46.2963,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a260.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 260,
+   "value": 46.2963,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a260.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 260,
+   "value": 92.5926,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a260.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 260,
+   "value": 55.5556,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a260.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 260,
+   "value": 27.7778,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a260.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 260,
+   "value": 92.5926,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a265.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 265,
+   "value": 48.1481,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a265.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 265,
+   "value": 48.1481,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a265.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 265,
+   "value": 96.2963,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a265.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 265,
+   "value": 57.7778,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a265.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 265,
+   "value": 28.8889,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a265.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 265,
+   "value": 96.2963,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a270.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 270,
+   "value": 50,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a270.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 270,
+   "value": 50,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a270.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 270,
+   "value": 100,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a270.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 270,
+   "value": 60,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a270.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 270,
+   "value": 30,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a270.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 270,
+   "value": 100,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a275.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 275,
+   "value": 51.8519,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a275.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 275,
+   "value": 51.8519,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a275.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 275,
+   "value": 103.7037,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a275.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 275,
+   "value": 62.2222,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a275.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 275,
+   "value": 31.1111,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a275.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 275,
+   "value": 103.7037,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a280.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 280,
+   "value": 53.7037,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a280.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 280,
+   "value": 53.7037,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a280.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 280,
+   "value": 107.4074,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a280.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 280,
+   "value": 64.4444,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a280.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 280,
+   "value": 32.2222,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a280.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 280,
+   "value": 107.4074,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a285.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 285,
+   "value": 55.5556,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a285.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 285,
+   "value": 55.5556,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a285.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 285,
+   "value": 111.1111,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a285.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 285,
+   "value": 66.6667,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a285.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 285,
+   "value": 33.3333,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a285.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 285,
+   "value": 111.1111,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a290.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 290,
+   "value": 57.4074,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a290.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 290,
+   "value": 57.4074,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a290.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 290,
+   "value": 114.8148,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a290.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 290,
+   "value": 68.8889,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a290.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 290,
+   "value": 34.4444,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a290.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 290,
+   "value": 114.8148,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a295.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 295,
+   "value": 59.2593,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a295.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 295,
+   "value": 59.2593,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a295.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 295,
+   "value": 118.5185,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a295.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 295,
+   "value": 71.1111,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a295.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 295,
+   "value": 35.5556,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a295.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 295,
+   "value": 118.5185,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a300.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 300,
+   "value": 61.1111,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a300.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 300,
+   "value": 61.1111,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a300.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 300,
+   "value": 122.2222,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a300.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 300,
+   "value": 73.3333,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a300.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 300,
+   "value": 36.6667,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a300.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 300,
+   "value": 122.2222,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a305.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 305,
+   "value": 62.963,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a305.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 305,
+   "value": 62.963,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a305.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 305,
+   "value": 125.9259,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a305.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 305,
+   "value": 75.5556,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a305.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 305,
+   "value": 37.7778,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a305.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 305,
+   "value": 125.9259,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a310.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 310,
+   "value": 64.8148,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a310.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 310,
+   "value": 64.8148,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a310.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 310,
+   "value": 129.6296,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a310.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 310,
+   "value": 77.7778,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a310.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 310,
+   "value": 38.8889,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a310.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 310,
+   "value": 129.6296,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a315.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 315,
+   "value": 66.6667,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a315.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 315,
+   "value": 66.6667,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a315.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 315,
+   "value": 133.3333,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a315.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 315,
+   "value": 80,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a315.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 315,
+   "value": 40,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a315.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 315,
+   "value": 133.3333,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a320.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 320,
+   "value": 68.5185,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a320.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 320,
+   "value": 68.5185,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a320.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 320,
+   "value": 137.037,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a320.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 320,
+   "value": 82.2222,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a320.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 320,
+   "value": 41.1111,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a320.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 320,
+   "value": 137.037,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a325.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 325,
+   "value": 70.3704,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a325.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 325,
+   "value": 70.3704,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a325.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 325,
+   "value": 140.7407,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a325.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 325,
+   "value": 84.4444,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a325.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 325,
+   "value": 42.2222,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a325.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 325,
+   "value": 140.7407,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a330.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 330,
+   "value": 72.2222,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a330.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 330,
+   "value": 72.2222,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a330.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 330,
+   "value": 144.4444,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a330.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 330,
+   "value": 86.6667,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a330.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 330,
+   "value": 43.3333,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a330.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 330,
+   "value": 144.4444,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a335.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 335,
+   "value": 74.0741,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a335.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 335,
+   "value": 74.0741,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a335.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 335,
+   "value": 148.1481,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a335.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 335,
+   "value": 88.8889,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a335.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 335,
+   "value": 44.4444,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a335.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 335,
+   "value": 148.1481,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a340.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 340,
+   "value": 75.9259,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a340.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 340,
+   "value": 75.9259,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a340.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 340,
+   "value": 151.8519,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a340.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 340,
+   "value": 91.1111,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a340.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 340,
+   "value": 45.5556,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a340.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 340,
+   "value": 151.8519,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a345.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 345,
+   "value": 77.7778,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a345.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 345,
+   "value": 77.7778,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a345.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 345,
+   "value": 155.5556,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a345.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 345,
+   "value": 93.3333,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a345.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 345,
+   "value": 46.6667,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a345.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 345,
+   "value": 155.5556,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a350.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 350,
+   "value": 79.6296,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a350.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 350,
+   "value": 79.6296,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a350.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 350,
+   "value": 159.2593,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a350.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 350,
+   "value": 95.5556,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a350.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 350,
+   "value": 47.7778,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a350.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 350,
+   "value": 159.2593,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a355.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 355,
+   "value": 81.4815,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a355.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 355,
+   "value": 81.4815,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a355.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 355,
+   "value": 162.963,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a355.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 355,
+   "value": 97.7778,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a355.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 355,
+   "value": 48.8889,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a355.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 355,
+   "value": 162.963,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a360.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 360,
+   "value": 83.3333,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a360.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 360,
+   "value": 83.3333,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a360.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 360,
+   "value": 166.6667,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a360.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 360,
+   "value": 100,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a360.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 360,
+   "value": 50,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a360.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 360,
+   "value": 166.6667,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a365.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 365,
+   "value": 85.1852,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a365.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 365,
+   "value": 85.1852,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a365.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 365,
+   "value": 170.3704,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a365.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 365,
+   "value": 102.2222,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a365.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 365,
+   "value": 51.1111,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a365.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 365,
+   "value": 170.3704,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a370.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 370,
+   "value": 87.037,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a370.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 370,
+   "value": 87.037,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a370.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 370,
+   "value": 174.0741,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a370.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 370,
+   "value": 104.4444,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a370.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 370,
+   "value": 52.2222,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a370.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 370,
+   "value": 174.0741,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a375.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 375,
+   "value": 88.8889,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a375.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 375,
+   "value": 88.8889,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a375.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 375,
+   "value": 177.7778,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a375.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 375,
+   "value": 106.6667,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a375.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 375,
+   "value": 53.3333,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a375.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 375,
+   "value": 177.7778,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a380.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 380,
+   "value": 90.7407,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a380.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 380,
+   "value": 90.7407,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a380.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 380,
+   "value": 181.4815,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a380.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 380,
+   "value": 108.8889,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a380.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 380,
+   "value": 54.4444,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a380.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 380,
+   "value": 181.4815,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a385.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 385,
+   "value": 92.5926,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a385.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 385,
+   "value": 92.5926,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a385.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 385,
+   "value": 185.1852,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a385.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 385,
+   "value": 111.1111,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a385.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 385,
+   "value": 55.5556,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a385.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 385,
+   "value": 185.1852,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a390.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 390,
+   "value": 94.4444,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a390.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 390,
+   "value": 94.4444,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a390.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 390,
+   "value": 188.8889,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a390.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 390,
+   "value": 113.3333,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a390.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 390,
+   "value": 56.6667,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a390.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 390,
+   "value": 188.8889,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a395.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 395,
+   "value": 96.2963,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a395.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 395,
+   "value": 96.2963,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a395.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 395,
+   "value": 192.5926,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a395.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 395,
+   "value": 115.5556,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a395.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 395,
+   "value": 57.7778,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a395.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 395,
+   "value": 192.5926,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a400.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 400,
+   "value": 98.1481,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a400.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 400,
+   "value": 98.1481,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a400.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 400,
+   "value": 196.2963,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a400.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 400,
+   "value": 117.7778,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a400.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 400,
+   "value": 58.8889,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a400.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 400,
+   "value": 196.2963,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pwh_a405.png",
+   "object_id": "gauge_pwh",
+   "class": "gauge",
+   "label": "Р БУФЕРНОЕ",
+   "unit": "бар",
+   "angle_deg": 405,
+   "value": 100,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    76
+   ],
+   "mask": "masks/gauge_pwh_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_pcas_a405.png",
+   "object_id": "gauge_pcas",
+   "class": "gauge",
+   "label": "Р ЗАТРУБНОЕ",
+   "unit": "бар",
+   "angle_deg": 405,
+   "value": 100,
+   "min": 0,
+   "max": 100,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    76
+   ],
+   "mask": "masks/gauge_pcas_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_ppi_a405.png",
+   "object_id": "gauge_ppi",
+   "class": "gauge",
+   "label": "Р НА ПРИЁМЕ",
+   "unit": "бар",
+   "angle_deg": 405,
+   "value": 200,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    76
+   ],
+   "mask": "masks/gauge_ppi_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_q_a405.png",
+   "object_id": "gauge_q",
+   "class": "gauge",
+   "label": "ДЕБИТ ЖИДК.",
+   "unit": "м3/сут",
+   "angle_deg": 405,
+   "value": 120,
+   "min": 0,
+   "max": 120,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    928,
+    304
+   ],
+   "mask": "masks/gauge_q_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_i_a405.png",
+   "object_id": "gauge_i",
+   "class": "gauge",
+   "label": "ТОК ПЭД",
+   "unit": "А",
+   "angle_deg": 405,
+   "value": 60,
+   "min": 0,
+   "max": 60,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1156,
+    304
+   ],
+   "mask": "masks/gauge_i_dial.png"
+  },
+  {
+   "file": "templates/gauge/gauge_t_a405.png",
+   "object_id": "gauge_t",
+   "class": "gauge",
+   "label": "ТЕМП. ПЭД",
+   "unit": "°C",
+   "angle_deg": 405,
+   "value": 200,
+   "min": 0,
+   "max": 200,
+   "w": 226,
+   "h": 226,
+   "anchor": [
+    1384,
+    304
+   ],
+   "mask": "masks/gauge_t_dial.png"
+  },
+  {
+   "file": "templates/sevenseg/disp_q_0.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "0",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_0.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "0",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_0.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "0",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_0.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "0",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_0.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "0",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_0.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "0",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_1.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "1",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_1.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "1",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_1.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "1",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_1.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "1",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_1.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "1",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_1.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "1",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_2.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "2",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_2.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "2",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_2.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "2",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_2.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "2",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_2.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "2",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_2.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "2",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_3.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "3",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_3.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "3",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_3.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "3",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_3.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "3",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_3.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "3",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_3.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "3",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_4.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "4",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_4.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "4",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_4.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "4",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_4.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "4",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_4.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "4",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_4.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "4",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_5.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "5",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_5.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "5",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_5.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "5",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_5.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "5",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_5.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "5",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_5.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "5",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_6.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "6",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_6.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "6",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_6.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "6",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_6.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "6",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_6.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "6",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_6.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "6",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_7.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "7",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_7.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "7",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_7.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "7",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_7.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "7",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_7.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "7",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_7.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "7",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_8.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "8",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_8.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "8",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_8.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "8",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_8.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "8",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_8.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "8",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_8.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "8",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_9.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "9",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_9.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "9",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_9.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "9",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_9.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "9",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_9.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "9",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_9.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "9",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_blank.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "unit": "м3/сут",
+   "char": "",
+   "color": "#ff3b30",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1105,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_blank.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "unit": "%",
+   "char": "",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1451,
+    550
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_lvl_blank.png",
+   "object_id": "disp_lvl",
+   "class": "sevenseg_digit",
+   "label": "ДИНАМ. УРОВЕНЬ",
+   "unit": "м",
+   "char": "",
+   "color": "#ffb020",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1120,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_blank.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "unit": "Гц",
+   "char": "",
+   "color": "#28e07a",
+   "w": 29,
+   "h": 42,
+   "anchor": [
+    1482,
+    628
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_oil_blank.png",
+   "object_id": "disp_oil",
+   "class": "sevenseg_digit",
+   "label": "НАКОПЛ. НЕФТЬ",
+   "unit": "т",
+   "char": "",
+   "color": "#28e07a",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1101,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_run_blank.png",
+   "object_id": "disp_run",
+   "class": "sevenseg_digit",
+   "label": "НАРАБОТКА",
+   "unit": "ч",
+   "char": "",
+   "color": "#ff3b30",
+   "w": 27,
+   "h": 40,
+   "anchor": [
+    1447,
+    707
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_q_dot.png",
+   "object_id": "disp_q",
+   "class": "sevenseg_digit",
+   "label": "ДЕБИТ ЖИДКОСТИ",
+   "char": ".",
+   "w": 7,
+   "h": 7,
+   "anchor": [
+    1199,
+    585
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_wc_dot.png",
+   "object_id": "disp_wc",
+   "class": "sevenseg_digit",
+   "label": "ОБВОДНЁННОСТЬ",
+   "char": ".",
+   "w": 7,
+   "h": 7,
+   "anchor": [
+    1545,
+    585
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/sevenseg/disp_f_dot.png",
+   "object_id": "disp_f",
+   "class": "sevenseg_digit",
+   "label": "ЧАСТОТА ЧРП",
+   "char": ".",
+   "w": 7,
+   "h": 7,
+   "anchor": [
+    1545,
+    663
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_run_on.png",
+   "object_id": "lamp_run",
+   "class": "lamp",
+   "label": "НАСОС В РАБОТЕ",
+   "state": "on",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    452
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_stop_on.png",
+   "object_id": "lamp_stop",
+   "class": "lamp",
+   "label": "ОСТАНОВЛЕН",
+   "state": "on",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    482
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_trip_on.png",
+   "object_id": "lamp_trip",
+   "class": "lamp",
+   "label": "АВАРИЯ ЗСП",
+   "state": "on",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    512
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_auto_on.png",
+   "object_id": "lamp_auto",
+   "class": "lamp",
+   "label": "АВТОРЕГУЛЯТОР",
+   "state": "on",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    542
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_apv_on.png",
+   "object_id": "lamp_apv",
+   "class": "lamp",
+   "label": "АПВ ГОТОВ",
+   "state": "on",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    572
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_inh_on.png",
+   "object_id": "lamp_inh",
+   "class": "lamp",
+   "label": "ДОЗАТОР ИНГИБ.",
+   "state": "on",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    602
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_run_off.png",
+   "object_id": "lamp_run",
+   "class": "lamp",
+   "label": "НАСОС В РАБОТЕ",
+   "state": "off",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    452
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_stop_off.png",
+   "object_id": "lamp_stop",
+   "class": "lamp",
+   "label": "ОСТАНОВЛЕН",
+   "state": "off",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    482
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_trip_off.png",
+   "object_id": "lamp_trip",
+   "class": "lamp",
+   "label": "АВАРИЯ ЗСП",
+   "state": "off",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    512
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_auto_off.png",
+   "object_id": "lamp_auto",
+   "class": "lamp",
+   "label": "АВТОРЕГУЛЯТОР",
+   "state": "off",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    542
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_apv_off.png",
+   "object_id": "lamp_apv",
+   "class": "lamp",
+   "label": "АПВ ГОТОВ",
+   "state": "off",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    572
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/lamp/lamp_inh_off.png",
+   "object_id": "lamp_inh",
+   "class": "lamp",
+   "label": "ДОЗАТОР ИНГИБ.",
+   "state": "off",
+   "w": 268,
+   "h": 26,
+   "anchor": [
+    1630,
+    602
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_trip_on.png",
+   "object_id": "ann_trip",
+   "class": "annunciator",
+   "label": "ЗСП ОТКЛЮЧЕНИЕ",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    100
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_temp_on.png",
+   "object_id": "ann_temp",
+   "class": "annunciator",
+   "label": "ПЕРЕГРЕВ ПЭД",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    100
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_cur_on.png",
+   "object_id": "ann_cur",
+   "class": "annunciator",
+   "label": "ПЕРЕГРУЗ ТОКА",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    154
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_iso_on.png",
+   "object_id": "ann_iso",
+   "class": "annunciator",
+   "label": "НИЗКАЯ ИЗОЛЯЦИЯ",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    154
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_sub_on.png",
+   "object_id": "ann_sub",
+   "class": "annunciator",
+   "label": "НИЗКОЕ ПОГРУЖЕНИЕ",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    208
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_gas_on.png",
+   "object_id": "ann_gas",
+   "class": "annunciator",
+   "label": "ВЫСОКИЙ ГАЗ",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    208
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_cas_on.png",
+   "object_id": "ann_cas",
+   "class": "annunciator",
+   "label": "ВЫС. Р ЗАТРУБ",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    262
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_vib_on.png",
+   "object_id": "ann_vib",
+   "class": "annunciator",
+   "label": "ВИБРАЦИЯ",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    262
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_wc_on.png",
+   "object_id": "ann_wc",
+   "class": "annunciator",
+   "label": "ОБВОДНЁННОСТЬ",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    316
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_asp_on.png",
+   "object_id": "ann_asp",
+   "class": "annunciator",
+   "label": "АСПО В НКТ",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    316
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_seph_on.png",
+   "object_id": "ann_seph",
+   "class": "annunciator",
+   "label": "ВЫС. УРОВЕНЬ НГС",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    370
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_tank_on.png",
+   "object_id": "ann_tank",
+   "class": "annunciator",
+   "label": "РВС ЗАПОЛНЕН",
+   "state": "on",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    370
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_trip_off.png",
+   "object_id": "ann_trip",
+   "class": "annunciator",
+   "label": "ЗСП ОТКЛЮЧЕНИЕ",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    100
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_temp_off.png",
+   "object_id": "ann_temp",
+   "class": "annunciator",
+   "label": "ПЕРЕГРЕВ ПЭД",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    100
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_cur_off.png",
+   "object_id": "ann_cur",
+   "class": "annunciator",
+   "label": "ПЕРЕГРУЗ ТОКА",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    154
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_iso_off.png",
+   "object_id": "ann_iso",
+   "class": "annunciator",
+   "label": "НИЗКАЯ ИЗОЛЯЦИЯ",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    154
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_sub_off.png",
+   "object_id": "ann_sub",
+   "class": "annunciator",
+   "label": "НИЗКОЕ ПОГРУЖЕНИЕ",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    208
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_gas_off.png",
+   "object_id": "ann_gas",
+   "class": "annunciator",
+   "label": "ВЫСОКИЙ ГАЗ",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    208
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_cas_off.png",
+   "object_id": "ann_cas",
+   "class": "annunciator",
+   "label": "ВЫС. Р ЗАТРУБ",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    262
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_vib_off.png",
+   "object_id": "ann_vib",
+   "class": "annunciator",
+   "label": "ВИБРАЦИЯ",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    262
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_wc_off.png",
+   "object_id": "ann_wc",
+   "class": "annunciator",
+   "label": "ОБВОДНЁННОСТЬ",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    316
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_asp_off.png",
+   "object_id": "ann_asp",
+   "class": "annunciator",
+   "label": "АСПО В НКТ",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    316
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_seph_off.png",
+   "object_id": "ann_seph",
+   "class": "annunciator",
+   "label": "ВЫС. УРОВЕНЬ НГС",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1630,
+    370
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/annunciator/ann_tank_off.png",
+   "object_id": "ann_tank",
+   "class": "annunciator",
+   "label": "РВС ЗАПОЛНЕН",
+   "state": "off",
+   "w": 130,
+   "h": 48,
+   "anchor": [
+    1766,
+    370
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_start_pressed.png",
+   "object_id": "btn_start",
+   "class": "button",
+   "label": "ПУСК",
+   "state": "pressed",
+   "w": 130,
+   "h": 52,
+   "anchor": [
+    1630,
+    640
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_stop_pressed.png",
+   "object_id": "btn_stop",
+   "class": "button",
+   "label": "СТОП",
+   "state": "pressed",
+   "w": 130,
+   "h": 52,
+   "anchor": [
+    1768,
+    640
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_estop_pressed.png",
+   "object_id": "btn_estop",
+   "class": "button",
+   "label": "АВАР. СТОП",
+   "state": "pressed",
+   "w": 130,
+   "h": 52,
+   "anchor": [
+    1630,
+    700
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_ack_pressed.png",
+   "object_id": "btn_ack",
+   "class": "button",
+   "label": "КВИТ.",
+   "state": "pressed",
+   "w": 130,
+   "h": 52,
+   "anchor": [
+    1768,
+    700
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/sp_freq_dn_pressed.png",
+   "object_id": "sp_freq_dn",
+   "class": "button",
+   "label": "−",
+   "state": "pressed",
+   "w": 52,
+   "h": 48,
+   "anchor": [
+    1630,
+    810
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/sp_freq_up_pressed.png",
+   "object_id": "sp_freq_up",
+   "class": "button",
+   "label": "+",
+   "state": "pressed",
+   "w": 52,
+   "h": 48,
+   "anchor": [
+    1846,
+    810
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/sp_choke_dn_pressed.png",
+   "object_id": "sp_choke_dn",
+   "class": "button",
+   "label": "−",
+   "state": "pressed",
+   "w": 52,
+   "h": 48,
+   "anchor": [
+    1630,
+    864
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/sp_choke_up_pressed.png",
+   "object_id": "sp_choke_up",
+   "class": "button",
+   "label": "+",
+   "state": "pressed",
+   "w": 52,
+   "h": 48,
+   "anchor": [
+    1846,
+    864
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_inh_pressed.png",
+   "object_id": "btn_inh",
+   "class": "button",
+   "label": "ИНГИБИТОР",
+   "state": "pressed",
+   "w": 132,
+   "h": 40,
+   "anchor": [
+    1766,
+    918
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_flush_pressed.png",
+   "object_id": "btn_flush",
+   "class": "button",
+   "label": "ПРОМЫВКА",
+   "state": "pressed",
+   "w": 132,
+   "h": 40,
+   "anchor": [
+    1766,
+    964
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_apv_pressed.png",
+   "object_id": "btn_apv",
+   "class": "button",
+   "label": "АПВ",
+   "state": "pressed",
+   "w": 130,
+   "h": 44,
+   "anchor": [
+    1630,
+    1012
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_repair_pressed.png",
+   "object_id": "btn_repair",
+   "class": "button",
+   "label": "ТКРС",
+   "state": "pressed",
+   "w": 130,
+   "h": 44,
+   "anchor": [
+    1768,
+    1012
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_start_released.png",
+   "object_id": "btn_start",
+   "class": "button",
+   "label": "ПУСК",
+   "state": "released",
+   "w": 130,
+   "h": 52,
+   "anchor": [
+    1630,
+    640
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_stop_released.png",
+   "object_id": "btn_stop",
+   "class": "button",
+   "label": "СТОП",
+   "state": "released",
+   "w": 130,
+   "h": 52,
+   "anchor": [
+    1768,
+    640
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_estop_released.png",
+   "object_id": "btn_estop",
+   "class": "button",
+   "label": "АВАР. СТОП",
+   "state": "released",
+   "w": 130,
+   "h": 52,
+   "anchor": [
+    1630,
+    700
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_ack_released.png",
+   "object_id": "btn_ack",
+   "class": "button",
+   "label": "КВИТ.",
+   "state": "released",
+   "w": 130,
+   "h": 52,
+   "anchor": [
+    1768,
+    700
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/sp_freq_dn_released.png",
+   "object_id": "sp_freq_dn",
+   "class": "button",
+   "label": "−",
+   "state": "released",
+   "w": 52,
+   "h": 48,
+   "anchor": [
+    1630,
+    810
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/sp_freq_up_released.png",
+   "object_id": "sp_freq_up",
+   "class": "button",
+   "label": "+",
+   "state": "released",
+   "w": 52,
+   "h": 48,
+   "anchor": [
+    1846,
+    810
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/sp_choke_dn_released.png",
+   "object_id": "sp_choke_dn",
+   "class": "button",
+   "label": "−",
+   "state": "released",
+   "w": 52,
+   "h": 48,
+   "anchor": [
+    1630,
+    864
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/sp_choke_up_released.png",
+   "object_id": "sp_choke_up",
+   "class": "button",
+   "label": "+",
+   "state": "released",
+   "w": 52,
+   "h": 48,
+   "anchor": [
+    1846,
+    864
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_inh_released.png",
+   "object_id": "btn_inh",
+   "class": "button",
+   "label": "ИНГИБИТОР",
+   "state": "released",
+   "w": 132,
+   "h": 40,
+   "anchor": [
+    1766,
+    918
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_flush_released.png",
+   "object_id": "btn_flush",
+   "class": "button",
+   "label": "ПРОМЫВКА",
+   "state": "released",
+   "w": 132,
+   "h": 40,
+   "anchor": [
+    1766,
+    964
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_apv_released.png",
+   "object_id": "btn_apv",
+   "class": "button",
+   "label": "АПВ",
+   "state": "released",
+   "w": 130,
+   "h": 44,
+   "anchor": [
+    1630,
+    1012
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/button/btn_repair_released.png",
+   "object_id": "btn_repair",
+   "class": "button",
+   "label": "ТКРС",
+   "state": "released",
+   "w": 130,
+   "h": 44,
+   "anchor": [
+    1768,
+    1012
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/pump/pump_ship_running.png",
+   "object_id": "pump_ship",
+   "class": "pump",
+   "label": "ЦНС-1 ОТКАЧКА",
+   "state": "running",
+   "w": 50,
+   "h": 68,
+   "anchor": [
+    445,
+    667
+   ],
+   "mask": "masks/pump_ship.png"
+  },
+  {
+   "file": "templates/pump/pump_water_running.png",
+   "object_id": "pump_water",
+   "class": "pump",
+   "label": "ЦНС-2 БКНС",
+   "state": "running",
+   "w": 50,
+   "h": 68,
+   "anchor": [
+    805,
+    667
+   ],
+   "mask": "masks/pump_water.png"
+  },
+  {
+   "file": "templates/pump/pump_ship_stopped.png",
+   "object_id": "pump_ship",
+   "class": "pump",
+   "label": "ЦНС-1 ОТКАЧКА",
+   "state": "stopped",
+   "w": 50,
+   "h": 68,
+   "anchor": [
+    445,
+    667
+   ],
+   "mask": "masks/pump_ship.png"
+  },
+  {
+   "file": "templates/pump/pump_water_stopped.png",
+   "object_id": "pump_water",
+   "class": "pump",
+   "label": "ЦНС-2 БКНС",
+   "state": "stopped",
+   "w": 50,
+   "h": 68,
+   "anchor": [
+    805,
+    667
+   ],
+   "mask": "masks/pump_water.png"
+  },
+  {
+   "file": "templates/apparatus/eq_xtree_running.png",
+   "object_id": "eq_xtree",
+   "class": "apparatus",
+   "label": "ФА фонтанная арматура",
+   "state": "running",
+   "w": 32,
+   "h": 36,
+   "anchor": [
+    91,
+    123
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/apparatus/eq_agzu_running.png",
+   "object_id": "eq_agzu",
+   "class": "apparatus",
+   "label": "АГЗУ «СПУТНИК»",
+   "state": "running",
+   "w": 144,
+   "h": 82,
+   "anchor": [
+    452,
+    104
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/apparatus/eq_heater_running.png",
+   "object_id": "eq_heater",
+   "class": "apparatus",
+   "label": "ПТБ-10 ПОДОГРЕВ",
+   "state": "running",
+   "w": 144,
+   "h": 82,
+   "anchor": [
+    616,
+    104
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/apparatus/eq_sikn_running.png",
+   "object_id": "eq_sikn",
+   "class": "apparatus",
+   "label": "СИКН · УЗЕЛ УЧЁТА",
+   "state": "running",
+   "w": 160,
+   "h": 60,
+   "anchor": [
+    540,
+    662
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/apparatus/eq_drain_running.png",
+   "object_id": "eq_drain",
+   "class": "apparatus",
+   "label": "ЕП-1 ДРЕНАЖ",
+   "state": "running",
+   "w": 108,
+   "h": 76,
+   "anchor": [
+    792,
+    445
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/apparatus/eq_agzu_stopped.png",
+   "object_id": "eq_agzu",
+   "class": "apparatus",
+   "label": "АГЗУ «СПУТНИК»",
+   "state": "stopped",
+   "w": 144,
+   "h": 82,
+   "anchor": [
+    452,
+    104
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/apparatus/eq_heater_stopped.png",
+   "object_id": "eq_heater",
+   "class": "apparatus",
+   "label": "ПТБ-10 ПОДОГРЕВ",
+   "state": "stopped",
+   "w": 144,
+   "h": 82,
+   "anchor": [
+    616,
+    104
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/apparatus/eq_sikn_stopped.png",
+   "object_id": "eq_sikn",
+   "class": "apparatus",
+   "label": "СИКН · УЗЕЛ УЧЁТА",
+   "state": "stopped",
+   "w": 160,
+   "h": 60,
+   "anchor": [
+    540,
+    662
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/apparatus/eq_drain_stopped.png",
+   "object_id": "eq_drain",
+   "class": "apparatus",
+   "label": "ЕП-1 ДРЕНАЖ",
+   "state": "stopped",
+   "w": 108,
+   "h": 76,
+   "anchor": [
+    792,
+    445
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/valve/valve_choke_closed.png",
+   "object_id": "valve_choke",
+   "class": "valve",
+   "label": "ШТУЦЕР FCV-101",
+   "state": "closed",
+   "w": 60,
+   "h": 89,
+   "anchor": [
+    232,
+    104
+   ],
+   "mask": "masks/valve_choke.png",
+   "opening_pct": 0
+  },
+  {
+   "file": "templates/valve/valve_nrv_closed.png",
+   "object_id": "valve_nrv",
+   "class": "valve",
+   "label": "NRV-101",
+   "state": "closed",
+   "w": 60,
+   "h": 44,
+   "anchor": [
+    306,
+    131
+   ],
+   "mask": "masks/valve_nrv.png",
+   "opening_pct": 0
+  },
+  {
+   "file": "templates/valve/valve_zd102_closed.png",
+   "object_id": "valve_zd102",
+   "class": "valve",
+   "label": "ЗД-102",
+   "state": "closed",
+   "w": 60,
+   "h": 64,
+   "anchor": [
+    374,
+    116
+   ],
+   "mask": "masks/valve_zd102.png",
+   "opening_pct": 0
+  },
+  {
+   "file": "templates/valve/valve_psv_closed.png",
+   "object_id": "valve_psv",
+   "class": "valve",
+   "label": "ППК-1",
+   "state": "closed",
+   "w": 72,
+   "h": 46,
+   "anchor": [
+    689,
+    193
+   ],
+   "mask": "masks/valve_psv.png",
+   "opening_pct": 0
+  },
+  {
+   "file": "templates/valve/valve_lv_closed.png",
+   "object_id": "valve_lv",
+   "class": "valve",
+   "label": "LV-201",
+   "state": "closed",
+   "w": 60,
+   "h": 89,
+   "anchor": [
+    530,
+    354
+   ],
+   "mask": "masks/valve_lv.png",
+   "opening_pct": 0
+  },
+  {
+   "file": "templates/valve/valve_choke_throttled.png",
+   "object_id": "valve_choke",
+   "class": "valve",
+   "label": "ШТУЦЕР FCV-101",
+   "state": "throttled",
+   "w": 60,
+   "h": 89,
+   "anchor": [
+    232,
+    104
+   ],
+   "mask": "masks/valve_choke.png",
+   "opening_pct": 50
+  },
+  {
+   "file": "templates/valve/valve_zd102_throttled.png",
+   "object_id": "valve_zd102",
+   "class": "valve",
+   "label": "ЗД-102",
+   "state": "throttled",
+   "w": 60,
+   "h": 64,
+   "anchor": [
+    374,
+    116
+   ],
+   "mask": "masks/valve_zd102.png",
+   "opening_pct": 50
+  },
+  {
+   "file": "templates/valve/valve_lv_throttled.png",
+   "object_id": "valve_lv",
+   "class": "valve",
+   "label": "LV-201",
+   "state": "throttled",
+   "w": 60,
+   "h": 89,
+   "anchor": [
+    530,
+    354
+   ],
+   "mask": "masks/valve_lv.png",
+   "opening_pct": 50
+  },
+  {
+   "file": "templates/valve/valve_choke_open.png",
+   "object_id": "valve_choke",
+   "class": "valve",
+   "label": "ШТУЦЕР FCV-101",
+   "state": "open",
+   "w": 60,
+   "h": 89,
+   "anchor": [
+    232,
+    104
+   ],
+   "mask": "masks/valve_choke.png",
+   "opening_pct": 100
+  },
+  {
+   "file": "templates/valve/valve_nrv_open.png",
+   "object_id": "valve_nrv",
+   "class": "valve",
+   "label": "NRV-101",
+   "state": "open",
+   "w": 60,
+   "h": 44,
+   "anchor": [
+    306,
+    131
+   ],
+   "mask": "masks/valve_nrv.png",
+   "opening_pct": 100
+  },
+  {
+   "file": "templates/valve/valve_zd102_open.png",
+   "object_id": "valve_zd102",
+   "class": "valve",
+   "label": "ЗД-102",
+   "state": "open",
+   "w": 60,
+   "h": 64,
+   "anchor": [
+    374,
+    116
+   ],
+   "mask": "masks/valve_zd102.png",
+   "opening_pct": 100
+  },
+  {
+   "file": "templates/valve/valve_psv_open.png",
+   "object_id": "valve_psv",
+   "class": "valve",
+   "label": "ППК-1",
+   "state": "open",
+   "w": 72,
+   "h": 46,
+   "anchor": [
+    689,
+    193
+   ],
+   "mask": "masks/valve_psv.png",
+   "opening_pct": 100
+  },
+  {
+   "file": "templates/valve/valve_lv_open.png",
+   "object_id": "valve_lv",
+   "class": "valve",
+   "label": "LV-201",
+   "state": "open",
+   "w": 60,
+   "h": 89,
+   "anchor": [
+    530,
+    354
+   ],
+   "mask": "masks/valve_lv.png",
+   "opening_pct": 100
+  },
+  {
+   "file": "templates/selector/sw_mode_ручн.png",
+   "object_id": "sw_mode",
+   "class": "selector",
+   "label": "РЕЖИМ ЧРП",
+   "state": "РУЧН",
+   "options": [
+    "РУЧН",
+    "АВТО"
+   ],
+   "position_index": 0,
+   "w": 128,
+   "h": 86,
+   "anchor": [
+    1630,
+    918
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/selector/sw_mode_авто.png",
+   "object_id": "sw_mode",
+   "class": "selector",
+   "label": "РЕЖИМ ЧРП",
+   "state": "АВТО",
+   "options": [
+    "РУЧН",
+    "АВТО"
+   ],
+   "position_index": 1,
+   "w": 128,
+   "h": 86,
+   "anchor": [
+    1630,
+    918
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/bargraph/bar_load_empty.png",
+   "object_id": "bar_load",
+   "class": "bargraph",
+   "label": "ЗАГРУЗКА ПЭД",
+   "unit": "%",
+   "value": 0,
+   "min": 0,
+   "max": 150,
+   "fill_frac": 0,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    806
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_sub_empty.png",
+   "object_id": "bar_sub",
+   "class": "bargraph",
+   "label": "ПОГРУЖЕНИЕ",
+   "unit": "м",
+   "value": 0,
+   "min": 0,
+   "max": 1200,
+   "fill_frac": 0,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    849
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_eff_empty.png",
+   "object_id": "bar_eff",
+   "class": "bargraph",
+   "label": "КПД НАСОСА",
+   "unit": "%",
+   "value": 0,
+   "min": 0,
+   "max": 65,
+   "fill_frac": 0,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    892
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_gas_empty.png",
+   "object_id": "bar_gas",
+   "class": "bargraph",
+   "label": "ГАЗ НА ПРИЁМЕ",
+   "unit": "%",
+   "value": 0,
+   "min": 0,
+   "max": 60,
+   "fill_frac": 0,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    935
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_vib_empty.png",
+   "object_id": "bar_vib",
+   "class": "bargraph",
+   "label": "ВИБРАЦИЯ",
+   "unit": "мм/с",
+   "value": 0,
+   "min": 0,
+   "max": 20,
+   "fill_frac": 0,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    978
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_iso_empty.png",
+   "object_id": "bar_iso",
+   "class": "bargraph",
+   "label": "СОПР. ИЗОЛЯЦИИ",
+   "unit": "кОм",
+   "value": 0,
+   "min": 0,
+   "max": 300,
+   "fill_frac": 0,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    1021
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_load_full.png",
+   "object_id": "bar_load",
+   "class": "bargraph",
+   "label": "ЗАГРУЗКА ПЭД",
+   "unit": "%",
+   "value": 150,
+   "min": 0,
+   "max": 150,
+   "fill_frac": 1,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    806
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_sub_full.png",
+   "object_id": "bar_sub",
+   "class": "bargraph",
+   "label": "ПОГРУЖЕНИЕ",
+   "unit": "м",
+   "value": 1200,
+   "min": 0,
+   "max": 1200,
+   "fill_frac": 1,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    849
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_eff_full.png",
+   "object_id": "bar_eff",
+   "class": "bargraph",
+   "label": "КПД НАСОСА",
+   "unit": "%",
+   "value": 65,
+   "min": 0,
+   "max": 65,
+   "fill_frac": 1,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    892
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_gas_full.png",
+   "object_id": "bar_gas",
+   "class": "bargraph",
+   "label": "ГАЗ НА ПРИЁМЕ",
+   "unit": "%",
+   "value": 60,
+   "min": 0,
+   "max": 60,
+   "fill_frac": 1,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    935
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_vib_full.png",
+   "object_id": "bar_vib",
+   "class": "bargraph",
+   "label": "ВИБРАЦИЯ",
+   "unit": "мм/с",
+   "value": 20,
+   "min": 0,
+   "max": 20,
+   "fill_frac": 1,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    978
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/bargraph/bar_iso_full.png",
+   "object_id": "bar_iso",
+   "class": "bargraph",
+   "label": "СОПР. ИЗОЛЯЦИИ",
+   "unit": "кОм",
+   "value": 300,
+   "min": 0,
+   "max": 300,
+   "fill_frac": 1,
+   "w": 440,
+   "h": 40,
+   "anchor": [
+    22,
+    1021
+   ],
+   "mask": null,
+   "fill_rect_rel": [
+    11,
+    22,
+    334,
+    11
+   ]
+  },
+  {
+   "file": "templates/vessel_level/mimic_well_empty.png",
+   "object_id": "mimic_well",
+   "class": "vessel_level",
+   "label": "Ствол скважины",
+   "unit": "м",
+   "level_pct": 3,
+   "w": 206,
+   "h": 655,
+   "anchor": [
+    20,
+    100
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    74,
+    612.4,
+    26,
+    16.6
+   ]
+  },
+  {
+   "file": "templates/vessel_level/sep_level_empty.png",
+   "object_id": "sep_level",
+   "class": "vessel_level",
+   "label": "НГС-1 уровень жидкости",
+   "unit": "%",
+   "level_pct": 3,
+   "w": 431,
+   "h": 145,
+   "anchor": [
+    359,
+    205
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    27,
+    108.8,
+    390,
+    2.2
+   ]
+  },
+  {
+   "file": "templates/vessel_level/eq_ko_empty.png",
+   "object_id": "eq_ko",
+   "class": "vessel_level",
+   "label": "КУ-1 · ГАЗ НА ГФУ",
+   "unit": "%",
+   "level_pct": 5,
+   "w": 68,
+   "h": 153,
+   "anchor": [
+    256,
+    216
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    10,
+    101.8,
+    48,
+    4.2
+   ]
+  },
+  {
+   "file": "templates/vessel_level/tank_oil_empty.png",
+   "object_id": "tank_oil",
+   "class": "vessel_level",
+   "label": "РВС-1 · НЕФТЬ ТОВАРНАЯ",
+   "unit": "м3",
+   "level_pct": 3,
+   "w": 170,
+   "h": 185,
+   "anchor": [
+    250,
+    445
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    23,
+    145,
+    124,
+    3
+   ]
+  },
+  {
+   "file": "templates/vessel_level/tank_wat_empty.png",
+   "object_id": "tank_wat",
+   "class": "vessel_level",
+   "label": "РВС-2 · ПОДТОВАРНАЯ ВОДА",
+   "unit": "м3",
+   "level_pct": 3,
+   "w": 160,
+   "h": 185,
+   "anchor": [
+    620,
+    445
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    23,
+    145,
+    114,
+    3
+   ]
+  },
+  {
+   "file": "templates/vessel_level/mimic_well_full.png",
+   "object_id": "mimic_well",
+   "class": "vessel_level",
+   "label": "Ствол скважины",
+   "unit": "м",
+   "level_pct": 95,
+   "w": 206,
+   "h": 655,
+   "anchor": [
+    20,
+    100
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    74,
+    102.7,
+    26,
+    526.3
+   ]
+  },
+  {
+   "file": "templates/vessel_level/sep_level_full.png",
+   "object_id": "sep_level",
+   "class": "vessel_level",
+   "label": "НГС-1 уровень жидкости",
+   "unit": "%",
+   "level_pct": 95,
+   "w": 431,
+   "h": 145,
+   "anchor": [
+    359,
+    205
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    27,
+    41.7,
+    390,
+    69.3
+   ]
+  },
+  {
+   "file": "templates/vessel_level/eq_ko_full.png",
+   "object_id": "eq_ko",
+   "class": "vessel_level",
+   "label": "КУ-1 · ГАЗ НА ГФУ",
+   "unit": "%",
+   "level_pct": 79.8,
+   "w": 68,
+   "h": 153,
+   "anchor": [
+    256,
+    216
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    10,
+    39,
+    48,
+    67
+   ]
+  },
+  {
+   "file": "templates/vessel_level/tank_oil_full.png",
+   "object_id": "tank_oil",
+   "class": "vessel_level",
+   "label": "РВС-1 · НЕФТЬ ТОВАРНАЯ",
+   "unit": "м3",
+   "level_pct": 95,
+   "w": 170,
+   "h": 185,
+   "anchor": [
+    250,
+    445
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    23,
+    52.1,
+    124,
+    95.9
+   ]
+  },
+  {
+   "file": "templates/vessel_level/tank_wat_full.png",
+   "object_id": "tank_wat",
+   "class": "vessel_level",
+   "label": "РВС-2 · ПОДТОВАРНАЯ ВОДА",
+   "unit": "м3",
+   "level_pct": 95,
+   "w": 160,
+   "h": 185,
+   "anchor": [
+    620,
+    445
+   ],
+   "mask": null,
+   "liquid_rect_rel": [
+    23,
+    52.1,
+    114,
+    95.9
+   ]
+  },
+  {
+   "file": "templates/trend/trend_p_empty.png",
+   "object_id": "trend_p",
+   "class": "trend",
+   "label": "ДАВЛЕНИЯ И УРОВЕНЬ · 24 ч",
+   "w": 370,
+   "h": 240,
+   "anchor": [
+    482,
+    780
+   ],
+   "mask": null,
+   "state": "empty"
+  },
+  {
+   "file": "templates/trend/trend_q_empty.png",
+   "object_id": "trend_q",
+   "class": "trend",
+   "label": "ДЕБИТ И ОБВОДНЁННОСТЬ · 24 ч",
+   "w": 370,
+   "h": 240,
+   "anchor": [
+    860,
+    780
+   ],
+   "mask": null,
+   "state": "empty"
+  },
+  {
+   "file": "templates/trend/trend_e_empty.png",
+   "object_id": "trend_e",
+   "class": "trend",
+   "label": "ЭЛЕКТРИЧЕСКИЕ ПАРАМЕТРЫ · 24 ч",
+   "w": 370,
+   "h": 240,
+   "anchor": [
+    1238,
+    780
+   ],
+   "mask": null,
+   "state": "empty"
+  },
+  {
+   "file": "templates/status_text/hdr_state_run.png",
+   "object_id": "hdr_state",
+   "class": "status_text",
+   "label": "Состояние объекта",
+   "text": "НАСОС В РАБОТЕ",
+   "state": "run",
+   "w": 330,
+   "h": 38,
+   "anchor": [
+    795,
+    11
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/status_text/hdr_state_stop.png",
+   "object_id": "hdr_state",
+   "class": "status_text",
+   "label": "Состояние объекта",
+   "text": "ОСТАНОВЛЕН",
+   "state": "stop",
+   "w": 330,
+   "h": 38,
+   "anchor": [
+    795,
+    11
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/status_text/hdr_state_apv.png",
+   "object_id": "hdr_state",
+   "class": "status_text",
+   "label": "Состояние объекта",
+   "text": "ОЖИДАНИЕ АПВ",
+   "state": "apv",
+   "w": 330,
+   "h": 38,
+   "anchor": [
+    795,
+    11
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/status_text/hdr_state_alarm.png",
+   "object_id": "hdr_state",
+   "class": "status_text",
+   "label": "Состояние объекта",
+   "text": "АВАРИЯ · ПЕРЕГРЕВ ПЭД",
+   "state": "alarm",
+   "w": 330,
+   "h": 38,
+   "anchor": [
+    795,
+    11
+   ],
+   "mask": null
+  },
+  {
+   "file": "templates/text_readout/txt_p_intake.png",
+   "object_id": "txt_p_intake",
+   "class": "text_readout",
+   "label": "PT-104 Р ПРИЁМА",
+   "w": 126,
+   "h": 31,
+   "anchor": [
+    26,
+    611
+   ],
+   "mask": null,
+   "unit": "бар"
+  },
+  {
+   "file": "templates/text_readout/txt_p_bhp.png",
+   "object_id": "txt_p_bhp",
+   "class": "text_readout",
+   "label": "PT-105 Р ЗАБОЙНОЕ",
+   "w": 126,
+   "h": 31,
+   "anchor": [
+    26,
+    645
+   ],
+   "mask": null,
+   "unit": "бар"
+  },
+  {
+   "file": "templates/text_readout/txt_p_res.png",
+   "object_id": "txt_p_res",
+   "class": "text_readout",
+   "label": "Р ПЛАСТОВОЕ",
+   "w": 126,
+   "h": 31,
+   "anchor": [
+    26,
+    679
+   ],
+   "mask": null,
+   "unit": "бар"
+  },
+  {
+   "file": "templates/text_readout/txt_sep_out.png",
+   "object_id": "txt_sep_out",
+   "class": "text_readout",
+   "label": "СБРОС ЖИДКОСТИ ИЗ НГС",
+   "w": 176,
+   "h": 42,
+   "anchor": [
+    432,
+    445
+   ],
+   "mask": null,
+   "unit": "м3/сут"
+  },
+  {
+   "file": "templates/text_readout/txt_ship.png",
+   "object_id": "txt_ship",
+   "class": "text_readout",
+   "label": "ОТКАЧКА ТОВАРНОЙ НЕФТИ",
+   "w": 176,
+   "h": 42,
+   "anchor": [
+    432,
+    493
+   ],
+   "mask": null,
+   "unit": "м3/сут"
+  },
+  {
+   "file": "templates/text_readout/txt_watercut.png",
+   "object_id": "txt_watercut",
+   "class": "text_readout",
+   "label": "ОБВОДНЁННОСТЬ",
+   "w": 176,
+   "h": 42,
+   "anchor": [
+    432,
+    541
+   ],
+   "mask": null,
+   "unit": "%"
+  },
+  {
+   "file": "templates/text_readout/txt_gas.png",
+   "object_id": "txt_gas",
+   "class": "text_readout",
+   "label": "ГАЗ НА ПРИЁМЕ НАСОСА",
+   "w": 176,
+   "h": 42,
+   "anchor": [
+    432,
+    589
+   ],
+   "mask": null,
+   "unit": "%"
+  },
+  {
+   "file": "templates/text_readout/txt_p_sep.png",
+   "object_id": "txt_p_sep",
+   "class": "text_readout",
+   "label": "Р СЕПАРАТОРА",
+   "w": 108,
+   "h": 42,
+   "anchor": [
+    792,
+    530
+   ],
+   "mask": null,
+   "unit": "бар"
+  },
+  {
+   "file": "templates/text_readout/txt_t_sep.png",
+   "object_id": "txt_t_sep",
+   "class": "text_readout",
+   "label": "t СЕПАРАТОРА",
+   "w": 108,
+   "h": 42,
+   "anchor": [
+    792,
+    578
+   ],
+   "mask": null,
+   "unit": "°C"
+  },
+  {
+   "file": "templates/text_readout/sp_freq.png",
+   "object_id": "sp_freq",
+   "class": "text_readout",
+   "label": "ЗАДАНИЕ ЧРП · МОЩНОСТЬ НАСОСА",
+   "w": 152,
+   "h": 48,
+   "anchor": [
+    1688,
+    810
+   ],
+   "mask": null,
+   "unit": "Гц"
+  },
+  {
+   "file": "templates/text_readout/sp_choke.png",
+   "object_id": "sp_choke",
+   "class": "text_readout",
+   "label": "ШТУЦЕР НА УСТЬЕ",
+   "w": 152,
+   "h": 48,
+   "anchor": [
+    1688,
+    864
+   ],
+   "mask": null,
+   "unit": "%"
+  }
+ ]
+}

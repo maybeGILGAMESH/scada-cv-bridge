@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# логи прогонов и временные выгрузки
+*.log
+bridge/results/e2e_*.log
+state.json
+
+# датасет, который щит выгружает кнопкой «Сгенерировать ZIP», — большой и пересобирается
+scada_cv_dataset/
+*.zip
+
+# редакторы и ОС
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

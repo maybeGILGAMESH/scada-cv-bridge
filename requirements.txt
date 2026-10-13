@@ -1,0 +1,7 @@
+# всё для работы стенда: распознавание, live/, bridge/ (эмулятор, транспорты, приёмник)
+opencv-python>=4.8
+numpy>=1.24
+websockets>=13
+playwright>=1.40
+mss>=9
+matplotlib>=3.7      # только для PNG-графиков отчёта (bridge/make_report.py)

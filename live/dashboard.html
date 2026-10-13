@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Щит 1247 · чтение с трансляции</title>
+<style>
+:root{
+  --bg:#080c10; --card:#101821; --line:#1d2b38; --txt:#cddbe6; --dim:#6f8698;
+  --grn:#00e5a0; --cyan:#38bdf8; --amb:#f7b731; --red:#ff4757; --vio:#a78bfa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);
+  font:13px/1.45 "Segoe UI",Roboto,Arial,sans-serif}
+header{position:sticky;top:0;z-index:5;background:linear-gradient(180deg,#131e29,#0b131a);
+  border-bottom:1px solid var(--line);padding:10px 16px;display:flex;flex-wrap:wrap;
+  gap:14px;align-items:center}
+h1{font-size:15px;margin:0;letter-spacing:.09em;text-transform:uppercase;font-weight:700}
+h1 small{display:block;font-size:10px;letter-spacing:.14em;color:var(--dim);font-weight:400}
+.pill{padding:4px 11px;border-radius:20px;border:1px solid var(--line);
+  font:600 11px/1.5 inherit;letter-spacing:.06em;text-transform:uppercase}
+.pill.ok{border-color:var(--grn);color:var(--grn);background:#062b21}
+.pill.warn{border-color:var(--amb);color:var(--amb);background:#2c2106}
+.pill.bad{border-color:var(--red);color:var(--red);background:#340a0f}
+.spacer{flex:1}
+.stat{display:flex;flex-direction:column;line-height:1.25}
+.stat b{font:700 15px/1.2 Consolas,monospace;color:var(--cyan)}
+.stat span{font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+main{padding:14px 16px 40px;max-width:1700px;margin:0 auto}
+section{margin-bottom:18px}
+h2{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+  margin:0 0 8px;font-weight:700}
+.grid{display:grid;gap:9px;grid-template-columns:repeat(auto-fill,minmax(215px,1fr))}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:9px 11px;
+  display:flex;flex-direction:column;gap:3px;min-height:64px}
+.card .lbl{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim)}
+.card .val{font:700 21px/1.1 Consolas,monospace;color:#e8f3fb}
+.card .val u{font:600 10px/1 inherit;color:var(--dim);text-decoration:none;margin-left:5px}
+.card .meta{font-size:9.5px;color:#4e647a;display:flex;gap:8px;justify-content:space-between}
+.card.on .val{color:var(--grn)}
+.card.off .val{color:#55697c}
+.card.alarm{border-color:#63202a;background:#180d11}
+.card.alarm .val{color:var(--red)}
+.card.unsure{border-style:dashed;border-color:#5a4a20}
+.card.unsure .val{color:var(--amb)}
+table{border-collapse:collapse;width:100%;font-size:11.5px}
+th,td{text-align:left;padding:5px 9px;border-bottom:1px solid #16222d}
+th{color:var(--dim);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+td.num{text-align:right;font-family:Consolas,monospace}
+.split{display:grid;gap:14px;grid-template-columns:minmax(320px,1fr) minmax(300px,420px)}
+@media(max-width:900px){.split{grid-template-columns:1fr}}
+figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:9px}
+figure img{width:100%;display:block;border-radius:3px;background:#000}
+figcaption{font-size:10px;color:var(--dim);margin-top:7px;line-height:1.5}
+.moved{color:var(--vio)}
+.note{font-size:11px;color:#5b7286;line-height:1.6;background:var(--card);
+  border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:5px;padding:9px 12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Щит «Скважина 1247»<small>прочитано с трансляции KVM</small></h1>
+  <span class="pill" id="pConn">нет связи</span>
+  <span class="pill" id="pLay">компоновка —</span>
+  <div class="spacer"></div>
+  <div class="stat"><b id="sFps">—</b><span>кадров/с</span></div>
+  <div class="stat"><b id="sMs">—</b><span>мс на кадр</span></div>
+  <div class="stat"><b id="sReg">—</b><span>балл привязки</span></div>
+  <div class="stat"><b id="sScale">—</b><span>масштаб кадра</span></div>
+  <div class="stat"><b id="sFrames">—</b><span>кадров всего</span></div>
+</header>
+
+<main>
+  <section>
+    <div class="note">
+      Страница не связана с моделью щита. Единственный вход — картинка с трансляции:
+      в ней сначала находится сам щит и возвращается к масштабу 1920×1080, затем
+      сопоставлением изображения находятся блоки щита, и только потом в найденных
+      местах читаются приборы. Поэтому перестановка блоков на щите видна здесь как
+      смена компоновки, а показания продолжают читаться.
+    </div>
+  </section>
+
+  <section class="split">
+    <div>
+      <h2>Где нашлись блоки щита</h2>
+      <table id="tBlocks"><thead><tr>
+        <th>блок</th><th>что в нём</th><th class="num">сдвиг X</th>
+        <th class="num">сдвиг Y</th><th class="num">балл</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+    <figure>
+      <img id="imgFrame" alt="кадр трансляции после приведения к масштабу щита">
+      <figcaption id="capFrame">кадр после нормализации — именно он и распознаётся</figcaption>
+    </figure>
+  </section>
+
+  <div id="groups"></div>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const fmt = v => v === null || v === undefined ? "—"
+  : (typeof v === "number" ? (Number.isInteger(v) ? v : v.toFixed(2)) : v);
+
+function pill(el, text, kind){
+  el.textContent = text;
+  el.className = "pill" + (kind ? " " + kind : "");
+}
+
+/* Карточка прибора. Вид зависит от того, что за прибор и насколько уверенно
+   он прочитан: недостоверное чтение помечается пунктиром, а не выдаётся
+   за обычное значение. */
+function card(cls, it){
+  const d = document.createElement("div");
+  d.className = "card";
+  let main = "—", unit = it.unit || "";
+  if (it.text !== undefined)            main = it.text;
+  else if (it.value !== undefined)      main = fmt(it.value);
+  else if (it.level_pct !== undefined){ main = fmt(it.level_pct); unit = "%"; }
+  else if (it.state !== undefined)      main = it.state;
+
+  if (["on","running","open","pressed"].includes(it.state))  d.classList.add("on");
+  if (["off","stopped","closed","released"].includes(it.state)) d.classList.add("off");
+  if (cls === "annunciator" && it.state === "on") d.classList.add("alarm");
+  if (it.reliable === false) d.classList.add("unsure");
+
+  const st = it.state && (it.value !== undefined || it.text !== undefined) ? it.state : "";
+  d.innerHTML = '<div class="lbl"></div><div class="val"></div>' +
+                '<div class="meta"><span></span><span></span></div>';
+  d.querySelector(".lbl").textContent = it.label;
+  const val = d.querySelector(".val");
+  val.textContent = main;
+  if (unit){
+    const u = document.createElement("u");
+    u.textContent = unit;
+    val.appendChild(u);
+  }
+  const meta = d.querySelectorAll(".meta span");
+  meta[0].textContent = (it.block || "") + (st ? " · " + st : "");
+  meta[1].textContent = "балл " + (it.score !== undefined ? it.score.toFixed(3) : "—")
+                      + (it.reliable === false ? " · недостоверно" : "");
+  return d;
+}
+
+function renderGroups(d){
+  const root = $("groups");
+  root.innerHTML = "";
+  for (const g of d.group_order || []){
+    const sec = document.createElement("section");
+    const h = document.createElement("h2");
+    h.textContent = (d.group_titles && d.group_titles[g]) || g;
+    const grid = document.createElement("div");
+    grid.className = "grid";
+    for (const it of d.groups[g]) grid.appendChild(card(g, it));
+    sec.appendChild(h);
+    sec.appendChild(grid);
+    root.appendChild(sec);
+  }
+}
+
+function renderBlocks(d){
+  const tb = $("tBlocks").querySelector("tbody");
+  tb.innerHTML = "";
+  for (const name of Object.keys(d.blocks || {})){
+    const b = d.blocks[name];
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td></td><td></td><td class='num'></td>" +
+                   "<td class='num'></td><td class='num'></td>";
+    const td = tr.children;
+    td[0].textContent = name;
+    td[1].textContent = b.title || "";
+    td[2].textContent = (b.dx > 0 ? "+" : "") + b.dx;
+    td[3].textContent = (b.dy > 0 ? "+" : "") + b.dy;
+    td[4].textContent = b.score.toFixed(3);
+    if (b.dx || b.dy){ td[2].classList.add("moved"); td[3].classList.add("moved"); }
+    tb.appendChild(tr);
+  }
+}
+
+let frameTimer = 0;
+function apply(d){
+  if (d.status && !d.groups){ pill($("pConn"), d.status, "warn"); return; }
+  pill($("pConn"), "поток идёт", "ok");
+  const lay = d.layout || {};
+  pill($("pLay"), "компоновка: " + (lay.name || "—"), lay.id ? "ok" : "warn");
+  $("sFps").textContent    = d.fps !== undefined ? d.fps.toFixed(2) : "—";
+  $("sMs").textContent     = d.timing_ms ? d.timing_ms.total : "—";
+  $("sReg").textContent    = d.registration_quality !== undefined
+                           ? d.registration_quality.toFixed(3) : "—";
+  $("sScale").textContent  = d.calibration ? d.calibration.scale.toFixed(3) : "1.000";
+  $("sFrames").textContent = d.frames !== undefined ? d.frames : "—";
+
+  const c = d.calibration;
+  $("capFrame").textContent = c
+    ? "кадр " + (d.raw_size ? d.raw_size[0] + "×" + d.raw_size[1] : "") +
+      " приведён к 1920×1080: масштаб " + c.scale.toFixed(3) +
+      ", начало щита " + c.x + ", " + c.y +
+      ", балл " + c.score.toFixed(3) +
+      ", пересчётов калибровки " + c.recalibrations
+    : "кадр распознаётся как есть, без поиска масштаба";
+
+  renderBlocks(d);
+  renderGroups(d);
+
+  clearTimeout(frameTimer);
+  frameTimer = setTimeout(function(){
+    $("imgFrame").src = "/frame.jpg?t=" + Date.now();
+  }, 60);
+}
+
+function connect(){
+  const es = new EventSource("/events");
+  es.onmessage = function(e){
+    try { apply(JSON.parse(e.data)); } catch (err) { console.error(err); }
+  };
+  es.onerror = function(){ pill($("pConn"), "связь потеряна, переподключение", "bad"); };
+}
+connect();
+</script>
+</body>
+</html>
