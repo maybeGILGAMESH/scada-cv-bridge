@@ -20,3 +20,17 @@ scada_cv_dataset/
 .idea/
 Thumbs.db
 .DS_Store
+
+# стенд на ВМ: диски, ключи, служебные файлы QEMU, скачиваемые модели
+vm/*.qcow2
+vm/*.part
+vm/seed.iso
+vm/ssh_key
+vm/ssh_key.pub
+vm/user-data
+vm/vm.pid
+vm/qmp.sock
+vm/tessdata/
+vm/cv_templates_vm/validation/
+vm/cv_templates_vm/glyphs_live/live_*.png
+.chrome-kiosk/

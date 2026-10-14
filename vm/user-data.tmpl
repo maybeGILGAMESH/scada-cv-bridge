@@ -1,0 +1,67 @@
+#cloud-config
+# ВМ со щитом СКАДА: Debian 13, автологин, X + Chromium в киоске на 1920x1080.
+hostname: scada-vm
+locale: ru_RU.UTF-8
+timezone: Europe/Moscow
+users:
+  - name: scada
+    gecos: SCADA operator
+    groups: [sudo, video, input]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: false
+    plain_text_passwd: scada
+    ssh_authorized_keys:
+      - __SSH_KEY__
+ssh_pwauth: false
+package_update: true
+package_upgrade: false
+packages:
+  - xserver-xorg-core
+  - xserver-xorg-input-libinput
+  - xinit
+  - x11-xserver-utils
+  - matchbox-window-manager
+  - chromium
+  - fonts-dejavu-core
+  - fonts-liberation2
+  - xdotool
+  - locales-all
+# папка со щитом с хоста (9p, только чтение)
+mounts:
+  - [scada, /opt/scada, 9p, "trans=virtio,version=9p2000.L,ro,nofail", "0", "0"]
+write_files:
+  - path: /etc/systemd/system/getty@tty1.service.d/autologin.conf
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=-/sbin/agetty --autologin scada --noclear %I $TERM
+  - path: /home/scada/.bash_profile
+    owner: scada:scada
+    defer: true
+    content: |
+      [ -f ~/.bashrc ] && . ~/.bashrc
+      if [ -z "$DISPLAY" ] && [ "$(tty)" = /dev/tty1 ]; then
+        startx
+        echo
+        echo "Щит закрыт.  startx — открыть снова,  sudo poweroff — выключить ВМ"
+      fi
+  - path: /home/scada/.xinitrc
+    owner: scada:scada
+    defer: true
+    content: |
+      xset s off; xset s noblank; xset -dpms
+      out=$(xrandr | awk '/ connected/{print $1; exit}')
+      xrandr --output "$out" --mode 1920x1080 2>/dev/null
+      matchbox-window-manager -use_titlebar no -use_cursor yes &
+      exec chromium --kiosk --no-first-run --noerrdialogs --disable-infobars \
+        --disable-session-crashed-bubble --disable-features=Translate,TranslateUI \
+        --password-store=basic --user-data-dir="$HOME/.scada-chrome" \
+        --remote-debugging-port=9222 \
+        file:///opt/scada/neft-hmi-cv-fullscreen.html
+runcmd:
+  - mkdir -p /opt/scada
+  - mount /opt/scada || true
+power_state:
+  mode: reboot
+  message: cloud-init готов, перезагрузка в щит

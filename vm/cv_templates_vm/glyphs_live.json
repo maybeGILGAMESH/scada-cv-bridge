@@ -1,0 +1,194 @@
+[
+ {
+  "image": "glyphs_live/sp_freq_00.png",
+  "text": "35.5"
+ },
+ {
+  "image": "glyphs_live/sp_choke_00.png",
+  "text": "20"
+ },
+ {
+  "image": "glyphs_live/logtime_00_0.png",
+  "text": "12:05:58"
+ },
+ {
+  "image": "glyphs_live/logtime_00_1.png",
+  "text": "22:19:09"
+ },
+ {
+  "image": "glyphs_live/sp_freq_01.png",
+  "text": "36.0"
+ },
+ {
+  "image": "glyphs_live/sp_choke_01.png",
+  "text": "47"
+ },
+ {
+  "image": "glyphs_live/logtime_01_0.png",
+  "text": "15:01:14"
+ },
+ {
+  "image": "glyphs_live/logtime_01_1.png",
+  "text": "12:05:58"
+ },
+ {
+  "image": "glyphs_live/sp_freq_02.png",
+  "text": "47.5"
+ },
+ {
+  "image": "glyphs_live/sp_choke_02.png",
+  "text": "83"
+ },
+ {
+  "image": "glyphs_live/logtime_02_0.png",
+  "text": "03:46:58"
+ },
+ {
+  "image": "glyphs_live/logtime_02_1.png",
+  "text": "15:01:14"
+ },
+ {
+  "image": "glyphs_live/sp_freq_03.png",
+  "text": "58.5"
+ },
+ {
+  "image": "glyphs_live/sp_choke_03.png",
+  "text": "29"
+ },
+ {
+  "image": "glyphs_live/logtime_03_0.png",
+  "text": "01:47:53"
+ },
+ {
+  "image": "glyphs_live/logtime_03_1.png",
+  "text": "03:46:58"
+ },
+ {
+  "image": "glyphs_live/sp_freq_04.png",
+  "text": "39.0"
+ },
+ {
+  "image": "glyphs_live/sp_choke_04.png",
+  "text": "96"
+ },
+ {
+  "image": "glyphs_live/logtime_04_0.png",
+  "text": "04:54:40"
+ },
+ {
+  "image": "glyphs_live/logtime_04_1.png",
+  "text": "01:47:53"
+ },
+ {
+  "image": "glyphs_live/sp_freq_05.png",
+  "text": "64.5"
+ },
+ {
+  "image": "glyphs_live/sp_choke_05.png",
+  "text": "71"
+ },
+ {
+  "image": "glyphs_live/logtime_05_0.png",
+  "text": "23:32:53"
+ },
+ {
+  "image": "glyphs_live/logtime_05_1.png",
+  "text": "04:54:40"
+ },
+ {
+  "image": "glyphs_live/sp_freq_06.png",
+  "text": "41.0"
+ },
+ {
+  "image": "glyphs_live/sp_choke_06.png",
+  "text": "34"
+ },
+ {
+  "image": "glyphs_live/logtime_06_0.png",
+  "text": "12:04:07"
+ },
+ {
+  "image": "glyphs_live/logtime_06_1.png",
+  "text": "23:32:53"
+ },
+ {
+  "image": "glyphs_live/sp_freq_07.png",
+  "text": "52.5"
+ },
+ {
+  "image": "glyphs_live/sp_choke_07.png",
+  "text": "58"
+ },
+ {
+  "image": "glyphs_live/logtime_07_0.png",
+  "text": "00:38:41"
+ },
+ {
+  "image": "glyphs_live/logtime_07_1.png",
+  "text": "12:04:07"
+ },
+ {
+  "image": "glyphs_live/sp_freq_08.png",
+  "text": "43.5"
+ },
+ {
+  "image": "glyphs_live/sp_choke_08.png",
+  "text": "65"
+ },
+ {
+  "image": "glyphs_live/logtime_08_0.png",
+  "text": "11:59:41"
+ },
+ {
+  "image": "glyphs_live/logtime_08_1.png",
+  "text": "00:38:41"
+ },
+ {
+  "image": "glyphs_live/sp_freq_09.png",
+  "text": "61.0"
+ },
+ {
+  "image": "glyphs_live/sp_choke_09.png",
+  "text": "100"
+ },
+ {
+  "image": "glyphs_live/logtime_09_0.png",
+  "text": "16:50:09"
+ },
+ {
+  "image": "glyphs_live/logtime_09_1.png",
+  "text": "11:59:41"
+ },
+ {
+  "image": "glyphs_live/sp_freq_10.png",
+  "text": "57.0"
+ },
+ {
+  "image": "glyphs_live/sp_choke_10.png",
+  "text": "92"
+ },
+ {
+  "image": "glyphs_live/logtime_10_0.png",
+  "text": "13:34:28"
+ },
+ {
+  "image": "glyphs_live/logtime_10_1.png",
+  "text": "16:50:09"
+ },
+ {
+  "image": "glyphs_live/sp_freq_11.png",
+  "text": "49.5"
+ },
+ {
+  "image": "glyphs_live/sp_choke_11.png",
+  "text": "41"
+ },
+ {
+  "image": "glyphs_live/logtime_11_0.png",
+  "text": "20:41:15"
+ },
+ {
+  "image": "glyphs_live/logtime_11_1.png",
+  "text": "13:34:28"
+ }
+]

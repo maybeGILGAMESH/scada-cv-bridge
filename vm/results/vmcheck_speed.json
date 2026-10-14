@@ -1,0 +1,32 @@
+{
+ "date": "2026-10-13 13:04",
+ "speed": {
+  "screen_updates_per_s": 33.0,
+  "vnc_mb_per_s": 0.4,
+  "page_raf_fps": 74.4,
+  "jpeg_encode_ms_p50": 9.6,
+  "jpeg_encode_ms_p95": 12.4,
+  "mjpeg_fps": 30.0,
+  "kb_per_frame": 293.3,
+  "mbit_per_s": 68.7,
+  "gap_ms_p50": 33.4,
+  "gap_ms_p95": 35.0,
+  "gap_ms_max": 42.5,
+  "age_ms_p50": 9.9,
+  "age_ms_p95": 12.0,
+  "decode_ms_p50": 6.4,
+  "ctl_rtt_ms_p50": 0.05,
+  "ctl_rtt_ms_p95": 0.13,
+  "truth_ms_p50": 11.2,
+  "key_to_pixels_ms_p50": 78,
+  "key_to_pixels_ms_p95": 82,
+  "click_to_pixels_ms_p50": 113,
+  "click_to_pixels_ms_p95": 146,
+  "input_lost": 0,
+  "qemu_cpu_pct": 121,
+  "vmhdmi_cpu_pct": 32,
+  "vm_cpu_pct": 27.5,
+  "vm_ncpu": 4,
+  "vm_mem_mb": "748/3921"
+ }
+}

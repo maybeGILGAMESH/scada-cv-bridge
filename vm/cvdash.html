@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Зрение щита</title>
+<style>
+:root{
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#222220; --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s5:#d55181;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+  --good-ink:#0ca30c;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme:light;
+    --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f0efec; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+    --s1:#2a78d6; --s2:#eb6834; --s5:#e87ba4; --good-ink:#006300;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f0efec; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s5:#e87ba4; --good-ink:#006300;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font:13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,select{font:inherit;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button.on{border-color:var(--s1);box-shadow:inset 0 0 0 1px var(--s1)}
+.num{font-variant-numeric:tabular-nums}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface)}
+header h1{font-size:15px;margin:0 8px 0 0;font-weight:600}
+.chip{display:flex;flex-direction:column;min-width:92px}
+.chip b{font-size:16px;font-weight:600}
+.chip span{font-size:11px;color:var(--muted)}
+.grow{flex:1}
+main{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:12px;padding:12px 16px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px}
+.card h2{font-size:13px;font-weight:600;margin:0 0 8px}
+.card h2 small{font-weight:400;color:var(--muted);margin-left:6px}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.toolbar .sep{width:1px;height:22px;background:var(--border);margin:0 4px}
+.toolbar label{color:var(--muted);font-size:12px;margin-right:2px}
+#viewer{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden}
+#viewer img,#viewer svg{position:absolute;inset:0;width:100%;height:100%}
+#viewer svg text{font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;color:var(--ink-2);font-size:12px}
+.legend i{display:inline-block;width:14px;height:10px;border:2px solid;border-radius:2px;margin-right:6px;vertical-align:-1px}
+#tip{position:fixed;z-index:9;pointer-events:none;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+     box-shadow:0 6px 24px rgba(0,0,0,.35);font-size:12px;max-width:320px;display:none}
+#tip .t{font-weight:600;margin-bottom:4px}
+#tip table{border-collapse:collapse}#tip td{padding:1px 8px 1px 0;color:var(--ink-2)}#tip td:first-child{color:var(--muted)}
+.status{display:inline-flex;align-items:center;gap:5px;font-weight:600}
+.status i{font-style:normal;display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;color:#fff;font-size:11px}
+.s-ok i{background:var(--good)} .s-bad i{background:var(--crit)} .s-unc i{background:var(--warn);color:#000} .s-na i{background:var(--muted)}
+#detail{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+#detail .empty{color:var(--muted);padding:30px 6px;text-align:center}
+.step{border-top:1px solid var(--border);padding:10px 0}
+.step:first-of-type{border-top:0}
+.step h3{font-size:12px;font-weight:600;margin:0 0 4px;color:var(--ink)}
+.step p{margin:0 0 6px;color:var(--ink-2);font-size:12px}
+.step img{max-width:100%;image-rendering:pixelated;border-radius:4px;display:block;background:#000}
+.pix{image-rendering:pixelated}
+.row{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.row figure{margin:0}
+.row figcaption{font-size:11px;color:var(--muted);margin-top:2px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+.bar{height:8px;background:var(--grid);border-radius:4px;overflow:hidden;min-width:60px}
+.bar>span{display:block;height:100%;background:var(--s1);border-radius:0 4px 4px 0}
+.cands{display:flex;gap:6px;align-items:flex-end}
+.cand{text-align:center;font-size:11px;color:var(--ink-2)}
+.cand.best{color:var(--ink);font-weight:600}
+.cand img{display:block;margin:0 auto 2px;border:2px solid transparent;border-radius:3px}
+.cand.best img{border-color:var(--s1)}
+.cell{display:flex;gap:10px;align-items:center;padding:4px 0}
+.bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:0 16px 16px}
+.wide{grid-column:span 2}
+table.t{width:100%;border-collapse:collapse;font-size:12px}
+table.t td,table.t th{padding:4px 6px;border-bottom:1px solid var(--grid);text-align:left}
+table.t th{color:var(--muted);font-weight:500}
+table.t td.r,table.t th.r{text-align:right}
+.mult{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.clones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.clone h4{margin:0 0 4px;font-size:12px;font-weight:600;color:var(--ink-2)}
+.clone table{margin-top:6px}
+.sw{display:inline-block;width:12px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+@media (max-width:1100px){.clones{grid-template-columns:1fr}}
+.mini h4{margin:0 0 2px;font-size:12px;font-weight:500;color:var(--ink-2)}
+.mini h4 b{color:var(--ink);font-weight:600;margin-left:6px}
+svg.chart{width:100%;display:block;overflow:visible}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px}
+.tile{background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.tile b{font-size:18px;font-weight:600;display:block}
+.tile span{font-size:11px;color:var(--muted)}
+.log{max-height:230px;overflow:auto;font-size:12px}
+.log div{padding:3px 0;border-bottom:1px solid var(--grid);color:var(--ink-2)}
+.log time{color:var(--muted);margin-right:6px}
+#exactRes{font-size:12px;color:var(--ink-2);margin-left:6px}
+.err{color:var(--crit)}
+@media (max-width:1100px){main{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}.wide{grid-column:auto}#detail{position:static;max-height:none}}
+@media (max-width:600px){header,main{padding-left:16px;padding-right:16px}.bottom{padding:0 16px 16px}.mult{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Что видит система</h1>
+  <div class="chip"><b id="hFps" class="num">—</b><span>зрение, к/с</span></div>
+  <div class="chip"><b id="hAcc" class="num">—</b><span>точность, 60 кадров</span></div>
+  <div class="chip"><b id="hFrame" class="num">—</b><span>этот кадр</span></div>
+  <div class="chip"><b id="hRead" class="num">—</b><span>чтение кадра</span></div>
+  <div class="chip"><b id="hAge" class="num">—</b><span>от экрана ВМ до результата</span></div>
+  <div class="chip"><b id="hQ" class="num">—</b><span>привязка блоков</span></div>
+  <div class="chip"><b id="hLay">—</b><span>компоновка · время модели</span></div>
+  <div class="grow"></div>
+  <span id="hErr" class="err"></span>
+</header>
+
+<main>
+  <section class="card">
+    <div class="toolbar" id="layers">
+      <label>Слои</label>
+      <button data-l="blocks" class="on">Блоки</button>
+      <button data-l="objects" class="on">Приборы</button>
+      <button data-l="needles" class="on">Стрелки</button>
+      <button data-l="labels" class="on">Показания</button>
+      <button data-l="truth">Рамки истины</button>
+      <button data-l="errors">Только ошибки</button>
+      <span class="sep"></span>
+      <button id="bPause">Стоп-кадр</button>
+      <button id="bCache" class="on" title="Неизменившиеся объекты берутся из кэша">Кэш</button>
+    </div>
+    <div id="viewer">
+      <img id="frame" alt="Кадр с экрана ВМ">
+      <svg id="ovl" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="legend">
+      <span><i style="border-color:var(--good)"></i>✓ прочитано верно</span>
+      <span><i style="border-color:var(--crit)"></i>✗ расходится с моделью</span>
+      <span><i style="border-color:var(--warn)"></i>? не уверено / не прочитано</span>
+      <span><i style="border-color:var(--muted)"></i>найдено, не сверяется</span>
+      <span><i style="border-color:#3987e5;border-style:dashed"></i>блок, найденный matchTemplate</span>
+      <span><i style="border-color:#d55181;border-width:0 0 3px 0;border-radius:0"></i>стрелка, найденная по красноте</span>
+      <span>пунктир у прибора — взят из кэша</span>
+    </div>
+    <div class="toolbar" style="margin-top:12px">
+      <label>Щит в ВМ</label>
+      <button data-a="start">Пуск</button>
+      <button data-a="stop">Стоп</button>
+      <button data-a="freq" data-d="-2">ЧРП −2 Гц</button>
+      <button data-a="freq" data-d="2">ЧРП +2 Гц</button>
+      <select id="selFault"><option value="">Отказ…</option><option value="clog">АСПО</option><option value="skin">Скин</option>
+        <option value="leak">Утечка</option><option value="iso">Изоляция</option><option value="water">Обводнение</option></select>
+      <button data-a="repair">Ремонт</button>
+      <span class="sep"></span>
+      <label>Компоновка</label>
+      <button data-a="layout" data-v="A">A</button><button data-a="layout" data-v="B">B</button>
+      <button data-a="layout" data-v="C">C</button><button data-a="layout" data-v="D">D</button>
+      <select id="selSpeed"><option value="1">×1</option><option value="30" selected>×30</option><option value="120">×120</option><option value="600">×600</option></select>
+      <span class="sep"></span>
+      <button id="bExact" title="Модель на паузу, кадр и истина — один и тот же момент">Точная проверка</button>
+      <span id="exactRes"></span>
+    </div>
+  </section>
+
+  <aside class="card" id="detail">
+    <h2>Шаги OpenCV <small>щёлкните по прибору или блоку на кадре</small></h2>
+    <div id="detailBody"><div class="empty">Выберите прибор на кадре — здесь появится, как именно его читает распознавание: какие области вырезаются, с чем сравниваются, откуда берётся число.</div></div>
+  </aside>
+</main>
+
+<section class="bottom">
+  <div class="card">
+    <h2>Точность по классам <small id="accNote"></small></h2>
+    <table class="t" id="tClass"></table>
+  </div>
+  <div class="card">
+    <h2>Время на кадр</h2>
+    <div class="tiles">
+      <div class="tile"><b id="tReg" class="num">—</b><span>привязка блоков</span></div>
+      <div class="tile"><b id="tReadT" class="num">—</b><span>чтение (параллельно)</span></div>
+      <div class="tile"><b id="tTr" class="num">—</b><span>канал ВМ → дашборд</span></div>
+      <div class="tile"><b id="tObj" class="num">—</b><span>перечитано / из кэша</span></div>
+    </div>
+    <h2 style="margin-top:4px">По классам <small>сумма по потокам, мс</small></h2>
+    <table class="t" id="tMs"></table>
+  </div>
+  <div class="card">
+    <h2>Ошибка манометров <small id="gNote"></small></h2>
+    <svg class="chart" id="gHist" height="150"></svg>
+    <h2 style="margin-top:10px">Журнал</h2>
+    <div class="log" id="log"></div>
+  </div>
+  <div class="card" style="grid-column:1 / -1">
+    <h2>Клон трендов <small>кривые восстановлены по пикселям кадра — сплошная; пунктир — история модели для сверки; наведите — значения в этой точке</small></h2>
+    <div class="clones" id="clones"></div>
+  </div>
+  <div class="card" style="grid-column:1 / -1">
+    <h2>Журнал щита <small>строки, прочитанные с экрана ВМ (время — глифы, источник и сообщение — Tesseract), против журнала модели</small></h2>
+    <table class="t" id="tLog"></table>
+  </div>
+  <div class="card wide" style="grid-column:1 / -1">
+    <h2>История <small>последние 3 минуты, наведите — время синхронно на всех графиках</small></h2>
+    <div class="mult" id="hist"></div>
+  </div>
+</section>
+
+<div id="tip"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const OVL = {good:"#0ca30c", crit:"#d03b3b", warn:"#fab219", muted:"#898781", block:"#3987e5", needle:"#d55181"};
+const QUIET = new Set(["button", "lamp", "annunciator", "selector"]);
+const layers = {blocks:true, objects:true, needles:true, labels:true, truth:false, errors:false};
+let state = null, selected = null, frozen = false, loading = false, freq = 50;
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const el = (tag, attrs={}, parent) => { const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const fx = (v, n=1) => v == null ? "—" : Number(v).toFixed(n).replace(".", ",");
+
+function statusOf(o){
+  if (o.ok === true) return {c:OVL.good, k:"ok", t:"верно", i:"✓"};
+  if (o.ok === false) return {c:OVL.crit, k:"bad", t:"расходится", i:"✗"};
+  if (o.reliable === false || (o.read == null && o.cls !== "trend" && o.cls !== "text_readout"))
+    return {c:OVL.warn, k:"unc", t:"не уверено", i:"?"};
+  return {c:OVL.muted, k:"na", t:"не сверяется", i:"·"};
+}
+
+/* ───────── опрос ───────── */
+async function poll(){
+  if (!frozen && !loading){
+    try{
+      const s = await (await fetch("/api/vision")).json();
+      if (s.ready && (!state || s.seq !== state.seq)){
+        loading = true;
+        const img = $("frame");
+        img.onload = () => { state = s; loading = false; render(); };
+        img.onerror = () => { loading = false; };
+        img.src = "/frame.jpg?seq=" + s.seq;
+      }
+      $("hErr").textContent = s.error || s.source_error || "";
+    }catch(e){ $("hErr").textContent = "нет связи с cvdash.py"; loading = false; }
+  }
+  setTimeout(poll, 120);
+}
+
+function render(){
+  const s = state;
+  $("hFps").textContent = fx(s.fps);
+  const ra = s.rolling.total ? 100*s.rolling.ok/s.rolling.total : null;
+  $("hAcc").textContent = ra == null ? "—" : fx(ra, 1) + " %";
+  $("hFrame").textContent = `${s.frame.ok}/${s.frame.total}`;
+  $("hRead").textContent = fx(s.timing.read_ms, 0) + " мс";
+  $("hAge").textContent = fx(s.timing.age_ms, 0) + " мс";
+  $("hQ").textContent = fx(s.quality, 2) + (s.registered ? " · поиск" : "");
+  $("hLay").textContent = `${s.model.layout || "—"} · ${s.model.clock || "—"}`;
+  if (s.model.plant) freq = s.model.plant.freq_hz;
+  drawOverlay(); drawClass(); drawTiming(); drawGauge(); drawLog(); drawHistory(); drawClones(); drawShieldLog();
+}
+
+/* ───────── наложение ───────── */
+function drawOverlay(){
+  const svg = $("ovl"); svg.textContent = "";
+  const s = state;
+  if (layers.truth){
+    for (const o of s.objects) if (o.truth_bbox){
+      const [x,y,w,h] = o.truth_bbox;
+      el("rect", {x, y, width:w, height:h, fill:"none", stroke:"#f0efec", "stroke-width":1, "stroke-dasharray":"1 3", opacity:.8}, svg);
+    }
+  }
+  if (layers.blocks){
+    for (const b of s.blocks){
+      const [x,y,w,h] = b.rect;
+      const g = el("g", {style:"cursor:pointer"}, svg);
+      el("rect", {x, y, width:w, height:h, fill:"transparent", stroke:OVL.block, "stroke-width":3, "stroke-dasharray":"12 6"}, g);
+      const label = `${b.title} · ${fx(b.score,2)} · ${b.dx>=0?"+":""}${b.dx},${b.dy>=0?"+":""}${b.dy}`;
+      const tw = label.length * 7.4 + 14;
+      el("rect", {x, y:y-22, width:tw, height:20, rx:4, fill:OVL.block}, g);
+      const t = el("text", {x:x+7, y:y-7, fill:"#fff"}, g); t.textContent = label;
+      g.addEventListener("click", e => { e.stopPropagation(); select({block:b.name}); });
+      g.addEventListener("mousemove", e => tip(e, `<div class="t">Блок «${esc(b.title)}»</div><table>
+        <tr><td>балл привязки</td><td class="num">${fx(b.score,3)}</td></tr>
+        <tr><td>сдвиг от эталона</td><td class="num">${b.dx}, ${b.dy} px</td></tr>
+        <tr><td></td><td>щёлкните — карта matchTemplate</td></tr></table>`));
+      g.addEventListener("mouseleave", hideTip);
+    }
+  }
+  if (layers.needles) overlayTrends(svg);
+  for (const o of s.objects){
+    const st = statusOf(o);
+    if (layers.errors && st.k === "ok") continue;
+    if (layers.objects && o.value_box){
+      const [vx, vy, vw, vh] = o.value_box;
+      el("rect", {x:vx-1, y:vy-1, width:vw+2, height:vh+2, fill:"none", stroke:"#3987e5", "stroke-width":1.5}, svg);
+    }
+    const [x,y] = o.at, [w,h] = o.size;
+    const g = el("g", {style:"cursor:pointer"}, svg);
+    if (layers.objects){
+      el("rect", {x, y, width:w, height:h, rx:3, fill:selected && selected.id===o.id ? "rgba(57,135,229,.18)" : "transparent",
+        stroke:st.c, "stroke-width": selected && selected.id===o.id ? 4 : 2, "stroke-dasharray": o.cached ? "4 3" : "none"}, g);
+    } else {
+      el("rect", {x, y, width:w, height:h, fill:"transparent"}, g);
+    }
+    if (layers.needles && o.cls === "gauge" && o.center && o.angle != null){
+      const a = o.angle * Math.PI/180, [cx,cy] = o.center, r1 = o.radius[1]*1.12;
+      el("path", {d:describeArc(cx, cy, o.radius[1], 127, 413), fill:"none", stroke:OVL.needle, "stroke-width":1.5, opacity:.55}, g);
+      el("path", {d:describeArc(cx, cy, o.radius[0], 127, 413), fill:"none", stroke:OVL.needle, "stroke-width":1.5, opacity:.55}, g);
+      el("line", {x1:cx, y1:cy, x2:cx + r1*Math.cos(a), y2:cy + r1*Math.sin(a), stroke:OVL.needle, "stroke-width":4, "stroke-linecap":"round"}, g);
+      el("circle", {cx, cy, r:5, fill:OVL.needle}, g);
+    }
+    if (layers.labels && o.read != null && (!QUIET.has(o.cls) || st.k !== "ok")){
+      let txt = o.ok === false && o.truth != null ? `${o.read} ≠ ${o.truth}` : String(o.read);
+      if (txt.length > 70) txt = txt.slice(0, 68) + "…";
+      const tw = txt.length * 7.6 + 18;
+      const ly = o.cls === "gauge" ? y + h - 4 : y + h + 2;
+      const lx = Math.min(1920 - tw, Math.max(0, x + (o.cls === "gauge" ? (w - tw)/2 : 0)));
+      el("rect", {x:lx, y:ly, width:tw, height:19, rx:4, fill:"rgba(10,10,10,.82)"}, g);
+      el("rect", {x:lx, y:ly, width:4, height:19, rx:2, fill:st.c}, g);
+      const t = el("text", {x:lx+9, y:ly+14, fill:"#f0efec"}, g); t.textContent = txt;
+    }
+    g.addEventListener("click", e => { e.stopPropagation(); select({id:o.id}); });
+    g.addEventListener("mousemove", e => tip(e, objTip(o, st)));
+    g.addEventListener("mouseleave", hideTip);
+  }
+}
+function overlayTrends(svg){
+  for (const [id, T] of Object.entries(state.trends || {})){
+    const [L, Tp, PW, PH] = T.plot, lo = T.y_min, hi = T.y_max;
+    if (hi == null) continue;
+    T.curve.forEach((pts, si) => {
+      let d = "", pen = false;
+      pts.forEach((v, i) => { if (v == null){ pen = false; return; }
+        const x = L + i*2, y = Tp + PH * (1 - (v - lo) / (hi - lo));
+        d += `${pen ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`; pen = true; });
+      el("path", {d, fill:"none", stroke:"#ffffff", "stroke-width":3, opacity:.35}, svg);
+      el("path", {d, fill:"none", stroke:T.colors[si], "stroke-width":1.5, "stroke-dasharray":"5 3"}, svg);
+    });
+  }
+}
+function describeArc(cx, cy, r, a0, a1){
+  const p = a => [cx + r*Math.cos(a*Math.PI/180), cy + r*Math.sin(a*Math.PI/180)];
+  const [x0,y0] = p(a0), [x1,y1] = p(a1);
+  return `M${x0},${y0} A${r},${r} 0 ${a1-a0>180?1:0} 1 ${x1},${y1}`;
+}
+function objTip(o, st){
+  return `<div class="t">${esc(o.label)}</div>
+  <div class="status s-${st.k}"><i>${st.i}</i>${st.t}</div><table>
+  <tr><td>объект</td><td>${esc(o.id)} · ${esc(o.cls)}</td></tr>
+  <tr><td>прочитано</td><td class="num">${esc(o.read ?? "—")}</td></tr>
+  <tr><td>модель</td><td class="num">${esc(o.truth ?? "—")}</td></tr>
+  ${o.err_pct != null ? `<tr><td>ошибка</td><td class="num">${fx(o.err_pct,2)} % шкалы</td></tr>` : ""}
+  <tr><td>балл / отрыв</td><td class="num">${fx(o.score,3)} / ${o.margin == null ? "—" : fx(o.margin,4)}</td></tr>
+  <tr><td>способ</td><td>${({needle:"стрелка по красноте", template:"перебор шаблонов", glyph:"глифы моноширинного шрифта", tesseract:"Tesseract (рус+англ)", color:"кривые по яркости и оттенку"})[o.method] || "сравнение с эталонами"}</td></tr>
+  <tr><td>в этом кадре</td><td>${o.cached ? "из кэша (область не менялась)" : `перечитан за ${fx(o.ms,1)} мс`}</td></tr>
+  </table>`;
+}
+const tipEl = $("tip");
+function tip(e, html){ tipEl.innerHTML = html; tipEl.style.display = "block";
+  const r = tipEl.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tipEl.style.left = x + "px"; tipEl.style.top = y + "px"; }
+function hideTip(){ tipEl.style.display = "none"; }
+$("ovl").addEventListener("click", () => {});
+
+/* ───────── детали ───────── */
+async function select(sel){
+  selected = sel; drawOverlay();
+  const body = $("detailBody");
+  body.innerHTML = `<div class="empty">считаю…</div>`;
+  try{
+    const d = sel.block ? await (await fetch("/api/block?name=" + encodeURIComponent(sel.block))).json()
+                        : await (await fetch("/api/detail?id=" + encodeURIComponent(sel.id))).json();
+    if (d.error){ body.innerHTML = `<div class="empty err">${esc(d.error)}</div>`; return; }
+    body.innerHTML = sel.block ? blockHtml(d) : detailHtml(d);
+    if (d.kind === "gauge") profileChart($("pChart"), d.profile, d.result);
+    if (d.kind === "bargraph" || d.kind === "vessel") fillChart($("pChart"), d.profile);
+    if (d.kind === "trend" && state.trends[d.id]) cloneChart($("pChart"), state.trends[d.id], 190);
+  }catch(e){ body.innerHTML = `<div class="empty err">${esc(e)}</div>`; }
+}
+function objHead(d){
+  const o = state && state.objects.find(x => x.id === d.id) || {};
+  const st = statusOf(o);
+  return `<div class="step"><h3>${esc(o.label || d.id)} <small style="color:var(--muted);font-weight:400">${esc(d.class_title)} · ${esc(d.id)}</small></h3>
+    <div class="status s-${st.k}"><i>${st.i}</i>${st.t}: прочитано <span class="num">${esc(o.read ?? "—")}</span>, модель <span class="num">${esc(o.truth ?? "—")}</span></div>
+    ${d.shift ? `<p style="margin-top:6px">Блок «${esc(d.block || "—")}», сдвиг блока в этом кадре: <span class="num">${d.shift[0]}, ${d.shift[1]}</span> px — прибор ищется там, куда уехал блок, а не по записанной координате.</p>` : ""}</div>`;
+}
+function detailHtml(d){
+  const R = d.result || {}, I = d.images || {};
+  let h = objHead(d);
+  const charsHtml = chars => chars.map((c,i) => `<div class="cell"><figure style="margin:0"><img src="${c.glyph}" class="pix"><figcaption>символ ${i+1}</figcaption></figure>
+      <div class="cands">${c.cands.map((k,j) => `<div class="cand ${j===0?"best":""}"><img src="${k.img}" class="pix" style="height:42px">«${esc(k.char)}» <span class="num">${fx(k.score,3)}</span></div>`).join("")}</div></div>`).join("");
+  if (d.kind === "readout"){
+    h += `<div class="step"><h3>1. Табло</h3><p>Место — из контрольного кадра нового банка (нарезан с щита в ВМ) плюс сдвиг блока.</p><img src="${I.crop}" class="pix"></div>
+    <div class="step"><h3>2. Значение — по цвету</h3><p>Цифры значения насыщенно-цветные, подписи и единицы серые: маска по насыщенности (HSV) вырезает только число${R.gray ? " (уставка в «АВТО» серая — по яркости)" : ""}. Синие рамки — символы, разрезанные по пустым столбцам; слипшиеся режутся по шагу моноширинного шрифта.</p>
+      <img src="${I.value}" class="pix" style="max-width:100%"></div>
+    <div class="step"><h3>3. Каждый символ против глифов шрифта</h3><p>Глифы нарезаны автоматически из контрольных кадров (кадр без потерь и JPEG q80), сравнение — нормированная яркость при лучшем сдвиге ±1 px, цвет не важен. Ноль этого шрифта — с точкой внутри, поэтому Tesseract здесь не годится.</p>
+      ${charsHtml(d.chars || [])}</div>
+    <div class="step"><h3>4. Итог</h3><p class="num">Прочитано <b>${esc(R.text ?? "—")}</b></p></div>`;
+    return h;
+  }
+  if (d.kind === "clock"){
+    h += `<div class="step"><h3>1. Часы модели в шапке</h3><img src="${I.crop}" class="pix" style="max-width:100%"></div>
+    <div class="step"><h3>2. Символы против глифов</h3>${charsHtml(d.chars || [])}</div>
+    <div class="step"><h3>3. Итог</h3><p class="num">«${esc(R.text ?? R.raw ?? "—")}». Модель идёт ускоренно, поэтому сверка — с допуском: время кадра между двумя снимками истины.</p></div>`;
+    return h;
+  }
+  if (d.kind === "log"){
+    const tr = state.log_truth || [];
+    h += `<div class="step"><h3>Как читается журнал</h3><p>Две последние строки в полосе под трендами. Время — моноширинные цифры (глифы), источник и сообщение — Tesseract (русский + английский) по увеличенной и бинаризованной строке.</p></div>` +
+      d.lines.map((l,i) => !l ? `<div class="step"><h3>Строка ${i+1}</h3><p>пусто</p></div>` :
+      `<div class="step"><h3>Строка ${i+1}</h3><div style="overflow-x:auto"><img src="${l.img}" style="max-width:none;height:38px"></div><p style="margin-top:6px">Вход Tesseract (источник и сообщение) — увеличено, бинаризовано:</p><div style="overflow-x:auto"><img src="${l.ink}" style="max-width:none;height:34px;background:#fff"></div>
+       <dl class="kv" style="margin-top:6px"><dt>время</dt><dd class="num">${esc(l.time)} <span style="color:var(--muted)">модель ${esc((tr[i]||{}).t ?? "—")}</span></dd>
+       <dt>источник</dt><dd>${esc(l.tag)} <span style="color:var(--muted)">модель ${esc((tr[i]||{}).tag ?? "—")}</span></dd>
+       <dt>сообщение</dt><dd>${esc(l.msg)}<br><span style="color:var(--muted)">модель: ${esc((tr[i]||{}).msg ?? "—")}</span></dd></dl></div>`).join("");
+    return h;
+  }
+  if (d.kind === "trend"){
+    h += `<div class="step"><h3>1. Поле графика</h3><p>Границы поля — из контрольного кадра плюс сдвиг блока; цвета серий сняты с легенды контрольного кадра.</p><img src="${I.crop}" style="max-width:100%"></div>
+    <div class="step"><h3>2. Шкала — по подписям оси</h3><p>Верхняя и нижняя подписи читаются глифами (серые 7 px, в JPEG — отдельные варианты глифов).</p>
+      <div class="row"><figure><img src="${I.top}" class="pix"><figcaption>верх: ${fx(R.y_max,0)}</figcaption></figure><figure><img src="${I.bot}" class="pix"><figcaption>низ: ${fx(R.y_min,0)}</figcaption></figure></div></div>
+    <div class="step"><h3>3. Точки линий и серия каждой</h3><p>Линии тонкие (1,7 px), а MJPEG хранит цвет вдвое грубее (4:2:0) — точного цвета линии в кадре нет. Точка линии отбирается по яркости (она в JPEG цела), серия — по ближайшему оттенку в сглаженном цветовом канале. Затем по каждому столбцу — центр точек серии.</p>
+      <img src="${I.masks}" style="max-width:100%;background:#000"></div>
+    <div class="step"><h3>4. Клон графика</h3><p>Сплошная — восстановлено по пикселям, пунктир — история модели.</p><svg class="chart" id="pChart" height="190"></svg></div>`;
+    return h;
+  }
+  if (d.kind === "gauge"){
+    h += `<div class="step"><h3>1. Область прибора</h3><p>Центр циферблата — из контрольного кадра плюс сдвиг блока. Пурпурным — кольцо поиска (радиусы ${fx(R.radii[0],0)}–${fx(R.radii[1],0)} px: внутри шкалы, до цифр и красной зоны) и найденный угол.</p>
+      <div class="row"><figure><img src="${I.crop}" width="180"><figcaption>кадр</figcaption></figure><figure><img src="${I.overlay}" width="180"><figcaption>что ищется</figcaption></figure></div></div>
+    <div class="step"><h3>2. cv2.remap — развёртка в полярные координаты</h3><p>${R.rays} лучей с шагом 0,5° превращают круг в полосу: по горизонтали угол ${R.start_deg-8}°…${R.start_deg+R.sweep_deg+8}°, по вертикали радиус. Одна операция вместо 55 сопоставлений с шаблонами.</p>
+      <img src="${I.unwrap}" style="width:100%;height:60px"></div>
+    <div class="step"><h3>3. «Краснота» R − max(G, B) и порог 70</h3><p>Стрелка — единственное насыщенно-красное на шкале (кроме красной зоны, она дальше по радиусу).</p>
+      <img src="${I.redmap}" style="width:100%;height:60px;margin-bottom:4px"><img src="${I.hitmap}" style="width:100%;height:60px"></div>
+    <div class="step"><h3>4. Профиль по углу</h3><p>Доля «красных» точек вдоль каждого луча. Пик ≥ 0,25 и второй пик &lt; 0,6 пика — иначе откат на шаблоны. Угол — центр тяжести пика выше половины максимума.</p>
+      <svg class="chart" id="pChart" height="150"></svg></div>
+    <div class="step"><h3>5. Угол → показание</h3>
+      <dl class="kv num"><dt>угол стрелки</dt><dd>${fx(R.angle,2)}°</dd>
+      <dt>доля шкалы</dt><dd>(${fx(R.angle,2)} − ${R.start_deg}) / ${R.sweep_deg} = ${fx(R.frac,4)}</dd>
+      <dt>показание</dt><dd><b>${fx(R.min,0)} + ${fx(R.max-R.min,0)} × ${fx(R.frac,4)} = ${fx(R.value,2)} ${esc(R.unit||"")}</b></dd>
+      <dt>пик / второй</dt><dd>${fx(d.profile.peak,3)} / ${fx(d.profile.second,3)} — ${R.accepted ? "принят" : "не уверен, перебор шаблонов"}</dd></dl></div>`;
+  } else if (d.kind === "sevenseg"){
+    h += `<div class="step"><h3>1. Индикатор и знакоместа</h3><p>Знакоместа — из разметки контрольного кадра плюс сдвиг блока.</p><img src="${I.crop}"></div>
+      <div class="step"><h3>2. Каждое знакоместо против всех цифр — cv2.matchTemplate (TM_CCOEFF_NORMED)</h3>
+      <p>Решает не балл, а отрыв лидера от второго места (≥ ${R.margin_min}): у перекрытого прибора корреляция даёт 1,0 всем шаблонам сразу.</p>
+      ${d.cells.map((c,i) => `<div class="cell"><figure style="margin:0"><img src="${c.crop}" class="pix"><figcaption>место ${i+1}</figcaption></figure>
+        <div class="cands">${c.cands.map((k,j) => `<div class="cand ${j===0?"best":""}"><img src="${k.img}" class="pix" style="height:54px">${k.char ? "«" + esc(k.char) + "»" : "пусто"} <span class="num">${fx(k.score,3)}</span></div>`).join("")}</div>
+        <div class="num" style="font-size:12px">→ <b>${c.accepted ? esc(c.best) : "?"}</b><br><span style="color:var(--muted)">отрыв ${fx(c.margin,3)}</span></div></div>`).join("")}</div>
+      <div class="step"><h3>3. Итог</h3><p class="num">Строка «${esc(R.text)}», десятичная точка — свойство прибора, берётся из разметки.</p></div>`;
+  } else if (d.kind === "discrete"){
+    h += `<div class="step"><h3>1. Где прибор — корреляция с маской</h3><p>Позиция по самому уверенному варианту (балл ${fx(R.locate_score,3)}), найдено в <span class="num">${R.at[0]}, ${R.at[1]}</span>.</p>
+      <img src="${I.crop}" class="pix"></div>
+      <div class="step"><h3>2. Какое состояние — попиксельная разность с каждым эталоном</h3>
+      <p>Сходство = 1 − средняя |кадр − эталон| / 255. Корреляция плохо различает похожие тёмные символы, разность разводит их увереннее.</p>
+      <table class="t">${d.states.map((s,i) => `<tr><td><img src="${s.img}" class="pix" style="max-height:48px"></td><td>${esc(s.state ?? "—")}${i===0?" ←":""}</td>
+        <td style="width:40%"><div class="bar"><span style="width:${Math.max(0,(s.sim-0.7)/0.3*100)}%"></span></div></td><td class="r num">${fx(s.sim,4)}</td></tr>`).join("")}</table>
+      <p style="margin-top:6px">Отрыв ${fx(R.margin,4)} (нужно ≥ ${R.margin_min}) → <b>${esc(R.state ?? "не уверено")}</b></p></div>
+      <div class="step"><h3>3. Разность с выбранным эталоном</h3><p>Ярче — больше отличие. Почти тёмная карта значит, что состояние определено надёжно.</p><img src="${I.diff}" class="pix"></div>`;
+  } else if (d.kind === "bargraph" || d.kind === "vessel"){
+    h += `<div class="step"><h3>1. Корпус — по неизменной части</h3><p>Маска — пиксели, одинаковые у эталонов «пусто» и «полно»: по ним прибор ищется при любом показании (балл ${fx(R.locate_score,3)}).</p>
+      <div class="row"><figure><img src="${I.empty}"><figcaption>«пусто»</figcaption></figure><figure><img src="${I.full}"><figcaption>«полно»</figcaption></figure>
+      ${I.mask ? `<figure><img src="${I.mask}"><figcaption>маска</figcaption></figure>` : ""}</div></div>
+      <div class="step"><h3>2. Отличие кадра от «пусто»</h3><p>Синей рамкой — область измерения. Заливка меряется отличием, а не яркостью: так красная полоса тревоги не обнуляет показание.</p>
+      <div class="row"><figure><img src="${I.crop}"><figcaption>кадр</figcaption></figure><figure><img src="${I.diff}"><figcaption>|кадр − пусто|</figcaption></figure></div></div>
+      <div class="step"><h3>3. Профиль ${esc(d.profile.axis)}</h3><p>75-й перцентиль отличия в каждой полосе. Граница заливки — первая значимая полоса ниже порога.</p>
+      <svg class="chart" id="pChart" height="150"></svg>
+      <p class="num">Доля заполнения: <b>${R.frac == null ? "—" : fx(R.frac*100,1) + " %"}</b></p></div>`;
+  } else {
+    h += `<div class="step"><h3>Поиск cv2.matchTemplate в окрестности ±36 px</h3><p>Табло и тренды не читаются — только находятся (для них нет числовой истины). Балл ${fx(R.score,3)}.</p>
+      <div class="row"><figure><img src="${I.template}"><figcaption>эталон</figcaption></figure><figure><img src="${I.crop}"><figcaption>окрестность в кадре</figcaption></figure></div>
+      <p style="margin-top:8px">Карта корреляции (крест — максимум):</p><img src="${I.heat}" class="pix"></div>`;
+  }
+  return h;
+}
+function blockHtml(d){
+  const R = d.result, I = d.images;
+  return `<div class="step"><h3>Блок «${esc(d.title)}»</h3><p>Блок ищется как изображение — кусок контрольного кадра целиком сопоставляется со всем кадром. Ни одной записанной координаты прибора, поэтому перестановка блоков распознавание не ломает.</p></div>
+  <div class="step"><h3>1. Грубо: кадр и эталон уменьшены в ${R.scale} раза</h3><p>На маленькой паре cv2.matchTemplate идёт через БПФ: ${fx(R.coarse_ms,1)} мс на весь кадр.</p>
+    <div class="row"><figure><img src="${I.template}" style="max-width:150px"><figcaption>эталон ${R.tpl_size[0]}×${R.tpl_size[1]} → ¼</figcaption></figure>
+    <figure><img src="${I.frame}" style="max-width:260px"><figcaption>кадр ¼, найдено</figcaption></figure></div></div>
+  <div class="step"><h3>2. Карта корреляции TM_CCOEFF_NORMED</h3><p>Каждая точка — насколько эталон совпадает, если его левый верхний угол поставить сюда (карта меньше кадра на размер эталона). Яркое — совпадение, крест — максимум.</p>
+    <img src="${I.heat}" class="pix" style="width:100%"></div>
+  <div class="step"><h3>3. Насколько однозначно</h3><dl class="kv num">
+    <dt>лучший балл</dt><dd>${fx(R.score,3)}</dd><dt>второй пик</dt><dd>${fx(R.second,3)}</dd><dt>отрыв</dt><dd><b>${fx(R.margin,3)}</b></dd>
+    <dt>грубо найдено</dt><dd>${R.coarse_at[0]}, ${R.coarse_at[1]} (эталон: ${R.ref_at[0]}, ${R.ref_at[1]})</dd>
+    <dt>после уточнения</dt><dd>сдвиг ${R.offset[0]}, ${R.offset[1]} px — уточнение на полном разрешении ±14 px</dd></dl></div>`;
+}
+
+/* ───────── графики ───────── */
+function axesFrame(svg, W, H, m, xs, ys, xfmt, yfmt){
+  const g = el("g", {}, svg);
+  for (const v of ys.ticks){ const y = ys.map(v);
+    el("line", {x1:m.l, x2:W-m.r, y1:y, y2:y, stroke:css("--grid"), "stroke-width":1}, g);
+    const t = el("text", {x:m.l-6, y:y+4, "text-anchor":"end", fill:css("--muted"), "font-size":11, class:"num"}, g); t.textContent = yfmt(v); }
+  for (const v of xs.ticks){ const x = xs.map(v);
+    const t = el("text", {x, y:H-m.b+15, "text-anchor":"middle", fill:css("--muted"), "font-size":11, class:"num"}, g); t.textContent = xfmt(v); }
+  el("line", {x1:m.l, x2:W-m.r, y1:H-m.b, y2:H-m.b, stroke:css("--axis"), "stroke-width":1}, g);
+}
+const lin = (d0, d1, r0, r1) => v => r0 + (v - d0) / (d1 - d0 || 1) * (r1 - r0);
+function niceTicks(lo, hi, n=4){ const st = Math.pow(10, Math.floor(Math.log10((hi-lo)/n || 1)));
+  const step = [1,2,2.5,5,10].map(k => k*st).find(s => (hi-lo)/s <= n) || st*10;
+  const out = []; for (let v = Math.ceil(lo/step)*step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(6)); return out; }
+
+function profileChart(svg, p, R){
+  const W = svg.clientWidth || 400, H = 150, m = {l:36, r:8, t:8, b:22};
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.textContent = "";
+  const x = lin(p.angles[0], p.angles.at(-1), m.l, W-m.r), ymax = Math.max(0.5, p.peak*1.1), y = lin(0, ymax, H-m.b, m.t);
+  axesFrame(svg, W, H, m, {ticks:[135,225,315,405], map:x}, {ticks:niceTicks(0, ymax, 3), map:y}, v => v + "°", v => fx(v, 2));
+  el("rect", {x:x(p.lo), y:m.t, width:Math.max(2, x(p.hi)-x(p.lo)), height:H-m.b-m.t, fill:css("--s5"), opacity:.18}, svg);
+  const right = x(R.angle) < (m.l + W - m.r) / 2;      // подписи — по другую сторону от стрелки
+  for (const [v, lab] of [[p.threshold, "порог пика 0,25"], [p.second_limit, "предел 2-го пика"]]){
+    el("line", {x1:m.l, x2:W-m.r, y1:y(v), y2:y(v), stroke:css("--muted"), "stroke-width":1, "stroke-dasharray":"4 3"}, svg);
+    const t = el("text", {x:right ? W-m.r : m.l+4, y:y(v)-4, "text-anchor":right ? "end" : "start", fill:css("--muted"), "font-size":11}, svg); t.textContent = lab; }
+  el("path", {d:p.values.map((v,i) => `${i?"L":"M"}${x(p.angles[i]).toFixed(1)},${y(v).toFixed(1)}`).join(""), fill:"none", stroke:css("--s1"), "stroke-width":2}, svg);
+  el("line", {x1:x(R.angle), x2:x(R.angle), y1:m.t, y2:H-m.b, stroke:css("--s5"), "stroke-width":2}, svg);
+  const t = el("text", {x:x(R.angle)+5, y:m.t+12, fill:css("--ink"), "font-size":11, class:"num"}, svg); t.textContent = fx(R.angle,1) + "°";
+  hoverLine(svg, W, H, m, p.angles.map((a,i) => ({x:x(a), html:`угол ${fx(a,1)}°<br>доля красного ${fx(p.values[i],3)}`})));
+}
+function fillChart(svg, p){
+  const W = svg.clientWidth || 400, H = 150, m = {l:36, r:8, t:8, b:22};
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.textContent = "";
+  const n = Math.max(p.ref.length, p.cur.length); if (!n) return;
+  const ymax = Math.max(10, ...p.ref, ...p.cur) * 1.08;
+  const x = lin(0, n-1, m.l, W-m.r), y = lin(0, ymax, H-m.b, m.t);
+  axesFrame(svg, W, H, m, {ticks:niceTicks(0, n-1, 4), map:x}, {ticks:niceTicks(0, ymax, 3), map:y}, v => v, v => Math.round(v));
+  for (const [v, lab] of [[p.lit, "«залито» выше"], [p.significant, "значимая полоса"]]){
+    el("line", {x1:m.l, x2:W-m.r, y1:y(v), y2:y(v), stroke:css("--muted"), "stroke-dasharray":"4 3"}, svg);
+    const t = el("text", {x:W-m.r, y:y(v)-4, "text-anchor":"end", fill:css("--muted"), "font-size":11}, svg); t.textContent = lab; }
+  const line = (arr, c) => el("path", {d:arr.map((v,i) => `${i?"L":"M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(""), fill:"none", stroke:c, "stroke-width":2}, svg);
+  line(p.ref, css("--s1")); line(p.cur, css("--s2"));
+  const lg = el("g", {}, svg);
+  [["«полно» − «пусто»", css("--s1")], ["кадр − «пусто»", css("--s2")]].forEach(([lab, c], i) => {
+    el("rect", {x:m.l + 6 + i*150, y:m.t+5, width:12, height:3, fill:c}, lg);
+    const t = el("text", {x:m.l + 22 + i*150, y:m.t+10, fill:css("--ink-2"), "font-size":11}, lg); t.textContent = lab; });
+  hoverLine(svg, W, H, m, [...Array(n).keys()].map(i => ({x:x(i), html:`полоса ${i}<br>эталон ${fx(p.ref[i],0)} · кадр ${fx(p.cur[i],0)}`})));
+}
+function hoverLine(svg, W, H, m, pts, onMove){
+  const ln = el("line", {y1:m.t, y2:H-m.b, stroke:css("--muted"), "stroke-width":1, visibility:"hidden"}, svg);
+  const hit = el("rect", {x:m.l, y:0, width:W-m.l-m.r, height:H, fill:"transparent"}, svg);
+  hit.addEventListener("mousemove", e => {
+    const r = svg.getBoundingClientRect(), px = (e.clientX - r.left) * W / r.width;
+    let best = pts[0]; for (const p of pts) if (Math.abs(p.x - px) < Math.abs(best.x - px)) best = p;
+    ln.setAttribute("x1", best.x); ln.setAttribute("x2", best.x); ln.setAttribute("visibility", "visible");
+    if (onMove) onMove(best); else tip(e, best.html);
+  });
+  hit.addEventListener("mouseleave", () => { ln.setAttribute("visibility", "hidden"); if (onMove) onMove(null); else hideTip(); });
+  return ln;
+}
+
+function drawClass(){
+  const by = state.rolling.by_class, rows = Object.entries(by).sort((a,b) => b[1].total - a[1].total);
+  $("accNote").textContent = `последние ${state.rolling.frames} кадров · модель идёт ускоренно, цифры на переходах могут не совпасть — точно сверяет «Точная проверка»`;
+  $("tClass").innerHTML = `<tr><th>класс</th><th style="width:40%"></th><th class="r">верно</th><th class="r">%</th></tr>` +
+    rows.map(([c, v]) => { const p = v.total ? 100*v.ok/v.total : 0;
+      return `<tr><td>${esc(v.title)}</td><td><div class="bar"><span style="width:${p}%;background:${p >= 99.5 ? "var(--s1)" : "var(--serious)"}"></span></div></td>
+      <td class="r num">${v.ok}/${v.total}</td><td class="r num">${fx(p,1)}</td></tr>`; }).join("");
+}
+function drawTiming(){
+  const t = state.timing;
+  $("tReg").textContent = t.registration_ms + " мс";
+  $("tReadT").textContent = fx(t.read_ms,0) + " мс";
+  $("tTr").textContent = fx(t.transport_ms,0) + " мс";
+  $("tObj").textContent = `${state.read_objects} / ${state.cached_objects}`;
+  const rows = Object.entries(t.per_class_ms), mx = Math.max(1, ...rows.map(r => r[1]));
+  const title = c => (state.class_titles || {})[c] || c;
+  $("tMs").innerHTML = rows.length ? rows.map(([c, v]) => `<tr><td>${esc(title(c))}</td><td style="width:50%"><div class="bar"><span style="width:${100*v/mx}%"></span></div></td><td class="r num">${fx(v,1)}</td></tr>`).join("")
+    : `<tr><td style="color:var(--muted)">в этом кадре всё взято из кэша</td></tr>`;
+}
+function drawGauge(){
+  const g = state.gauge_err, svg = $("gHist");
+  $("gNote").textContent = g.mean == null ? "" : `ср. ${fx(g.mean,2)} %, p95 ${fx(g.p95,2)} % шкалы · допуск 2 %`;
+  const W = svg.clientWidth || 300, H = 150, m = {l:36, r:8, t:8, b:22};
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.textContent = "";
+  if (!g.hist.length) return;
+  const mx = Math.max(...g.hist), n = g.hist.length, bw = (W-m.l-m.r)/n;
+  const y = lin(0, mx*1.1, H-m.b, m.t);
+  axesFrame(svg, W, H, m, {ticks:[0,0.5,1,1.5,2], map:v => m.l + v/2*(W-m.l-m.r)}, {ticks:niceTicks(0, mx*1.1, 3), map:y}, v => fx(v,1)+"%", v => Math.round(v));
+  g.hist.forEach((v, i) => { if (!v) return;
+    const x = m.l + i*bw + 1, h = H-m.b - y(v);
+    const r = el("path", {d:`M${x},${H-m.b} v${-h+4} q0,-4 4,-4 h${bw-10} q4,0 4,4 v${h-4} z`, fill:css("--s1")}, svg);
+    r.addEventListener("mousemove", e => tip(e, `ошибка ${fx(i*0.2,1)}–${fx(i*0.2+0.2,1)} % шкалы<br><b class="num">${v}</b> чтений`));
+    r.addEventListener("mouseleave", hideTip); });
+}
+function drawLog(){
+  const items = [...state.errors.map(e => ({t:e.t, h:`<span class="err">✗</span> ${esc(e.label)}: прочитано <b class="num">${esc(e.read)}</b>, модель <b class="num">${esc(e.truth)}</b>`})),
+                 ...state.events.map(e => ({t:e.t, h:`↻ ${esc(e.text)}`}))].sort((a,b) => b.t.localeCompare(a.t)).slice(0, 40);
+  $("log").innerHTML = items.map(i => `<div><time class="num">${i.t}</time>${i.h}</div>`).join("") || `<div>пока пусто</div>`;
+}
+const HIST = [["acc", "Точность кадра", v => fx(v,1)+" %"], ["read_ms", "Чтение кадра", v => fx(v,0)+" мс"],
+              ["fps", "Зрение", v => fx(v,1)+" к/с"], ["age_ms", "От экрана ВМ до результата", v => fx(v,0)+" мс"]];
+let histLines = [];
+function drawHistory(){
+  const h = state.history.filter(r => r.t > Date.now()/1000 - 180), box = $("hist");
+  if (box.children.length !== HIST.length) box.innerHTML = HIST.map(([k, t]) => `<div class="mini"><h4>${t}<b id="hv_${k}" class="num"></b></h4><svg class="chart" id="hc_${k}" height="110"></svg></div>`).join("");
+  if (h.length < 2) return;
+  const t0 = h[0].t, t1 = h.at(-1).t;
+  histLines = [];
+  for (const [k, , f] of HIST){
+    const svg = $("hc_" + k), W = svg.clientWidth || 400, H = 110, m = {l:44, r:8, t:6, b:20};
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.textContent = "";
+    const vals = h.map(r => r[k]);
+    let lo = Math.min(...vals), hi = Math.max(...vals);
+    if (k === "acc"){ lo = Math.min(lo, 95); hi = 100; } else { lo = 0; hi = hi * 1.15 || 1; }
+    const x = lin(t0, t1, m.l, W-m.r), y = lin(lo, hi, H-m.b, m.t);
+    axesFrame(svg, W, H, m, {ticks:[t0, (t0+t1)/2, t1], map:x}, {ticks:niceTicks(lo, hi, 3), map:y},
+      v => new Date(v*1000).toLocaleTimeString("ru-RU"), v => f(v).replace(/ .*/, ""));
+    el("path", {d:h.map((r,i) => `${i?"L":"M"}${x(r.t).toFixed(1)},${y(r[k]).toFixed(1)}`).join(""), fill:"none", stroke:css("--s1"), "stroke-width":2, "stroke-linejoin":"round"}, svg);
+    $("hv_" + k).textContent = f(vals.at(-1));
+    const dot = el("circle", {r:4, fill:css("--s1"), stroke:css("--surface"), "stroke-width":2, visibility:"hidden"}, svg);
+    const ln = hoverLine(svg, W, H, m, h.map(r => ({x:x(r.t), r})), p => syncHover(p && p.r));
+    histLines.push({k, ln, dot, x, y, f});
+  }
+}
+function syncHover(r){
+  for (const L of histLines){
+    if (!r){ L.ln.setAttribute("visibility","hidden"); L.dot.setAttribute("visibility","hidden"); $("hv_"+L.k).textContent = L.f(state.history.at(-1)[L.k]); continue; }
+    const X = L.x(r.t); L.ln.setAttribute("x1", X); L.ln.setAttribute("x2", X); L.ln.setAttribute("visibility","visible");
+    L.dot.setAttribute("cx", X); L.dot.setAttribute("cy", L.y(r[L.k])); L.dot.setAttribute("visibility","visible");
+    $("hv_"+L.k).textContent = `${L.f(r[L.k])} · ${new Date(r.t*1000).toLocaleTimeString("ru-RU")}`;
+  }
+}
+
+
+/* ───────── клон трендов ───────── */
+function cloneChart(svg, T, H=170){
+  const W = svg.clientWidth || 400, m = {l:40, r:10, t:8, b:22};
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`); svg.textContent = "";
+  const lo = T.y_min ?? 0, hi = T.y_max ?? 1;
+  const x = lin(0, 1, m.l, W-m.r), y = lin(lo, hi, H-m.b, m.t);
+  axesFrame(svg, W, H, m, {ticks:[0, 0.25, 0.5, 0.75, 1], map:x}, {ticks:niceTicks(lo, hi, 4), map:y},
+    v => v === 1 ? "сейчас" : `−${Math.round((1-v)*24)} ч`, v => Math.round(v));
+  T.truth.forEach((arr, si) => {
+    const n = arr.length; if (n < 2) return;
+    el("path", {d:arr.map((v,i) => `${i?"L":"M"}${x(i/(n-1)).toFixed(1)},${y(v).toFixed(1)}`).join(""), fill:"none",
+      stroke:T.colors[si], "stroke-width":1.2, "stroke-dasharray":"4 3", opacity:.75}, svg); });
+  T.curve.forEach((pts, si) => {
+    const n = pts.length; let d = "", pen = false;
+    pts.forEach((v,i) => { if (v == null){ pen = false; return; } d += `${pen?"L":"M"}${x(i/(n-1)).toFixed(1)},${y(v).toFixed(1)}`; pen = true; });
+    el("path", {d, fill:"none", stroke:T.colors[si], "stroke-width":2, "stroke-linejoin":"round"}, svg);
+    if (T.last[si] != null) el("circle", {cx:x(1), cy:y(T.last[si]), r:4, fill:T.colors[si], stroke:css("--surface"), "stroke-width":2}, svg);
+  });
+  const N = T.curve[0] ? T.curve[0].length : 0;
+  hoverLine(svg, W, H, m, [...Array(N).keys()].map(i => {
+    const f = i/(N-1);
+    return {x:x(f), html:`<div class="t">${f >= 0.999 ? "сейчас" : `−${((1-f)*24).toFixed(1).replace(".", ",")} ч`}</div><table>` + T.names.map((nm, si) => {
+      const tv = T.truth[si] && T.truth[si].length ? T.truth[si][Math.round(f*(T.truth[si].length-1))] : null;
+      return `<tr><td><span class="sw" style="background:${T.colors[si]}"></span>${esc(nm)}</td><td class="num">${fx(T.curve[si][i],1)}</td><td class="num" style="color:var(--muted)">модель ${fx(tv,1)}</td></tr>`; }).join("") + "</table>"};
+  }));
+}
+function drawClones(){
+  const box = $("clones"), T = state.trends || {}, ids = Object.keys(T).sort();
+  if (box.children.length !== ids.length)
+    box.innerHTML = ids.map(id => `<div class="clone"><h4 id="cl_t_${id}"></h4><svg class="chart" id="cl_${id}" height="170"></svg><table class="t" id="cl_tab_${id}"></table></div>`).join("");
+  for (const id of ids){
+    const t = T[id];
+    $("cl_t_" + id).textContent = t.title;
+    cloneChart($("cl_" + id), t);
+    $("cl_tab_" + id).innerHTML = `<tr><th>серия</th><th class="r">прочитано</th><th class="r">модель</th><th class="r">ошибка</th><th class="r">кривая, СКО</th></tr>` +
+      t.names.map((nm, si) => { const e = t.err_last_pct[si], ok = e != null && e <= 2;
+        return `<tr><td><span class="sw" style="background:${t.colors[si]}"></span>${esc(nm)}</td><td class="r num">${fx(t.last[si],1)}</td><td class="r num">${fx(t.truth_last[si],1)}</td>
+        <td class="r num"><span class="status s-${ok ? "ok" : "bad"}"><i>${ok ? "✓" : "✗"}</i>${fx(e,2)} %</span></td><td class="r num">${fx(t.curve_rms_pct[si],2)} %</td></tr>`; }).join("");
+  }
+}
+function drawShieldLog(){
+  const HOMO = {"А":"A","В":"B","Е":"E","К":"K","М":"M","Н":"H","О":"O","Р":"P","С":"C","Т":"T","Х":"X","а":"a","е":"e","о":"o","р":"p","с":"c","у":"y","х":"x"};
+  const L = state.log_lines || [], T = state.log_truth || [],
+        norm = v => String(v ?? "").replace(/./g, ch => HOMO[ch] || ch).replace(/\s*[·•.\-–—]+\s*/g, " - ").replace(/\s+/g, " ").trim();
+  $("tLog").innerHTML = `<tr><th></th><th>время</th><th>источник</th><th>сообщение (прочитано)</th><th>модель</th></tr>` +
+    [0, 1].map(i => { const l = L[i], t = T[i];
+      if (!l && !t) return "";
+      const ok = l && t && norm(l.time) === norm(t.t) && norm(l.tag) === norm(t.tag) && norm(l.msg) === norm(t.msg);
+      return `<tr><td><span class="status s-${ok ? "ok" : "bad"}"><i>${ok ? "✓" : "✗"}</i></span></td><td class="num">${esc(l ? l.time : "—")}</td><td>${esc(l ? l.tag : "—")}</td>
+        <td>${esc(l ? l.msg : "—")}</td><td style="color:var(--muted)">${t ? esc(`${t.t} ${t.tag}: ${t.msg}`) : "—"}</td></tr>`; }).join("");
+}
+/* ───────── управление ───────── */
+document.querySelectorAll("#layers [data-l]").forEach(b => b.onclick = () => {
+  layers[b.dataset.l] = !layers[b.dataset.l]; b.classList.toggle("on", layers[b.dataset.l]); if (state) drawOverlay(); });
+$("bPause").onclick = () => { frozen = !frozen; $("bPause").classList.toggle("on", frozen); $("bPause").textContent = frozen ? "Продолжить" : "Стоп-кадр"; };
+$("bCache").onclick = async () => { const on = !$("bCache").classList.contains("on");
+  await fetch("/api/cache", {method:"POST", body:JSON.stringify({on})}); $("bCache").classList.toggle("on", on); };
+async function act(action, arg){ await fetch("/api/action", {method:"POST", body:JSON.stringify({action, arg})}); }
+document.querySelectorAll("[data-a]").forEach(b => b.onclick = async () => {
+  const a = b.dataset.a;
+  if (a === "freq"){ freq = Math.max(35, Math.min(65, freq + Number(b.dataset.d))); await act("freq", freq); }
+  else await act(a, b.dataset.v); });
+$("selFault").onchange = async e => { if (e.target.value) await act("fault", e.target.value); e.target.value = ""; };
+$("selSpeed").onchange = e => act("speed", Number(e.target.value));
+$("bExact").onclick = async () => {
+  $("bExact").disabled = true; $("exactRes").textContent = "модель на паузе, сверяю…";
+  try{ const r = await (await fetch("/api/exact", {method:"POST", body:"{}"})).json();
+    $("exactRes").innerHTML = r.error ? `<span class="err">${esc(r.error)}</span>` :
+      `<b class="num">${r.ok}/${r.total} = ${fx(r.acc,2)} %</b> (компоновка ${esc(r.layout)}, ${esc(r.clock)})` +
+      (r.fails.length ? ` · расхождения: ${r.fails.map(f => `${esc(f.id)} ${esc(f.read)}≠${esc(f.truth)}`).join(", ")}` : " · без расхождений");
+  } finally { $("bExact").disabled = false; } };
+addEventListener("resize", () => state && render());
+poll();
+</script>
+</body>
+</html>

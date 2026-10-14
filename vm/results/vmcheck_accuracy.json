@@ -1,0 +1,162 @@
+{
+ "date": "2026-10-13 13:05",
+ "accuracy": {
+  "png": {
+   "ok": 789,
+   "total": 792,
+   "acc": 99.62121212121212
+  },
+  "jpeg": {
+   "ok": 790,
+   "total": 792,
+   "acc": 99.74747474747475
+  },
+  "scenarios": [
+   {
+    "scenario": "стоп, исходное",
+    "layout": "A",
+    "frozen": true,
+    "png": "65/66",
+    "png_ms": 183,
+    "jpeg": "65/66",
+    "jpeg_ms": 146
+   },
+   {
+    "scenario": "работа 50 Гц",
+    "layout": "A",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 135,
+    "jpeg": "66/66",
+    "jpeg_ms": 157
+   },
+   {
+    "scenario": "40 Гц, штуцер 60 %",
+    "layout": "A",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 164,
+    "jpeg": "66/66",
+    "jpeg_ms": 150
+   },
+   {
+    "scenario": "62 Гц, штуцер 100 %",
+    "layout": "A",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 161,
+    "jpeg": "66/66",
+    "jpeg_ms": 154
+   },
+   {
+    "scenario": "отказ: АСПО",
+    "layout": "A",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 138,
+    "jpeg": "66/66",
+    "jpeg_ms": 148
+   },
+   {
+    "scenario": "отказ: обводнение",
+    "layout": "A",
+    "frozen": true,
+    "png": "65/66",
+    "png_ms": 147,
+    "jpeg": "66/66",
+    "jpeg_ms": 149
+   },
+   {
+    "scenario": "отказ: изоляция",
+    "layout": "A",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 150,
+    "jpeg": "66/66",
+    "jpeg_ms": 148
+   },
+   {
+    "scenario": "ремонт, пуск",
+    "layout": "A",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 146,
+    "jpeg": "66/66",
+    "jpeg_ms": 151
+   },
+   {
+    "scenario": "компоновка B",
+    "layout": "B",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 169,
+    "jpeg": "66/66",
+    "jpeg_ms": 150
+   },
+   {
+    "scenario": "компоновка C",
+    "layout": "C",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 139,
+    "jpeg": "66/66",
+    "jpeg_ms": 151
+   },
+   {
+    "scenario": "компоновка D",
+    "layout": "D",
+    "frozen": true,
+    "png": "66/66",
+    "png_ms": 153,
+    "jpeg": "66/66",
+    "jpeg_ms": 152
+   },
+   {
+    "scenario": "D, 45 Гц, стоп",
+    "layout": "D",
+    "frozen": true,
+    "png": "65/66",
+    "png_ms": 172,
+    "jpeg": "65/66",
+    "jpeg_ms": 147
+   }
+  ],
+  "fails": [
+   [
+    "png",
+    "стоп, исходное",
+    "eq_xtree",
+    "running",
+    "stopped"
+   ],
+   [
+    "jpeg",
+    "стоп, исходное",
+    "eq_xtree",
+    "running",
+    "stopped"
+   ],
+   [
+    "png",
+    "отказ: обводнение",
+    "ann_asp",
+    "on",
+    "off"
+   ],
+   [
+    "png",
+    "D, 45 Гц, стоп",
+    "eq_xtree",
+    "running",
+    "stopped"
+   ],
+   [
+    "jpeg",
+    "D, 45 Гц, стоп",
+    "eq_xtree",
+    "running",
+    "stopped"
+   ]
+  ]
+ }
+}

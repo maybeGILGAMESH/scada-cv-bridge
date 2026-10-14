@@ -1,0 +1,114 @@
+[
+ {
+  "image": "log_tags/00_png.png",
+  "tag": "CV"
+ },
+ {
+  "image": "log_tags/00_jpg.png",
+  "tag": "CV"
+ },
+ {
+  "image": "log_tags/01_png.png",
+  "tag": "АВАР"
+ },
+ {
+  "image": "log_tags/01_jpg.png",
+  "tag": "АВАР"
+ },
+ {
+  "image": "log_tags/02_png.png",
+  "tag": "АПВ"
+ },
+ {
+  "image": "log_tags/02_jpg.png",
+  "tag": "АПВ"
+ },
+ {
+  "image": "log_tags/03_png.png",
+  "tag": "БЛОК"
+ },
+ {
+  "image": "log_tags/03_jpg.png",
+  "tag": "БЛОК"
+ },
+ {
+  "image": "log_tags/04_png.png",
+  "tag": "ЗСП"
+ },
+ {
+  "image": "log_tags/04_jpg.png",
+  "tag": "ЗСП"
+ },
+ {
+  "image": "log_tags/05_png.png",
+  "tag": "КВИТ"
+ },
+ {
+  "image": "log_tags/05_jpg.png",
+  "tag": "КВИТ"
+ },
+ {
+  "image": "log_tags/06_png.png",
+  "tag": "КОМП"
+ },
+ {
+  "image": "log_tags/06_jpg.png",
+  "tag": "КОМП"
+ },
+ {
+  "image": "log_tags/07_png.png",
+  "tag": "НЕИСПР"
+ },
+ {
+  "image": "log_tags/07_jpg.png",
+  "tag": "НЕИСПР"
+ },
+ {
+  "image": "log_tags/08_png.png",
+  "tag": "ПУСК"
+ },
+ {
+  "image": "log_tags/08_jpg.png",
+  "tag": "ПУСК"
+ },
+ {
+  "image": "log_tags/09_png.png",
+  "tag": "РЕЖ"
+ },
+ {
+  "image": "log_tags/09_jpg.png",
+  "tag": "РЕЖ"
+ },
+ {
+  "image": "log_tags/10_png.png",
+  "tag": "СИСТ"
+ },
+ {
+  "image": "log_tags/10_jpg.png",
+  "tag": "СИСТ"
+ },
+ {
+  "image": "log_tags/11_png.png",
+  "tag": "СТОП"
+ },
+ {
+  "image": "log_tags/11_jpg.png",
+  "tag": "СТОП"
+ },
+ {
+  "image": "log_tags/12_png.png",
+  "tag": "ТЕХ"
+ },
+ {
+  "image": "log_tags/12_jpg.png",
+  "tag": "ТЕХ"
+ },
+ {
+  "image": "log_tags/13_png.png",
+  "tag": "ТКРС"
+ },
+ {
+  "image": "log_tags/13_jpg.png",
+  "tag": "ТКРС"
+ }
+]
