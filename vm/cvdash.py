@@ -47,6 +47,7 @@ import match_templates as MT                           # noqa: E402
 from fast_reader import CLASS_TITLE, FastReader        # noqa: E402
 from vmhdmi import Cdp                                 # noqa: E402
 from extra_reader import ExtraReader                   # noqa: E402
+import fleet                                           # noqa: E402
 from glyph_ocr import line_ink                         # noqa: E402
 
 clock = time.perf_counter
@@ -178,7 +179,10 @@ class Ctl:
                         self.f = s.makefile("rwb")
                     self.f.write((json.dumps(dict(kw, op=op)) + "\n").encode())
                     self.f.flush()
-                    r = json.loads(self.f.readline())
+                    line = self.f.readline()
+                    if not line:                # vmhdmi перезапущен — старое соединение закрыто
+                        raise ConnectionResetError("обратный канал закрыт")
+                    r = json.loads(line)
                     if not r.get("ok", True):
                         raise RuntimeError(r.get("error"))
                     return r
@@ -208,12 +212,26 @@ def fmt_read(r):
 
 
 class Vision(threading.Thread):
-    def __init__(self, src, cdp, ctl, hist_s=180):
+    def __init__(self, system, src, cdp, ctl, hist_s=180):
         super().__init__(daemon=True)
+        self.system = system
         self.src, self.cdp, self.ctl = src, cdp, ctl
-        self.reader = FastReader(str(TPL), register_every=8, cache=True)
+        self.tpl = HERE / system["profile"] if system.get("profile") else TPL
+        self.reader = FastReader(str(self.tpl), register_every=8, cache=True)
         self.bank = self.reader.bank
-        self.extra = ExtraReader(TPL)
+        self.extra = ExtraReader(self.tpl)
+        self.inventory = set(self.bank.by_obj) | {o["id"] for o in self.extra.ref.values()}
+        self.active = False                    # выбранная в дашборде система читается на полной скорости
+        self.force_reg = False
+        self.cache_off = set()                 # классы, которые читаются без кэша
+        self.persist = defaultdict(lambda: deque(maxlen=30))
+        self.recent = defaultdict(lambda: deque(maxlen=10))   # последние состояния ламп и табло — мигание
+        self.block_ema = {}
+        self.truth_down = False
+        self.health = {}
+        self.t_last = 0.0
+        self.setup_done = (fleet.vm_dir(system) / ".setup_done").exists() or not system.get("setup")
+        self._wrap_register()
         orig = self.reader._read_one
 
         def timed(frame, oid, recs):
@@ -237,9 +255,35 @@ class Vision(threading.Thread):
         self.prev_offsets = None
 
     def _truth(self):
+        """Истина модели — только для оценки. Нет её (ВМ перезапустили, туннель
+        упал) — распознавание продолжается, сверка помечается недоступной."""
         t = clock()
-        tr = self.cdp.evaluate(TRUTH_JS)
+        try:
+            tr = self.cdp.evaluate(TRUTH_JS)
+            self.truth_down = False
+            if not self.setup_done:
+                self.apply_setup()
+        except Exception:
+            self.truth_down = True
+            tr = {"objects": []}
         return tr, (clock() - t) * 1000
+
+    def apply_setup(self):
+        """Начальный сценарий щита (стенд): компоновка, пуск, отказ, скорость."""
+        st = self.system.get("setup") or {}
+        js = []
+        if st.get("layout"):
+            js.append(f"setLayout({json.dumps(st['layout'])})")
+        if st.get("speed"):
+            js.append(f"speed = {float(st['speed'])}")
+        if st.get("start"):
+            js.append("cmdStart()")
+        if st.get("fault"):
+            js.append(f"inject({json.dumps(st['fault'])})")
+        self.cdp.evaluate("() => { " + "; ".join(js) + "; syncUI(); }")
+        (fleet.vm_dir(self.system) / ".setup_done").write_text(json.dumps(st))
+        self.setup_done = True
+        self.events.appendleft({"t": time.strftime("%H:%M:%S"), "text": f"сценарий стенда применён: {st}"})
 
     def run(self):
         while True:
@@ -254,14 +298,29 @@ class Vision(threading.Thread):
         if self.paused_vision:
             time.sleep(0.2)
             return
+        if not self.active and time.time() > getattr(self, "kvm_until", 0):   # фоновая система (и без открытого пульта) — около 2 к/с
+            wait = self.t_last + 0.5 - time.time()
+            if wait > 0:
+                time.sleep(wait)
+        self.t_last = time.time()
         tr_a, ms_a = self._truth()
         t_a = clock()
         img, t_enc, t_recv = self.src.next_after(t_a - 0.005)
-        if img is None:
-            time.sleep(0.2)
+        stream_age = clock() - t_enc if img is not None else None
+        if img is None or stream_age > 5:
+            with self.lock:
+                self.state["stream_dead"] = True
+                self.health = dict(self.health, stream_dead=True,
+                                   stream_age_s=None if stream_age is None else round(stream_age))
+                self.state["health"] = self.health
+            time.sleep(0.5)
             return
+        for oid, c in list(self.reader._cache.items()):          # классы без кэша
+            if self.bank.classes.get(oid) in self.cache_off:
+                del self.reader._cache[oid]
         t0 = clock()
-        out = self.reader.read(img)
+        out = self.reader.read(img, force_register=self.force_reg)
+        self.force_reg = False
         t_read = clock() - t0
         t1 = clock()
         ex = self.extra.read(img, dict(self.bank.offsets))
@@ -274,11 +333,14 @@ class Vision(threading.Thread):
         ta = {o["id"]: o for o in tr_a["objects"]}
         tb = {o["id"]: o for o in tr_b["objects"]}
         offsets = dict(self.bank.offsets)
+        scene, lost = self._scene(out["registration"] or {})
         objs, cls_stat = [], defaultdict(lambda: [0, 0])
         cls_ms = defaultdict(float)
         for (r, exp_a, got, ok_a), (_, exp_b, _, ok_b) in zip(cmp_a, cmp_b):
             oid, cls = r["object_id"], r["cls"]
             ok = None if ok_a is None and ok_b is None else bool(ok_a or ok_b)
+            if scene != "ok" and self.bank.block_of.get(oid) in lost:
+                ok = None                                  # блок закрыт — объект не виден, это не ошибка чтения
             exp = exp_a if ok_a and not ok_b else exp_b
             if ok is not None:
                 cls_stat[cls][1] += 1
@@ -314,6 +376,32 @@ class Vision(threading.Thread):
             objs.append(o)
 
         trends = self._merge_extra(objs, ex, tr_a, tr_b, cls_stat)
+        if scene != "ok":
+            for o in objs:
+                if o.get("block") in lost and o.get("ok") is not None:
+                    cls_stat[o["cls"]][1] -= 1
+                    cls_stat[o["cls"]][0] -= int(o["ok"])
+                    o["ok"] = None
+                if o.get("block") in lost:
+                    o["hidden"] = True
+        # Табло и лампы тревоги мигают, пока тревогу не квитировали: в одном кадре
+        # горят, в соседнем — нет. Для плейбуков «горит» = горело за последние ~10 кадров.
+        for o in objs:
+            if o["cls"] in ("annunciator", "lamp") and o.get("read") is not None:
+                q = self.recent[o["id"]]
+                q.append(o["read"])
+                ons = sum(r in ("on", "blink") for r in q)
+                o["on_recent"] = ons > 0
+                o["blinking"] = 0 < ons < len(q) and len(q) >= 4
+        persistent = []
+        for o in objs:
+            if o.get("ok") is not None:
+                self.persist[o["id"]].append(bool(o["ok"]))
+            q = self.persist.get(o["id"])
+            if q and len(q) >= 10 and q.count(False) >= 0.6 * len(q) and o.get("ok") is False:
+                persistent.append({"id": o["id"], "cls": o["cls"], "label": o.get("label") or o["id"],
+                                   "read": o.get("read"), "truth": o.get("truth")})
+                o["persistent"] = True
         for o in objs:
             if o["cls"] in ("text_readout", "trend", "log", "clock") and o.get("ok") is False:
                 if not any(e["id"] == o["id"] and e["read"] == o["read"] for e in list(self.errors)[:6]):
@@ -367,6 +455,13 @@ class Vision(threading.Thread):
                   "age_ms": round((t_done - t_enc) * 1000, 1),
                   "transport_ms": round((t_recv - t_enc) * 1000, 1),
                   "per_class_ms": {c: round(v, 1) for c, v in sorted(cls_ms.items(), key=lambda z: -z[1])}}
+        occluded = [f"{(trends[t]['names'] or [])[i]} ({trends[t]['title'].split(' · ')[0].lower()})"
+                    for t in trends for i, by_ in enumerate(trends[t].get("occluded") or []) if by_ is not None]
+        self.health = {"scene": scene, "lost_blocks": [BLOCK_TITLE.get(b, b) for b in lost],
+                       "quality": out["registration_quality"], "persistent": persistent, "occluded": occluded,
+                       "truth_down": self.truth_down, "model_paused": (tr_b.get("speed") == 0) if tr_b.get("objects") else False,
+                       "fps": round(fps, 2), "active": self.active, "stream_dead": False,
+                       "stream_age_s": round(stream_age, 1)}
         hist_row = {"t": time.time(), "acc": round(100 * ok_n / max(1, tot_n), 2),
                     "read_ms": timing["read_ms"], "fps": round(fps, 2),
                     "quality": out["registration_quality"], "age_ms": timing["age_ms"],
@@ -399,7 +494,8 @@ class Vision(threading.Thread):
                 "model": {"layout": lay, "layout_name": tr_b.get("layout_name"),
                           "clock": tr_b.get("sim_clock"), "plant": tr_b.get("plant_state")},
                 "errors": list(self.errors), "events": list(self.events),
-                "source_error": self.src.error, "error": None,
+                "source_error": self.src.error, "error": None, "health": self.health,
+                "kind": "vision", "system": self.system["id"], "cache_off": sorted(self.cache_off),
             }
 
     def snapshot(self):
@@ -423,7 +519,7 @@ class Vision(threading.Thread):
             time.sleep(1.3)
             truth = self.cdp.evaluate(TRUTH_JS)
             img, _, _ = self.src.next_after(clock())
-            rd = FastReader(str(TPL), register_every=1, cache=False)
+            rd = FastReader(str(self.tpl), register_every=1, cache=False)
             out = rd.read(img, force_register=True)
             rows, st = MT.compare(out["rows"], truth, None)
             rd.close()
@@ -647,6 +743,62 @@ class Vision(threading.Thread):
                 "result": {"score": round(float(mx), 3), "found": [x0 + loc[0], y0 + loc[1]],
                            "expected": [int(ax), int(ay)]}}
 
+    def _scene(self, reg):
+        """Блок «потерян», если его балл привязки упал вдвое против обычного для него
+        (у столбчатых при полных шкалах балл низкий всегда — сравниваем с собой)."""
+        lost = []
+        for name, v in reg.items():
+            sc = float(v[2])
+            ema = self.block_ema.get(name)
+            if ema is None:
+                self.block_ema[name] = sc
+                continue
+            if sc < max(0.25, 0.5 * ema):
+                lost.append(name)
+            else:
+                self.block_ema[name] = 0.95 * ema + 0.05 * sc
+        if reg and len(lost) >= max(2, int(0.7 * len(reg))):
+            return "absent", lost
+        return ("obstructed", lost) if lost else ("ok", [])
+
+    # ── исправления (вызывает fixer) ────────────────────────────────
+    def press(self, obj, times=1):
+        o = next((o for o in self.state.get("objects", []) if o["id"] == obj), None)
+        if o is None:
+            raise RuntimeError(f"«{obj}» сейчас не найден в кадре")
+        x, y = o["at"][0] + o["size"][0] / 2, o["at"][1] + o["size"][1] / 2
+        for _ in range(int(times)):
+            self.ctl.call("click", x=x, y=y)
+            time.sleep(0.35)
+        return f"нажато «{o.get('label') or obj}» ×{times} в точке {int(x)}, {int(y)}"
+
+    def _wrap_register(self):
+        """После штатной привязки FastReader — проверка сдвигов по заголовкам блоков."""
+        orig = self.reader._register
+
+        def reg(frame, force):
+            need, q = orig(frame, force)
+            if self.reader._reg:
+                fixed = self.extra.anchor_blocks(frame, self.reader._reg)
+                if fixed:
+                    self.bank.set_offsets(MT.offsets_only(self.reader._reg))
+                    self.reader._cache.clear()
+                    key = tuple((b, self.reader._reg[b][:2]) for b in fixed)
+                    if key == getattr(self, "_last_fix", None):
+                        return need, q
+                    self._last_fix = key
+                    self.events.appendleft({"t": time.strftime("%H:%M:%S"),
+                                            "text": "сдвиг блока поправлен по заголовку: " +
+                                                    ", ".join(BLOCK_TITLE.get(b, b) for b in fixed)})
+            return need, q
+        self.reader._register = reg
+
+    def reload_profile(self):
+        self.reader = FastReader(str(self.tpl), register_every=8, cache=True)
+        self.bank = self.reader.bank
+        self.extra = ExtraReader(self.tpl)
+        self._wrap_register()
+
     # ── текст и графики: сверка с моделью ────────────────────────────
     @staticmethod
     def _clock_sec(t):
@@ -673,6 +825,10 @@ class Vision(threading.Thread):
                      "at": [int(bb[0]), int(bb[1])], "size": [int(bb[2]), int(bb[3])]}
                 objs.append(o)
                 by[oid] = o
+            if o.get("ok") is not None and not o.get("_merged"):   # строка FastReader уже посчитана — заменяем
+                cls_stat[o["cls"]][1] -= 1
+                cls_stat[o["cls"]][0] -= int(o["ok"])
+            o["_merged"] = True
             o["cls"] = cls
             if at is not None:
                 o["at"], o["size"] = at, size
@@ -682,14 +838,43 @@ class Vision(threading.Thread):
                 cls_stat[cls][0] += int(ok)
 
         # табло: текст как на щите, без округления
+        unsure = lambda chars: any(c[0].isdigit() and (c[2] < 0.012 or c[1] < 0.9) for c in chars or [])
         for oid, r in ex["readouts"].items():
             t1, t2 = (ta.get(oid) or {}).get("text"), (tb.get(oid) or {}).get("text")
             ok = None if t2 is None else (r["text"] is not None and r["text"] in (t1, t2))
             truth = t1 if (ok and r["text"] == t1) else t2
             chars = r.get("chars") or []
+            if unsure(chars):            # цифра почти не отличима от соседней по глифам — не уверено, а не ошибка
+                ok = None
             put(oid, "text_readout", r["text"], truth, ok, method="glyph", value_box=r.get("box"),
+                reliable=False if unsure(chars) else None,
                 score=round(min([c[1] for c in chars] or [0]), 3),
                 margin=round(min([c[2] for c in chars] or [0]), 3))
+
+        # шкалы: число справа от шкалы (видно и за пределом шкалы)
+        for oid, r in (ex.get("bars") or {}).items():
+            g1, g2 = ta.get(oid) or {}, tb.get(oid) or {}
+            t1, t2 = g1.get("digital_text"), g2.get("digital_text")
+            if r.get("text") is None:
+                continue
+            rng = (g2.get("max", 1) - g2.get("min", 0)) or 1
+            near = lambda g: g.get("value") is not None and abs(r["value"] - g["value"]) <= 0.01 * rng
+            ok = None if t2 is None else (r["text"] in (t1, t2) or near(g1) or near(g2))
+            if ok is False and unsure(r.get("chars")):
+                ok = None
+            o = by.get(oid)
+            put(oid, "bargraph", r["text"], t1 if (ok and r["text"] == t1) else t2, ok,
+                method="glyph", value_box=r.get("box"),
+                fill=(o or {}).get("read"))
+
+        # ствол скважины: уровень по риске «Ндин»
+        w = ex.get("well")
+        if w and w.get("level_pct") is not None:
+            g1, g2 = ta.get("mimic_well") or {}, tb.get("mimic_well") or {}
+            cand = [g.get("level_pct") for g in (g1, g2) if g.get("level_pct") is not None]
+            ok = None if not cand else any(abs(w["level_pct"] - c) <= 3 for c in cand)
+            put("mimic_well", "vessel_level", f"{w['level_pct']:.1f} % · Ндин ≈ {w['h_din']:.0f} м",
+                None if not cand else f"{cand[-1]:.1f} %", ok, method="marker", mark_y=w.get("mark_y"))
 
         # часы: модель идёт ускоренно — время кадра между двумя снимками истины
         c = ex.get("clock")
@@ -724,7 +909,7 @@ class Vision(threading.Thread):
             ha = (tr_a.get("hist") or {}).get(key) or []
             hb = (tr_b.get("hist") or {}).get(key) or []
             g = tb.get(tid) or {}
-            ymin, ymax = g.get("y_min", 0), g.get("y_max", 1)
+            ymin, ymax = g.get("y_min", T["y_min"] or 0), g.get("y_max", T["y_max"] or 1)
             rng = (ymax - ymin) or 1
             last = [s["last"] for s in T["series"]]
             tl_a = [min(max(v, ymin), ymax) for v in ha[-1]] if ha else []
@@ -734,7 +919,10 @@ class Vision(threading.Thread):
                         for i, v in enumerate(last)]
             ea, eb = errs(tl_a), errs(tl_b)
             err = [min([e for e in (a, b) if e is not None], default=None) for a, b in zip(ea, eb)]
-            ok = None if not hb else (len(last) == len(tl_b) and all(e is not None and e <= 2.0 for e in err))
+            occ = [s.get("occluded_by") for s in T["series"]]
+            # скрытая серия не входит в оценку: по картинке её значение не определить
+            vis = [i for i in range(len(last)) if occ[i] is None]
+            ok = None if not hb or not vis else (len(last) == len(tl_b) and all(err[i] is not None and err[i] <= 2.0 for i in vis))
             # кривая: столбец поля графика ↔ доля истории; ошибка — по столбцам, где кривая видна
             n = len(hb)
             curves, truthc, rms = [], [], []
@@ -760,10 +948,12 @@ class Vision(threading.Thread):
                            "y_min": T["y_min"], "y_max": T["y_max"], "plot": T["plot"],
                            "curve": curves, "truth": truthc, "last": [None if v is None else round(v, 2) for v in last],
                            "truth_last": [round(v, 2) for v in tl_b], "err_last_pct": [None if e is None else round(e, 2) for e in err],
-                           "curve_rms_pct": rms, "coverage": [round(s["coverage"], 3) for s in T["series"]]}
-            fmt = lambda arr: " · ".join("—" if v is None else f"{v:.1f}" for v in arr)
-            put(tid, "trend", fmt(last), fmt(tl_b), ok, method="color",
-                err_pct=max([e for e in err if e is not None], default=None))
+                           "curve_rms_pct": rms, "coverage": [round(s["coverage"], 3) for s in T["series"]],
+                           "occluded": [None if o_ is None else [(T.get("names") or [])[j] for j in o_] for o_ in occ]}
+            fmt = lambda arr, mask=True: " · ".join("скрыта" if (mask and i < len(occ) and occ[i] is not None)
+                                                    else ("—" if v is None else f"{v:.1f}") for i, v in enumerate(arr))
+            put(tid, "trend", fmt(last), fmt(tl_b, False) if tl_b else None, ok, method="color",
+                err_pct=max([err[i] for i in vis if err[i] is not None], default=None))
         return trends
 
     def detail_extra(self, oid, img, ex):
@@ -873,10 +1063,469 @@ class Vision(threading.Thread):
 
 # ───────────────────────────────────────────────────────────── HTTP
 
-ACTIONS = {"start", "stop", "repair", "fault", "layout", "freq", "speed"}
+ACTIONS = {"start", "stop", "repair", "fault", "layout", "freq", "speed", "regen"}     # тестовый канал стенда
 
 
-def make_handler(vision, ctl):
+# ───────────────────────────────────────────────────────────── парк систем, исправления
+
+class Fleet:
+    """Все системы из vm/systems.json: распознавание (или подготовка) каждой,
+    плейбуки, исправления с проверкой по картинке, самовосстановление."""
+
+    def __init__(self):
+        from extra_reader import Tess
+        from onboard import Onboard
+        from infra import Infra
+        self.systems = {s["id"]: s for s in fleet.registry()}
+        self.order = [s["id"] for s in fleet.registry()]
+        self.workers, self.srcs = {}, {}
+        self.jobs = defaultdict(lambda: deque(maxlen=80))
+        self.autoheal = {sid: True for sid in self.order}
+        self.cool = {}
+        self.thumbs = {}
+        self.tess = Tess()
+        for sid in self.order:
+            s, pt = self.systems[sid], self.systems[sid]["ports"]
+            src = Mjpeg(f"http://127.0.0.1:{pt['mjpeg']}/stream")
+            src.start()
+            self.srcs[sid] = src
+            w = self._worker(s, src)
+            w.start()
+            self.workers[sid] = w
+        self.select(self.order[0])
+        self.infra = Infra(self.workers)
+        self.infra.start()
+        threading.Thread(target=self.heal_loop, daemon=True).start()
+        from autopilot import Autopilot
+        self.ap = Autopilot(self)                 # режим «автомат»: жизнеспособность и работоспособность
+        self.ap.start()
+
+    def _worker(self, s, src):
+        from onboard import Onboard
+        from generic_vision import GenericVision
+        pt = s["ports"]
+        if s.get("reader") == "zero":                               # незнакомый щит: распознавание без профиля
+            from zero_vision import ZeroVision
+            return ZeroVision(s, src, Cdp(ssh_port=pt["ssh"], local_port=pt["cdp_dash"]),
+                              Ctl(("127.0.0.1", pt["control"])), self.tess)
+        if s.get("profile") and s.get("reader") == "dom":           # щит без CV-разметки: профиль со страницы
+            return GenericVision(s, src, Cdp(ssh_port=pt["ssh"], local_port=pt["cdp_dash"]),
+                                 Ctl(("127.0.0.1", pt["control"])), self.tess, HERE / s["profile"])
+        if s.get("profile"):
+            return Vision(s, src, Cdp(ssh_port=pt["ssh"], local_port=pt["cdp_dash"]), Ctl(("127.0.0.1", pt["control"])))
+        w = Onboard(s, src, self.tess)
+        w.inventory = set()
+        return w
+
+    def build_profile(self, sid):
+        """Подготовка → работа: профиль со страницы щита, запись в реестр, смена распознавателя."""
+        r = __import__("subprocess").run([fleet.PY, str(HERE / "dom_profile.py"), sid], cwd=str(HERE),
+                                         capture_output=True, text=True, timeout=1200)
+        if r.returncode:
+            raise RuntimeError((r.stderr or r.stdout).strip()[-400:])
+        reg = json.loads((HERE / "systems.json").read_text(encoding="utf-8"))
+        for x in reg["systems"]:
+            if x["id"] == sid:
+                x["profile"], x["reader"] = f"profiles/{sid}", "dom"
+        (HERE / "systems.json").write_text(json.dumps(reg, ensure_ascii=False, indent=1), encoding="utf-8")
+        s = next(x for x in reg["systems"] if x["id"] == sid)
+        self.systems[sid] = s
+        old = self.workers[sid]
+        old.stopped = True
+        w = self._worker(s, self.srcs[sid])
+        w.active = old.active
+        w.start()
+        self.workers[sid] = w
+        tail = [l for l in r.stdout.splitlines() if "самопроверка" in l or "профиль:" in l]
+        return "профиль собран, система переведена в работу. " + " ".join(tail)[-300:]
+
+    def select(self, sid):
+        for k, w in self.workers.items():
+            w.active = (k == sid)
+        self.active = sid
+
+    # ── плейбуки ────────────────────────────────────────────────────
+    def playbooks(self, sid):
+        import playbooks as PB
+        s, w = self.systems[sid], self.workers[sid]
+        st = w.snapshot()
+        health = dict(st.get("health") or {})
+        fs = fleet.status(s)
+        health["vm_down"] = not fs["vm_pid"]
+        if not fs["vmhdmi_pid"] or not fs["stream"]:
+            health["stream_dead"] = True
+            health.setdefault("stream_age_s", "—")
+        if st.get("kind") == "onboarding":
+            return PB.generate(s, None, (), {k: health[k] for k in ("vm_down", "stream_dead") if k in health},
+                               st.get("onboarding"), list(self.jobs[sid]))
+        return PB.generate(s, st, w.inventory, health, None, list(self.jobs[sid]))
+
+    def summary(self, sid):
+        s, w = self.systems[sid], self.workers[sid]
+        st = w.snapshot()
+        pbs = self.playbooks(sid)
+        plant = [p for p in pbs if p["kind"] == "plant" and p["severity"] in ("critical", "serious", "warning")]
+        probs = [p for p in pbs if p["kind"] in ("vision", "infra") and p["severity"] in ("critical", "serious", "warning")]
+        r = st.get("rolling") or {}
+        acc = 100 * r["ok"] / r["total"] if r.get("total") else None
+        if st.get("kind") == "onboarding":
+            status, tone = "подготовка", "info"
+        elif any(p["id"] in ("infra.stream", "infra.vm") for p in probs) or not st.get("ready"):
+            status, tone = "нет сигнала", "critical"
+        elif any(p["severity"] == "critical" for p in plant):
+            status, tone = "авария", "critical"
+        elif probs:
+            status, tone = "распознавание", "warning"
+        elif plant:
+            status, tone = "внимание", "warning"
+        else:
+            status, tone = "норма", "ok"
+        ob = st.get("onboarding") or {}
+        return {"id": sid, "name": s["name"], "short": s.get("short"), "kind": st.get("kind", "vision"), "page": s["page"],
+                "profile": s.get("profile"), "status": status, "tone": tone, "acc": None if acc is None else round(acc, 2),
+                "fps": st.get("fps"), "seq": st.get("seq"), "active": sid == self.active,
+                "autoheal": self.autoheal[sid], "plant": [p["title"] for p in plant][:3],
+                "mode": self.ap.mode.get(sid, "manual") if hasattr(self, "ap") else "manual",
+                "escalated": len(self.ap.snapshot(sid)["escalated"]) if hasattr(self, "ap") else 0,
+                "vital": (lambda v: v and [v["ok"], v["total"], v["verdict"]])((self.ap.vital.get(sid) if hasattr(self, "ap") else None)),
+                "problems": [p["title"] for p in probs][:3], "progress": ob.get("progress"),
+                "layout": (st.get("model") or {}).get("layout"), "reader": s.get("reader"),
+                "seed": (st.get("zero") or {}).get("seed"),
+                "jobs_running": sum(j["status"] == "выполняется" for j in self.jobs[sid])}
+
+    # ── исправления ─────────────────────────────────────────────────
+    def run(self, sid, action, args=None, step=None, expect=None, wait=20, auto=False, title=None):
+        job = {"id": f"{sid}-{int(time.time() * 1000)}", "sys": sid, "step": step, "action": action,
+               "args": args or {}, "status": "выполняется", "msg": "", "t": time.strftime("%H:%M:%S"),
+               "auto": auto, "title": title or action}
+        self.jobs[sid].append(job)
+        threading.Thread(target=self._exec, args=(job, expect, wait), daemon=True).start()
+        return job
+
+    def _ctl(self, sid):
+        w = self.workers[sid]
+        if getattr(w, "ctl", None):
+            return w.ctl
+        c = getattr(self, "_ctls", {}).get(sid)
+        if c is None:
+            self._ctls = getattr(self, "_ctls", {})
+            c = self._ctls[sid] = Ctl(("127.0.0.1", self.systems[sid]["ports"]["control"]))
+        return c
+
+    _gptr = {}
+
+    def what_at(self, sid, x, y):
+        """Что зрение видит в этой точке кадра: самый маленький объект, рамка которого её накрывает."""
+        st = self.workers[sid].snapshot()
+        hit = []
+        for o in st.get("objects") or []:
+            at, sz = o.get("at"), o.get("size")
+            if not at or not sz:
+                continue
+            if at[0] <= x <= at[0] + sz[0] and at[1] <= y <= at[1] + sz[1]:
+                hit.append((sz[0] * sz[1], o))
+        if not hit:
+            return None
+        o = min(hit, key=lambda h: h[0])[1]
+        rd = o.get("read")
+        rd = {"on": "вкл", "off": "выкл", "blink": "мигает", "disabled": "недоступна", "pressed": "нажата", "released": "отпущена",
+              "normal": "норма", "warn": "внимание", "crit": "авария"}.get(rd, rd) if isinstance(rd, str) else rd
+        return {"id": o["id"], "label": o.get("label") or o["id"], "read": rd, "cls": o.get("cls")}
+
+    def hid(self, sid, m):
+        """Оператор управляет щитом с дашборда, как через KVM: мышь и клавиатура уходят в ВМ."""
+        c, op = self._ctl(sid), m.get("op")
+        x, y = float(m.get("x", 0)), float(m.get("y", 0))
+        if op == "click":
+            c.call("click", x=x, y=y)
+        elif op in ("down", "move", "up"):
+            # перетаскивание (ползунки уставок) — мышью X в госте: абсолютную мышь QEMU
+            # Chrome считает пером, и ползунок пером не тянется (см. fleet.GuestPointer)
+            gp = self._gptr.get(sid)
+            if gp is None:
+                gp = self._gptr[sid] = fleet.GuestPointer(self.systems[sid])
+            xi, yi = int(round(x)), int(round(y))
+            try:
+                gp.send(f"mousemove {xi} {yi}", *({"down": ["mousedown 1"], "up": ["mouseup 1"]}.get(op, [])))
+            except OSError:
+                # гость недоступен по ssh — тем же путём, что и щелчки (VNC)
+                c.call("mouse", x=x, y=y, **({"action": op} if op != "move" else {}))
+        elif op == "wheel":
+            c.call("wheel", x=x, y=y, dy=float(m.get("dy", 0)))
+        elif op == "key":
+            c.call("key", key=str(m.get("key")))
+        else:
+            raise ValueError(f"нет такого действия мыши/клавиатуры: {op}")
+        if op in ("click", "down", "key"):
+            obj = self.what_at(sid, x, y) if op != "key" else None
+            what = (f"щелчок по «{obj['label']}» ({obj['read']})" if obj and obj.get("read") not in (None, "") else
+                    f"щелчок по «{obj['label']}»" if obj else f"щелчок в точке {x:.0f}, {y:.0f}") if op != "key" else \
+                f"клавиша {m.get('key')}"
+            if op == "down":
+                what = what.replace("щелчок", "нажатие мыши")
+            last = self.jobs[sid][-1] if self.jobs[sid] else None
+            if not (last and last.get("manual") and last["title"] == "вручную: " + what and time.time() - last["ts"] < 1):
+                self.jobs[sid].append({"id": f"{sid}-{int(time.time() * 1000)}", "sys": sid, "step": None, "action": "hid",
+                                       "args": {"op": op, "x": x, "y": y}, "status": "выполнено", "msg": "отправлено в ВМ (HID)",
+                                       "t": time.strftime("%H:%M:%S"), "auto": False, "manual": True, "ts": time.time(),
+                                       "title": "вручную: " + what})
+            return {"ok": True, "what": what, "obj": obj}
+        return {"ok": True}
+
+    def _exec(self, job, expect, wait):
+        import playbooks as PB
+        sid = job["sys"]
+        try:
+            msg = self.do(sid, job["action"], job["args"]) or "готово"
+            if expect:
+                w = self.workers[sid]
+                t_end = time.time() + float(wait or 20)
+                seen = None
+                while time.time() < t_end:
+                    time.sleep(0.6)
+                    v = PB.View(w.snapshot(), getattr(w, "inventory", ()))
+                    seen = v.check(expect)
+                    if seen:
+                        break
+                cond = PB.cond_text(PB.View(w.snapshot(), ()), expect)
+                if seen:
+                    job["status"], job["msg"] = "выполнено", f"{msg}; на экране подтверждено: {cond}"
+                else:
+                    # что щит показывает вместо ожидаемого: насос мог пуститься и тут же
+                    # отключиться защитой — это видно по технологическим плейбукам
+                    now = [p["title"] for p in self.playbooks(sid) if p.get("kind") == "plant"
+                           and p.get("severity") not in ("ok",)][:2]
+                    job["status"], job["msg"] = "не подтвердилось", f"{msg}; за {wait} с на экране не видно: {cond}" + \
+                        (f"; сейчас на щите: {', '.join('«' + t + '»' for t in now)}" if now else "")
+            else:
+                job["status"], job["msg"] = "выполнено", msg
+        except Exception as e:
+            job["status"], job["msg"] = "ошибка", f"{type(e).__name__}: {e}"
+
+    def do(self, sid, action, a):
+        s, w = self.systems[sid], self.workers[sid]
+        if action == "press":
+            return w.press(a["obj"], a.get("times", 1))
+        if action == "key":
+            w.ctl.call("key", key=a.get("key", "Escape"))
+            return f"нажата клавиша {a.get('key', 'Escape')}"
+        if action == "reregister":
+            w.force_reg = True
+            return "блоки будут найдены заново на следующем кадре"
+        if action == "build_profile":
+            return self.build_profile(sid)
+        if action == "flush":
+            if hasattr(w, "reader"):
+                w.reader._cache.clear()
+            w.force_reg = True
+            w.persist.clear()
+            return "кэш распознавания сброшен, блоки перепривязываются"
+        if action == "cache_off":
+            w.cache_off.add(a["cls"])
+            w.persist.clear()
+            return f"класс {TITLES.get(a['cls'], a['cls'])} читается без кэша"
+        if action == "reconnect_truth":
+            w.cdp.close()
+            w.cdp.ws, w.cdp.tunnel = None, None
+            return "канал сверки переподключается"
+        if action == "unpause":
+            w.cdp.evaluate("() => { paused = false; syncUI(); }")
+            return "модель снята с паузы"
+        if action == "restart_vmhdmi":
+            return fleet.restart_vmhdmi(s)
+        if action == "start_vm":
+            return fleet.start_vm(s) + "; " + fleet.start_vmhdmi(s)
+        if action == "restart_panel":
+            msg = fleet.restart_panel(s)
+            if s.get("setup") and hasattr(w, "setup_done"):     # страница перезагружена — модель с нуля
+                (fleet.vm_dir(s) / ".setup_done").unlink(missing_ok=True)
+                w.setup_done = False
+            return msg
+        if action in ("recalibrate", "regen_templates"):
+            env = dict(__import__("os").environ, SCADA_MJPEG=str(s["ports"]["mjpeg"]),
+                       SCADA_SSH=str(s["ports"]["ssh"]), SCADA_CDP=str(s["ports"]["cdp"] + 7))
+            py = fleet.PY
+            steps = (["regen_templates.py"] if action == "regen_templates" else []) + ["glyph_live.py", "glyph_ocr.py"]
+            for scr in steps:
+                r = __import__("subprocess").run([py, str(HERE / scr)], cwd=str(HERE), env=env,
+                                                 capture_output=True, text=True, timeout=900)
+                if r.returncode:
+                    raise RuntimeError(f"{scr}: {(r.stderr or r.stdout).strip()[-300:]}")
+            for k, o in self.workers.items():            # тот же профиль — у всех систем с ним
+                if self.systems[k].get("profile") == s.get("profile") and hasattr(o, "reload_profile"):
+                    o.reload_profile()
+            return "банк эталонов пересобран" if action == "regen_templates" else "глифы пересобраны"
+        if action in ("discover", "match_profiles"):
+            w.force = True
+            return "автопоиск запущен — результат через несколько секунд"
+        if action in ACTIONS:
+            w.ctl.call("scenario", action=action, arg=a.get("arg"))
+            return f"тестовый канал: {action}"
+        raise ValueError(f"нет такого действия {action}")
+
+    def heal_loop(self):
+        """Самовосстановление: безопасные исправления распознавания и инфраструктуры
+        выполняются сами (не чаще раза в минуту на действие). Нажатия на щите — никогда:
+        технологические действия только по кнопке оператора."""
+        while True:
+            time.sleep(3)
+            for sid in self.order:
+                if not self.autoheal.get(sid):
+                    continue
+                try:
+                    pbs = self.playbooks(sid)
+                except Exception:
+                    continue
+                busy = any(j["status"] == "выполняется" for j in self.jobs[sid])
+                if busy:
+                    continue
+                for p in pbs:
+                    if p["kind"] not in ("vision", "infra"):
+                        continue
+                    st = next((x for x in p["steps"] if x["kind"] == "fix" and x.get("auto", True)
+                               and x.get("available") and x.get("status") == "pending"
+                               and time.time() - self.cool.get((sid, x["action"]["name"]), 0) > 60), None)
+                    if st:
+                        self.cool[(sid, st["action"]["name"])] = time.time()
+                        self.run(sid, st["action"]["name"], st["action"]["args"], step=st["id"], auto=True,
+                                 title=f"само: {st['text']}")
+                        self.workers[sid].events.appendleft({"t": time.strftime("%H:%M:%S"),
+                                                             "text": f"самовосстановление: {st['text']}"}) \
+                            if hasattr(self.workers[sid], "events") else None
+                        break
+
+    # ── демо: как система действует по плейбуку ──────────────────────
+    DEMOS = {
+        "plant": "Авария на щите → плейбук → ремонт с проверкой по картинке",
+        "obstruction": "Окно поверх щита → самовосстановление",
+    }
+
+    def demo_start(self, sid, scenario):
+        if getattr(self, "demo", None) and self.demo.get("running"):
+            raise RuntimeError("демо уже идёт")
+        if scenario not in self.DEMOS:
+            raise ValueError("нет такого сценария")
+        if not self.systems[sid].get("profile"):
+            raise ValueError("демо — на системе с профилем распознавания")
+        self.demo = {"running": True, "sys": sid, "scenario": scenario, "title": self.DEMOS[scenario],
+                     "steps": [], "focus": None, "stop": False, "t0": time.time()}
+        threading.Thread(target=self._demo_run, daemon=True).start()
+        return self.demo
+
+    def _say(self, text, status="run", focus=None):
+        d = self.demo
+        for s in d["steps"]:
+            if s["status"] == "run":
+                s["status"] = "ok"
+        d["steps"].append({"t": time.strftime("%H:%M:%S"), "text": text, "status": status})
+        if focus:
+            d["focus"] = focus
+        if d.get("stop"):
+            raise InterruptedError
+
+    def _wait(self, cond, timeout):
+        t_end = time.time() + timeout
+        while time.time() < t_end:
+            if self.demo.get("stop"):
+                raise InterruptedError
+            r = cond()
+            if r:
+                return r
+            time.sleep(1)
+        return None
+
+    def _demo_run(self):
+        d = self.demo
+        sid, w = d["sys"], self.workers[d["sys"]]
+        try:
+            self.select(sid)
+            if d["scenario"] == "plant":
+                self._say("Тестовым каналом стенда снижаю изоляцию кабеля до 4 кОм — так выглядит пробой "
+                          "(на настоящем объекте этого шага нет: авария случается сама)", focus={"tab": "vision"})
+                w.cdp.evaluate("() => { if (!S.run && !S.tripped) cmdStart(); S.iso = 4; if (typeof syncUI === 'function') syncUI(); }")
+                self._say("Жду, пока щит отработает защиту, а распознавание увидит аварию на экране…")
+                pb = self._wait(lambda: next((p for p in self.playbooks(sid)
+                                              if p["kind"] == "plant" and p["severity"] == "critical"), None), 60)
+                if not pb:
+                    self._say("За минуту авария на экране не появилась — демо остановлено", "fail")
+                    return
+                self._say(f"Система увидела аварию и собрала плейбук «{pb['title']}». Почему: {pb['why']}",
+                          "ok", focus={"tab": "playbooks", "playbook": pb["id"]})
+                time.sleep(2)
+                for st in pb["steps"]:
+                    if st["kind"] == "info":
+                        self._say(f"Пояснение плейбука: {st['text']}", "info")
+                        continue
+                    if st["kind"] == "check" and st.get("status") == "done":
+                        continue
+                    if st["kind"] not in ("action", "fix") or not st.get("available"):
+                        continue
+                    self._say(f"Шаг плейбука: {st['text']}"
+                              + (f" — затем жду на экране: {st['expect_text']}" if st.get("expect_text") else ""),
+                              focus={"tab": "playbooks", "playbook": pb["id"], "step": st["id"]})
+                    job = self.run(sid, st["action"]["name"], st["action"]["args"], step=st["id"],
+                                   expect=st.get("expect"), wait=st.get("wait", 25), title=f"демо: {st['text']}")
+                    j = self._wait(lambda: job if job["status"] != "выполняется" else None, 90)
+                    if not j or j["status"] != "выполнено":
+                        self._say(f"Шаг не подтвердился: {(j or job)['msg']}", "fail")
+                        return
+                    self._say(f"Выполнено и видно на экране: {j['msg']}", "ok")
+                ok = self._wait(lambda: not any(p["kind"] == "plant" and p["severity"] == "critical"
+                                                for p in self.playbooks(sid)), 30)
+                self._say("Готово: аварии на экране нет, плейбук закрыт." if ok else
+                          "Шаги выполнены, но авария ещё видна — смотрите плейбук", "ok" if ok else "fail",
+                          focus={"tab": "playbooks"})
+            else:
+                self._say("Тестовым каналом вывешиваю окно поверх щита — как уведомление системы", focus={"tab": "vision"})
+                w.cdp.evaluate("""() => { const d = document.createElement('div'); d.id = 'popup';
+                  d.style.cssText = 'position:fixed;left:560px;top:200px;width:760px;height:460px;background:#e8eef3;color:#123;z-index:99;font:28px sans-serif;padding:40px;box-shadow:0 10px 60px #000;border-radius:8px';
+                  d.innerHTML = '<b>Обновление системы</b><p>Перезагрузка через 10 минут.</p><p style="font-size:18px">Esc — закрыть</p>';
+                  document.body.appendChild(d);
+                  addEventListener('keydown', e => { if (e.key === 'Escape') { const p = document.getElementById('popup'); if (p) p.remove(); } }); }""")
+                self._say("Жду, пока распознавание заметит, что часть щита закрыта…")
+                h = self._wait(lambda: (w.snapshot().get("health") or {}).get("scene") in ("obstructed", "absent") and
+                               w.snapshot()["health"], 30)
+                if not h:
+                    self._say("Помеху не заметили за 30 с — демо остановлено", "fail")
+                    return
+                self._say(f"Заметили: закрыто — {', '.join(h.get('lost_blocks') or [])}. Объекты под окном "
+                          "помечены «не видно» и не считаются ошибками", "ok", focus={"tab": "vision"})
+                pb = next((p for p in self.playbooks(sid) if p["id"] in ("vision.obstructed", "vision.absent")), None)
+                if pb:
+                    self._say(f"Плейбук «{pb['title']}»: {pb['why']}", "ok", focus={"tab": "playbooks", "playbook": pb["id"]})
+                if not self.autoheal.get(sid):
+                    self._say("Самовосстановление выключено — выполняю первый шаг плейбука вручную: Esc в ВМ")
+                    self.run(sid, "key", {"key": "Escape"}, title="демо: Esc")
+                else:
+                    self._say("Самовосстановление включено — жду, пока система сама нажмёт Esc в ВМ…")
+                ok = self._wait(lambda: (w.snapshot().get("health") or {}).get("scene") == "ok", 60)
+                self._say("Готово: щит снова виден целиком." if ok else "Щит так и не стал виден — смотрите плейбук",
+                          "ok" if ok else "fail", focus={"tab": "vision"})
+        except InterruptedError:
+            self._say("Демо остановлено", "info")
+        except Exception as e:
+            d["steps"].append({"t": time.strftime("%H:%M:%S"), "text": f"Ошибка: {type(e).__name__}: {e}", "status": "fail"})
+        finally:
+            for s in d["steps"]:
+                if s["status"] == "run":
+                    s["status"] = "ok"
+            d["running"] = False
+
+    def thumb(self, sid):
+        fr = self.workers[sid].frame()
+        if fr is None:
+            return None
+        key = (sid, id(fr))
+        t = self.thumbs.get(sid)
+        if t and t[0] == key:
+            return t[1]
+        img = cv2.resize(fr[1], (480, 270), interpolation=cv2.INTER_AREA)
+        jpg = cv2.imencode(".jpg", img, [cv2.IMWRITE_JPEG_QUALITY, 75])[1].tobytes()
+        self.thumbs[sid] = (key, jpg)
+        return jpg
+
+
+def make_handler(F):
     page = HERE / "cvdash.html"
 
     class H(BaseHTTPRequestHandler):
@@ -896,21 +1545,82 @@ def make_handler(vision, ctl):
             self.end_headers()
             self.wfile.write(body)
 
+        def _w(self, q):
+            sid = q.get("sys") or F.active
+            if sid not in F.workers:
+                raise KeyError(f"нет системы {sid}")
+            return sid, F.workers[sid]
+
         def do_GET(self):
             u = urlparse(self.path)
             q = {k: v[0] for k, v in parse_qs(u.query).items()}
             try:
                 if u.path == "/":
                     return self._send(200, page.read_bytes(), "text/html; charset=utf-8")
+                if u.path == "/api/systems":
+                    return self._send(200, {"active": F.active, "systems": [F.summary(k) for k in F.order]})
                 if u.path == "/api/vision":
-                    return self._send(200, vision.snapshot())
+                    sid, w = self._w(q)
+                    st = w.snapshot()
+                    st["system"], st["system_name"] = sid, F.systems[sid]["name"]
+                    st["autoheal"] = F.autoheal[sid]
+                    if q.get("kvm"):                     # открыт пульт — система читается на полной скорости
+                        w.kvm_until = time.time() + 5
+                    return self._send(200, st)
+                if u.path in ("/system", "/system.html", "/kvm"):
+                    # сама система: щит, как у оператора — живое видео, всё нажимается
+                    return self._send(200, (HERE / "system.html").read_bytes(), "text/html; charset=utf-8")
+                if u.path == "/stream":
+                    # живое видео щита (MJPEG vmhdmi) — через дашборд, чтобы пульт был на одном адресе
+                    sid, w = self._w(q)
+                    up = urlopen(f"http://127.0.0.1:{F.systems[sid]['ports']['mjpeg']}/stream", timeout=10)
+                    self.send_response(200)
+                    self.send_header("Content-Type", up.headers.get("Content-Type"))
+                    self.send_header("Cache-Control", "no-store")
+                    self.send_header("Connection", "close")
+                    self.end_headers()
+                    self.close_connection = True
+                    try:
+                        while True:
+                            chunk = up.read1(65536)
+                            if not chunk:
+                                break
+                            self.wfile.write(chunk)
+                    except (BrokenPipeError, ConnectionResetError):
+                        pass
+                    finally:
+                        up.close()
+                    return
                 if u.path == "/frame.jpg":
-                    fr = vision.frame(int(q["seq"]) if q.get("seq", "").isdigit() else None)
+                    sid, w = self._w(q)
+                    fr = w.frame(int(q["seq"]) if q.get("seq", "").isdigit() else None)
                     return self._send(200 if fr else 404, fr[0] if fr else b"", "image/jpeg")
+                if u.path == "/thumb.jpg":
+                    sid, w = self._w(q)
+                    t = F.thumb(sid)
+                    return self._send(200 if t else 404, t or b"", "image/jpeg")
+                if u.path == "/api/playbooks":
+                    sid, w = self._w(q)
+                    return self._send(200, {"system": sid, "autoheal": F.autoheal[sid], "playbooks": F.playbooks(sid),
+                                            "jobs": list(F.jobs[sid])[::-1][:30]})
+                if u.path == "/api/demo":
+                    d = getattr(F, "demo", None) or {"running": False, "steps": []}
+                    return self._send(200, dict({k: v for k, v in d.items() if k != "stop"}, scenarios=F.DEMOS))
+                if u.path == "/api/autopilot":
+                    sid, w = self._w(q)
+                    return self._send(200, F.ap.snapshot(sid))
+                if u.path == "/api/infra":
+                    return self._send(200, F.infra.snapshot())
                 if u.path == "/api/detail":
-                    return self._send(200, vision.detail(q.get("id", "")))
+                    sid, w = self._w(q)
+                    if not hasattr(w, "detail"):
+                        return self._send(200, {"error": "у системы без профиля нет шагов чтения — сначала подготовка"})
+                    return self._send(200, w.detail(q.get("id", "")))
                 if u.path == "/api/block":
-                    return self._send(200, vision.block(q.get("name", "")))
+                    sid, w = self._w(q)
+                    if not hasattr(w, "block"):
+                        return self._send(200, {"error": "у системы без профиля блоков нет"})
+                    return self._send(200, w.block(q.get("name", "")))
                 self._send(404, {"error": "нет такого адреса"})
             except Exception as e:
                 self._send(500, {"error": f"{type(e).__name__}: {e}"})
@@ -919,20 +1629,52 @@ def make_handler(vision, ctl):
             n = int(self.headers.get("Content-Length") or 0)
             try:
                 m = json.loads(self.rfile.read(n) or b"{}")
+                sid, w = self._w(m)
+                if self.path == "/api/autopilot":
+                    if m.get("mode"):
+                        F.ap.set_mode(sid, m["mode"])
+                    if m.get("clear_escalation"):
+                        F.ap.clear_escalation(sid, m.get("playbook"))
+                    return self._send(200, F.ap.snapshot(sid))
+                if self.path == "/api/vitality":
+                    v = F.ap.vitality(sid)
+                    if m.get("repair") and v["verdict"] != "жизнеспособна":
+                        F.ap._repair(sid, v)
+                    return self._send(200, v)
+                if self.path == "/api/hid":
+                    return self._send(200, F.hid(sid, m))
+                if self.path == "/api/select":
+                    F.select(sid)
+                    return self._send(200, {"active": sid})
+                if self.path == "/api/fix":
+                    job = F.run(sid, m["action"], m.get("args"), step=m.get("step"), expect=m.get("expect"),
+                                wait=m.get("wait", 20), title=m.get("title"))
+                    return self._send(200, {"job": job})
+                if self.path == "/api/demo/start":
+                    d = F.demo_start(sid, m.get("scenario", "plant"))
+                    return self._send(200, {k: v for k, v in d.items() if k != "stop"})
+                if self.path == "/api/demo/stop":
+                    if getattr(F, "demo", None):
+                        F.demo["stop"] = True
+                    return self._send(200, {"ok": True})
+                if self.path == "/api/autoheal":
+                    F.autoheal[sid] = bool(m.get("on"))
+                    return self._send(200, {"autoheal": F.autoheal[sid]})
                 if self.path == "/api/exact":
-                    return self._send(200, vision.exact())
+                    if not hasattr(w, "exact"):
+                        return self._send(200, {"error": "у системы без профиля сверять нечего"})
+                    return self._send(200, w.exact())
                 if self.path == "/api/action":
                     act = m.get("action")
-                    if act not in ACTIONS:
+                    if act not in ACTIONS or not hasattr(w, "ctl"):
                         return self._send(400, {"error": f"нет действия {act}"})
-                    if act == "speed":
-                        ctl.call("scenario", action="speed", arg=float(m.get("arg")))
-                    else:
-                        ctl.call("scenario", action=act, arg=m.get("arg"))
+                    arg = float(m.get("arg")) if act == "speed" else m.get("arg")
+                    w.ctl.call("scenario", action=act, arg=arg)
                     return self._send(200, {"ok": True})
                 if self.path == "/api/cache":
-                    vision.reader.cache_on = bool(m.get("on"))
-                    return self._send(200, {"cache": vision.reader.cache_on})
+                    if hasattr(w, "reader"):
+                        w.reader.cache_on = bool(m.get("on"))
+                    return self._send(200, {"cache": getattr(getattr(w, "reader", None), "cache_on", None)})
                 self._send(404, {"error": "нет такого адреса"})
             except Exception as e:
                 self._send(500, {"error": f"{type(e).__name__}: {e}"})
@@ -940,28 +1682,18 @@ def make_handler(vision, ctl):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Дашборд распознавания щита ВМ")
-    ap.add_argument("--source", default="http://127.0.0.1:8781/stream")
-    ap.add_argument("--control", default="127.0.0.1:8790")
+    ap = argparse.ArgumentParser(description="Дашборд распознавания: все системы из vm/systems.json")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8775)
     a = ap.parse_args()
-    src = Mjpeg(a.source)
-    src.start()
-    h, _, p = a.control.rpartition(":")
-    ctl = Ctl((h or "127.0.0.1", int(p)))
-    cdp = Cdp(local_port=9224)                 # свой туннель к DevTools ВМ
-    vision = Vision(src, cdp, ctl)
-    vision.start()
-    srv = ThreadingHTTPServer((a.host, a.port), make_handler(vision, ctl))
+    F = Fleet()
+    srv = ThreadingHTTPServer((a.host, a.port), make_handler(F))
     srv.daemon_threads = True
-    print(f"Дашборд распознавания: http://{a.host}:{a.port}/   (источник {a.source})", flush=True)
+    print(f"Дашборд: http://{a.host}:{a.port}/   систем: {len(F.order)} ({', '.join(F.order)})", flush=True)
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
         pass
-    finally:
-        cdp.close()
 
 
 if __name__ == "__main__":

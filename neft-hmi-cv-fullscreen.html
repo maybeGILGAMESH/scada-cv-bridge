@@ -2599,7 +2599,7 @@ step();
 #closeHint{position:fixed;top:60px;right:12px;z-index:10;display:none;padding:8px 12px;border-radius:4px;
            background:#16232f;border:1px solid #24384a;color:#c8d8e4;font-size:13px}
 </style>
-<button id="bClose" title="Закрыть (Esc)">✕ Закрыть</button>
+<button id="bClose" title="Закрыть щит (Ctrl+Shift+Q)">✕ Закрыть</button>
 <div id="closeHint">Браузер не дал закрыть окно — нажмите Alt+F4</div>
 <script>
 (()=>{
@@ -2618,7 +2618,8 @@ step();
   btn.addEventListener("mouseleave", ()=>{ clearTimeout(hideT); hideT = setTimeout(()=>btn.classList.remove("show"), 1500); });
   btn.onclick = close;
   document.addEventListener("keydown", e=>{
-    if (e.key==="Escape") close();
+    /* Esc не закрывает щит: им закрывают всплывающие окна, случайное нажатие не должно гасить АРМ */
+    if (e.ctrlKey && e.shiftKey && (e.key==="Q" || e.key==="q" || e.key==="Й" || e.key==="й")) close();
     if ((e.key==="h"||e.key==="р") && !/INPUT|SELECT/.test(e.target.tagName)) document.body.classList.toggle("ctl");
   });
 })();

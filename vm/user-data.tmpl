@@ -1,6 +1,6 @@
 #cloud-config
 # ВМ со щитом СКАДА: Debian 13, автологин, X + Chromium в киоске на 1920x1080.
-hostname: scada-vm
+hostname: __HOST__
 locale: ru_RU.UTF-8
 timezone: Europe/Moscow
 users:
@@ -31,6 +31,15 @@ packages:
 mounts:
   - [scada, /opt/scada, 9p, "trans=virtio,version=9p2000.L,ro,nofail", "0", "0"]
 write_files:
+  # переводчик Chromium всплывает поверх щита на русских страницах — выключен политикой
+  - path: /etc/chromium/policies/managed/no-translate.json
+    content: |
+      {"TranslateEnabled": false}
+  # USB-планшет QEMU (HID-ввод с «KVM») не усыплять: после autosuspend первое
+  # событие теряется — нажатие приходит в старую точку курсора
+  - path: /etc/udev/rules.d/90-qemu-input-awake.rules
+    content: |
+      ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="0627", TEST=="power/control", ATTR{power/control}="on"
   - path: /etc/systemd/system/getty@tty1.service.d/autologin.conf
     content: |
       [Service]
@@ -58,7 +67,7 @@ write_files:
         --disable-session-crashed-bubble --disable-features=Translate,TranslateUI \
         --password-store=basic --user-data-dir="$HOME/.scada-chrome" \
         --remote-debugging-port=9222 \
-        file:///opt/scada/neft-hmi-cv-fullscreen.html
+        file:///opt/scada/__PAGE__
 runcmd:
   - mkdir -p /opt/scada
   - mount /opt/scada || true

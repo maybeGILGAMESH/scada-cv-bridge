@@ -28,14 +28,15 @@ HERE = Path(__file__).resolve().parent
 BANK = HERE / "cv_templates_vm"
 
 
-def line_ink(crop):
-    """Нормированная яркость строки 0..1 (фон 0, текст 1) и маска текста."""
+def line_ink(crop, thr=0.35):
+    """Нормированная яркость строки 0..1 (фон 0, текст 1) и маска текста.
+    thr — порог «чернил»: выше — ореол вокруг светящихся цифр в маску не попадает."""
     g = crop.max(axis=2).astype(np.float32) if crop.ndim == 3 else crop.astype(np.float32)
     bg, fg = np.percentile(g, 12), np.percentile(g, 99.5)
     if fg - bg < 25:
         return None, None
     v = np.clip((g - bg) / (fg - bg), 0, 1)
-    return v, v > 0.35
+    return v, v > thr
 
 
 def segments(mask, min_gap=1):
@@ -60,9 +61,9 @@ def segments(mask, min_gap=1):
     return merged
 
 
-def cut(crop, pitch=None):
+def cut(crop, pitch=None, min_gap=1, thr=0.35):
     """Строка → (символы как массивы 0..1, их x, ширины, высота строки)."""
-    v, m = line_ink(crop)
+    v, m = line_ink(crop, thr)
     if v is None:
         return None
     # строка — самая «чернильная» полоса подряд идущих строк: случайные точки
@@ -83,7 +84,7 @@ def cut(crop, pitch=None):
         return None
     y0, y1, _ = max(bands, key=lambda b: b[2])
     v, m = v[y0:y1], m[y0:y1]
-    segs = split_wide(segments(m), pitch)
+    segs = split_wide(segments(m, min_gap), pitch)
     return [v[:, a:b] for a, b in segs], segs, y1 - y0, (y0, y1)
 
 
@@ -132,8 +133,10 @@ def fit(a, H, W):
 
 
 class GlyphBank:
-    def __init__(self, path=BANK / "glyphs.npz"):
+    def __init__(self, path=BANK / "glyphs.npz", min_gap=1, thr=0.35):
         self.sets = {}            # высота строки → [(символ, глиф)]
+        self.min_gap = min_gap    # разрыв, который ещё склеивается (JPEG рвёт тонкие штрихи букв)
+        self.thr = thr            # порог чернил (ореол светящихся цифр — ниже)
         self.path = Path(path)
         self._stacks, self._memo = {}, {}
         if self.path.exists():
@@ -180,14 +183,14 @@ class GlyphBank:
     def explain(self, crop, allowed=None, k=4):
         """Для дашборда: каждый символ и лучшие кандидаты-глифы с баллами."""
         text, info, segs, yr = self.read(crop, allowed)
-        c = cut(crop)
+        c = cut(crop, None, self.min_gap, self.thr)
         if c is None or not segs:
             return text, []
         cands = self._candidates(c[2])
         if allowed:
             cands = [z for z in cands if z[0] in allowed]
         y0, y1 = yr
-        v, _ = line_ink(crop)
+        v, _ = line_ink(crop, self.thr)
         out = []
         for a, b in segs:
             g = v[y0:y1, a:b]
@@ -214,13 +217,13 @@ class GlyphBank:
         return res
 
     def _read(self, crop, allowed=None):
-        c = cut(crop)
+        c = cut(crop, None, self.min_gap, self.thr)
         if c is None:
             return "", [], [], None
         cands = self._candidates(c[2])
         digits = [t.shape[1] for ch, t in cands if ch.isdigit()]
         if digits:                       # шаг шрифта — из банка: слипшиеся цифры режутся по нему
-            c = cut(crop, float(np.median(digits)))
+            c = cut(crop, float(np.median(digits)), self.min_gap, self.thr)
         glyphs, segs, h, yr = c
         if allowed:
             cands = [z for z in cands if z[0] in allowed]
@@ -247,9 +250,15 @@ class GlyphBank:
 def text_crops(img, ann):
     """Из кадра с разметкой — (вырезка строки, истинный текст) для всех
     моноширинных надписей с известным текстом."""
-    from extra_reader import value_crop
+    from extra_reader import value_crop, colored_text, bar_value_rect, well_geometry
+    import math
     out = []
     for o in ann["objects"]:
+        if o["type"] == "bargraph" and o.get("digital_text"):
+            val, _ = colored_text(img, bar_value_rect([int(round(v)) for v in o["bbox"]]))
+            if val is not None:
+                out.append((val, o["digital_text"]))
+
         if o["type"] == "text_readout" and o.get("text"):
             val, _, _ = value_crop(img, o["bbox"])
             if val is not None:
@@ -266,7 +275,7 @@ def text_crops(img, ann):
     return out
 
 
-def build(frames, extra=()):
+def build(frames, extra=(), min_gap=1, thr=0.35):
     """frames: [(кадр BGR, разметка)], extra: [(вырезка, текст)] — например,
     время в журнале, снятое с живого щита."""
     acc = defaultdict(lambda: defaultdict(list))
@@ -275,7 +284,7 @@ def build(frames, extra=()):
     for img, ann in frames:
         samples += text_crops(img, ann)
     for crop, text in samples:
-        c = cut(crop)
+        c = cut(crop, None, min_gap, thr)
         if c is None:
             skipped += 1
             continue

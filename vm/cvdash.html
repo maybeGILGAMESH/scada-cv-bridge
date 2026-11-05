@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Зрение щита</title>
+<title>Зрение АСУ ТП</title>
 <style>
 :root{
   color-scheme:dark;
@@ -48,6 +48,46 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 440px;gap:12px;padding:12p
 .toolbar label{color:var(--muted);font-size:12px;margin-right:2px}
 #viewer{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden}
 #viewer img,#viewer svg{position:absolute;inset:0;width:100%;height:100%}
+a.btnlink{color:var(--ink);text-decoration:none;border:1px solid var(--border);border-radius:6px;padding:5px 10px;background:var(--surface-2);white-space:nowrap}
+a.btnlink:hover{border-color:var(--muted)}
+.hint{color:var(--muted);font-size:12px}
+.kvmnote{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:12.5px;color:var(--ink-2);margin-bottom:8px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:transparent}
+.seg button.on{background:color-mix(in srgb, var(--s1) 18%, transparent);box-shadow:none;color:var(--ink)}
+.seg button[data-apmode="auto"].on{background:color-mix(in srgb, var(--good) 24%, transparent)}
+#apCard.auto{border-color:var(--good);box-shadow:inset 3px 0 0 var(--good)}
+.aphead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.aphead h2{margin:0}
+.apgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:10px}
+.apgrid h3{font-size:12.5px;font-weight:600;margin:0 0 6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ico.warn{border-color:var(--warn);color:var(--warn)}
+.esc{border:1px solid var(--crit);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12.5px;background:color-mix(in srgb, var(--crit) 10%, transparent)}
+.badge-auto{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.04em;border-radius:4px;padding:1px 6px;background:color-mix(in srgb, var(--good) 22%, transparent);color:var(--good-ink)}
+.badge-op{display:inline-block;font-size:10.5px;font-weight:700;border-radius:4px;padding:1px 6px;background:var(--crit);color:#fff}
+@media (max-width:900px){.apgrid{grid-template-columns:minmax(0,1fr)}}
+#sysGrid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+#sysGrid.split{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+#sysVision{display:none}#sysGrid.split #sysVision{display:block}
+#sysStage{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden;cursor:pointer}
+#sysStage:focus{outline:2px solid var(--s1);outline-offset:2px}
+#sysStage img,#sysStage svg{position:absolute;inset:0;width:100%;height:100%}
+#sysStage img,#svViewer img,#viewer img{object-fit:contain}
+#sysStage svg{pointer-events:none}
+#sysNoSig{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--muted)}
+#svViewer{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;overflow:hidden;margin:8px 0}
+#svViewer img,#svViewer svg{position:absolute;inset:0;width:100%;height:100%}
+#svViewer svg text{font:600 14px system-ui,-apple-system,"Segoe UI",sans-serif}
+.svchips{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:11px;color:var(--muted)}
+.svchips b{display:block;font-size:16px;color:var(--ink);font-weight:600}
+.react{margin-top:12px}
+.react h3,#sysVision h3{font-size:12.5px;font-weight:600;margin:10px 0 6px}
+#react{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
+#react li{padding:6px 0;border-bottom:1px solid var(--grid);font-size:12.5px}
+#react li .chg{display:block;color:var(--ink-2);margin:2px 0 0 14px}
+#react time{color:var(--muted);margin-right:6px}
+.ok-t{color:var(--good-ink)}.bad-t{color:var(--crit)}.unc-t{color:var(--warn)}
+@media (max-width:1100px){#sysGrid.split{grid-template-columns:minmax(0,1fr)}}
 #viewer svg text{font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;pointer-events:none}
 .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;color:var(--ink-2);font-size:12px}
 .legend i{display:inline-block;width:14px;height:10px;border:2px solid;border-radius:2px;margin-right:6px;vertical-align:-1px}
@@ -103,11 +143,227 @@ svg.chart{width:100%;display:block;overflow:visible}
 .log time{color:var(--muted);margin-right:6px}
 #exactRes{font-size:12px;color:var(--ink-2);margin-left:6px}
 .err{color:var(--crit)}
+
+/* ── оболочка: верхняя полоса, список систем, вкладки ── */
+.topbar{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.brand{font-weight:700;font-size:15px;margin-right:14px;white-space:nowrap}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tabs button{background:transparent;border:0;border-bottom:2px solid transparent;border-radius:0;padding:8px 12px;color:var(--ink-2);font-weight:500}
+.tabs button:hover{color:var(--ink);border-bottom-color:var(--border)}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--s1);box-shadow:none}
+.tabs .cnt{display:inline-block;min-width:18px;padding:0 5px;margin-left:5px;border-radius:9px;background:var(--crit);color:#fff;font-size:11px;line-height:18px;text-align:center}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:calc(100vh - 50px)}
+#rail{border-right:1px solid var(--border);padding:12px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+#rail h3{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 2px;font-weight:600;flex:1}
+.app{transition:grid-template-columns .15s ease}
+.rail-head{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+#railToggle{padding:2px 8px;font-size:14px;line-height:20px;color:var(--muted)}
+#railToggle:hover{color:var(--ink)}
+#railList{display:flex;flex-direction:column;gap:8px}
+/* свёрнутый список: узкая полоса с короткими метками */
+.app.rail-min{grid-template-columns:76px minmax(0,1fr)}
+.rail-min #rail{padding:10px 8px}
+.rail-min #rail h3{display:none}
+.rail-min .rail-head{justify-content:center}
+.sysm{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;padding:7px 2px 6px;border-radius:8px;background:var(--surface-2);border:1px solid var(--border);border-left:3px solid var(--muted);color:var(--ink);cursor:pointer}
+.sysm:hover{border-color:var(--muted)}
+.sysm.on{border-color:var(--s1);box-shadow:inset 0 0 0 1px var(--s1)}
+.sysm.tl-ok{border-left-color:var(--good)}.sysm.tl-warning{border-left-color:var(--warn)}.sysm.tl-critical{border-left-color:var(--crit)}
+.sysm.tl-serious{border-left-color:var(--serious)}.sysm.tl-info{border-left-color:var(--s1)}
+.sysm .sh{font-weight:700;font-size:12px;line-height:1.1;text-align:center;word-break:break-word}
+.sysm .tone{padding:0 5px;font-size:10.5px}
+.sysm .ac{font-size:10.5px;color:var(--muted)}
+#curSys{display:none;align-items:center;gap:8px;margin-left:8px;max-width:340px;font-size:12.5px;padding:4px 10px}
+#curSys b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rail-min-on #curSys{display:inline-flex}
+.sys{display:block;width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer;color:var(--ink)}
+.sys:hover{border-color:var(--muted);transform:translateY(-1px)}
+.sys.on{border-color:var(--s1);box-shadow:inset 0 0 0 1px var(--s1)}
+.sys img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:5px;display:block;background:#000;margin-bottom:6px}
+.sys .nm{font-weight:600;font-size:12.5px;line-height:1.25}
+.sys .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+.tone{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:10px;padding:1px 8px 1px 6px;border:1px solid}
+.tone i{font-style:normal}
+.t-ok{color:var(--good-ink);border-color:var(--good)} .t-warning{color:var(--warn);border-color:var(--warn)}
+.t-critical{color:var(--crit);border-color:var(--crit)} .t-info{color:var(--s1);border-color:var(--s1)} .t-serious{color:var(--serious);border-color:var(--serious)}
+.content{min-width:0}
+.tab{display:none}.tab.on{display:block}
+.pad{padding:12px 16px}
+.banner{margin:12px 16px 0;border-radius:8px;padding:10px 14px;border:1px solid;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.banner.b-critical{border-color:var(--crit);background:color-mix(in srgb, var(--crit) 12%, transparent)}
+.banner.b-warning{border-color:var(--warn);background:color-mix(in srgb, var(--warn) 10%, transparent)}
+.banner.b-info{border-color:var(--s1);background:color-mix(in srgb, var(--s1) 10%, transparent)}
+.banner b{font-weight:600}
+.link{background:none;border:0;padding:0;color:var(--s1);text-decoration:underline;cursor:pointer;font:inherit}
+.grid-sys{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+.big{cursor:pointer;display:flex;flex-direction:column;gap:8px}
+.big:hover{border-color:var(--muted)}
+.big img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#000}
+.big .row2{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.kpis{display:flex;gap:16px;font-size:12px;color:var(--muted)} .kpis b{display:block;font-size:16px;color:var(--ink);font-weight:600}
+.bar2{height:6px;border-radius:3px;background:var(--grid);overflow:hidden}.bar2>span{display:block;height:100%;background:var(--s1)}
+ul.issues{margin:0;padding-left:16px;font-size:12px;color:var(--ink-2)}
+/* ── плейбуки ── */
+.pb{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:12px}
+.pb>header{all:unset;display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid var(--border)}
+.pb h3{margin:0;font-size:14px;font-weight:600}
+.pb .why{font-size:12.5px;color:var(--ink-2);margin-top:4px}
+.pb .ev{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chipbtn{font-size:11.5px;padding:2px 8px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--ink-2);cursor:pointer}
+.chipbtn:hover{border-color:var(--s1);color:var(--ink)}
+.steps{list-style:none;margin:0;padding:6px 14px 12px}
+.st{display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--grid)}
+.st:last-child{border-bottom:0}
+.ico{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;border:1.5px solid var(--muted);color:var(--muted)}
+.ico.done{background:var(--good);border-color:var(--good);color:#fff}
+.ico.fail{background:var(--crit);border-color:var(--crit);color:#fff}
+.ico.run{border-color:var(--s1);color:var(--s1);animation:spin 1s linear infinite;border-top-color:transparent}
+.ico.na{border-style:dashed}
+@keyframes spin{to{transform:rotate(360deg)}}
+.st .tx{font-size:13px}
+.st .meta{font-size:11.5px;color:var(--muted);margin-top:3px}
+.kind{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.03em;border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:1px}
+.k-action{background:color-mix(in srgb, var(--serious) 18%, transparent);color:var(--serious)}
+.k-fix{background:color-mix(in srgb, var(--s1) 16%, transparent);color:var(--s1)}
+.k-check{background:var(--surface-2);color:var(--ink-2)}
+.k-test{background:var(--surface-2);color:var(--muted)}
+.k-info{background:transparent;color:var(--muted);padding-left:0}
+button.act{font-weight:600;white-space:nowrap}
+button.act.plant{border-color:var(--serious);color:var(--serious)}
+button.act.fix{border-color:var(--s1);color:var(--s1)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}
+.switch input{width:34px;height:18px;accent-color:var(--s1);cursor:pointer}
+.jobs{font-size:12px}.jobs div{padding:5px 0;border-bottom:1px solid var(--grid);color:var(--ink-2)}
+/* ── инфраструктура ── */
+.pipe{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+.stage{flex:1 1 150px;border:1px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--surface-2);position:relative}
+.stage b{display:block;font-size:12.5px}
+.stage span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.stage .v{font-size:13px;color:var(--ink);font-weight:600;margin-top:4px}
+.stage.ok{border-left:3px solid var(--good)}.stage.bad{border-left:3px solid var(--crit)}.stage.unk{border-left:3px solid var(--muted)}
+.arrow{align-self:center;color:var(--muted);font-size:16px}
+.kv2{display:grid;grid-template-columns:150px 1fr;gap:3px 12px;font-size:12.5px}.kv2 dt{color:var(--muted)}.kv2 dd{margin:0}
+.infra-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+/* ── справка ── */
+.pop{position:fixed;right:16px;top:56px;width:min(440px,calc(100vw - 32px));z-index:20;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.4);display:none;max-height:calc(100vh - 80px);overflow:auto}
+.pop.on{display:block}
+.pop h4{margin:10px 0 4px;font-size:12.5px}
+.pop p{margin:0 0 6px;font-size:12.5px;color:var(--ink-2)}
+#onb{display:none}
+.cl{list-style:none;margin:0;padding:0}.cl li{display:grid;grid-template-columns:26px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--grid);font-size:13px}
+.cl small{display:block;color:var(--muted);font-size:11.5px}
+@media (max-width:900px){.app,.app.rail-min{grid-template-columns:1fr}#rail,.rail-min #rail{flex-direction:row;align-items:stretch;overflow-x:auto;border-right:0;border-bottom:1px solid var(--border);padding:8px 16px}
+  #railList{flex-direction:row}#rail .sys{min-width:200px}#rail h3{display:none}.sysm{min-width:84px}
+  .topbar{flex-wrap:wrap}.rail-min-on #curSys{display:none}}
+
+/* ── демо ── */
+.demo-btn{display:inline-flex;align-items:stretch;border:1px solid var(--s1);border-radius:6px;overflow:hidden;margin-right:6px}
+.demo-btn button{border:0;border-radius:0;background:color-mix(in srgb, var(--s1) 14%, transparent);color:var(--ink);font-weight:600}
+.demo-btn button.x{background:transparent;color:var(--muted);padding:5px 8px;border-left:1px solid var(--border);font-weight:400}
+.demo-btn button.x:hover{color:var(--ink)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:30;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-bg.on{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;width:min(560px,100%);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal h3{margin:0 0 8px;font-size:16px}
+.scn{display:block;width:100%;text-align:left;padding:10px 12px;margin:6px 0;border-radius:8px}
+.scn.on{border-color:var(--s1);box-shadow:inset 0 0 0 1px var(--s1)}
+.scn b{display:block;font-size:13px}.scn span{font-size:12px;color:var(--ink-2)}
+#demoPanel{position:fixed;right:16px;bottom:16px;width:min(460px,calc(100vw - 32px));max-height:min(60vh,520px);overflow:auto;z-index:25;
+  background:var(--surface);border:1px solid var(--s1);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.45);display:none}
+#demoPanel.on{display:block}
+#demoPanel header{all:unset;display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface)}
+#demoPanel ol{list-style:none;margin:0;padding:8px 12px 12px}
+#demoPanel li{display:grid;grid-template-columns:24px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--grid);font-size:12.5px}
+#demoPanel li time{color:var(--muted);font-size:11px;margin-right:4px}
+.pb.focus{outline:2px solid var(--s1);outline-offset:2px}
+.st.focus{background:color-mix(in srgb, var(--s1) 10%, transparent);border-radius:6px}
 @media (max-width:1100px){main{grid-template-columns:1fr}.bottom{grid-template-columns:1fr}.wide{grid-column:auto}#detail{position:static;max-height:none}}
 @media (max-width:600px){header,main{padding-left:16px;padding-right:16px}.bottom{padding:0 16px 16px}.mult{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
+<div class="topbar">
+  <span class="brand">Зрение АСУ ТП</span>
+  <nav class="tabs" role="tablist">
+    <button data-tab="overview" role="tab">Обзор</button>
+    <button data-tab="systems" role="tab" title="Сами системы — щит, как у оператора: всё нажимается">Системы</button>
+    <button data-tab="vision" role="tab" title="KVM: принимает только видео с экрана системы и распознаёт его">Зрение</button>
+    <button data-tab="playbooks" role="tab">Плейбуки<span class="cnt" id="pbCnt" style="display:none"></span></button>
+    <button data-tab="infra" role="tab">На чём работает</button>
+  </nav>
+  <button id="curSys" title="Выбранная система — щёлкните, чтобы развернуть список систем"></button>
+  <div class="grow"></div>
+  <span class="demo-btn" id="demoBtn"><button id="bDemo" title="Показать на живой системе, как работают плейбуки: авария или помеха → распознавание → действия с проверкой по картинке">▶ Демо</button><button class="x" id="bDemoHide" title="Убрать кнопку «Демо» (вернуть — в «Что можно нажимать?»)" aria-label="Убрать кнопку «Демо»">✕</button></span>
+  <button id="bHelp" title="Что на этой странице нажимается, а что только показывает">Что можно нажимать?</button>
+</div>
+<div class="app">
+<nav id="rail" aria-label="Системы"><div class="rail-head"><h3>Системы</h3><button id="railToggle" aria-controls="railList" aria-expanded="true" title="Свернуть список систем ( [ )">«</button></div><div id="railList"></div></nav>
+<div class="content">
+
+<section class="tab pad" id="tab-overview">
+  <div class="card" style="margin-bottom:12px"><h2>Все системы <small>щёлкните карточку — откроется её «Зрение»; кнопка «Плейбуки» — что делать</small></h2>
+    <div id="ovSummary" style="font-size:12.5px;color:var(--ink-2)"></div></div>
+  <div class="grid-sys" id="ovGrid"></div>
+</section>
+
+<section class="tab pad" id="tab-systems">
+  <div class="card" style="margin-bottom:12px">
+    <div class="toolbar" style="margin:0">
+      <h2 style="margin:0 8px 0 0" id="sysTitle">Щит</h2>
+      <span class="grow"></span>
+      <button id="bSplit" title="Справа — что зрение (KVM) получило по видео и как быстро поймало ваши нажатия">Рядом зрение</button>
+      <a class="btnlink" data-win="system" target="_blank" rel="noopener" title="Этот щит в отдельном окне">Щит в окне ↗</a>
+      <a class="btnlink" data-win="vision" target="_blank" rel="noopener" title="Зрение этой системы в отдельном окне — поставьте окна рядом">Зрение в окне ↗</a>
+    </div>
+    <p class="hint" style="margin:6px 0 0">Это сама система — щит, как у оператора: щелчки, перетаскивание (ползунки), колесо и клавиши
+      уходят в него. Его экран идёт по «HDMI» (VNC → MJPEG) в зрение, которое получает только видео.</p>
+  </div>
+  <div id="sysGrid">
+    <div class="card">
+      <div id="sysStage" tabindex="0" aria-label="Щит системы: щелчки и клавиши уходят в него">
+        <img id="sysLive" alt="Экран системы">
+        <svg id="sysMap" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet"></svg>
+        <div id="sysNoSig">нет видео с системы</div>
+      </div>
+      <div class="toolbar" style="margin:8px 0 0"><label>Последнее:</label><b id="sysLast">—</b>
+        <span class="grow"></span><span class="hint">Щёлкните по щиту — клавиатура пойдёт в него; Ctrl/Alt-сочетания и F1–F12 — браузеру.</span></div>
+      <div class="toolbar vision-only" style="margin:10px 0 0">
+      <label title="Управляет моделью щита напрямую — только для проверки распознавания">Тестовый канал стенда</label>
+      <span id="tcPlant" style="display:contents">
+      <button data-a="start">Пуск</button>
+      <button data-a="stop">Стоп</button>
+      <button data-a="freq" data-d="-2">ЧРП −2 Гц</button>
+      <button data-a="freq" data-d="2">ЧРП +2 Гц</button>
+      <select id="selFault"><option value="">Отказ…</option><option value="clog">АСПО</option><option value="skin">Скин</option>
+        <option value="leak">Утечка</option><option value="iso">Изоляция</option><option value="water">Обводнение</option></select>
+      <button data-a="repair">Ремонт</button></span>
+      <span id="tcZero" style="display:none"><button data-a="regen" title="Генератор соберёт другую станцию: название, тема, шрифт, панели, приборы — зрение увидит её впервые">Новая случайная станция</button>
+        <span class="hint" id="zeroSeed"></span></span>
+      <span id="actRes" aria-live="polite" style="font-size:12px"></span>
+      <span class="sep"></span>
+      <span id="layGroup" style="display:contents"><label>Компоновка</label>
+      <button data-a="layout" data-v="A">A</button><button data-a="layout" data-v="B">B</button>
+      <button data-a="layout" data-v="C">C</button><button data-a="layout" data-v="D">D</button></span>
+      <select id="selSpeed"><option value="1">×1</option><option value="30" selected>×30</option><option value="120">×120</option><option value="600">×600</option></select>
+      <span class="sep"></span>
+      </div>
+      <div class="react card2" id="reactBox"><h3>Как зрение поймало ваши нажатия</h3>
+        <ol id="react"><li class="hint">Нажмите что-нибудь на щите — здесь появится, что зрение заметило по видео, через сколько и сходится ли с щитом.</li></ol></div>
+    </div>
+    <div class="card" id="sysVision">
+      <h2>Зрение (KVM) <small>что пришло по видео и что прочитано</small></h2>
+      <div class="svchips"><div><b class="num" id="svFps">—</b><span>к/с</span></div><div><b class="num" id="svAcc">—</b><span>точность, 60 кадров</span></div>
+        <div><b class="num" id="svAge">—</b><span>экран → результат</span></div><div><b class="num" id="svReact">—</b><span>реакция на нажатие, медиана</span></div></div>
+      <div id="svViewer"><img id="svFrame" alt="Кадр, который разбирает зрение"><svg id="svOvl" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet"></svg></div>
+      <h3>Сейчас расходится или не уверено</h3>
+      <ul id="svIssues" class="issues"></ul>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-vision">
+<div id="vBanner"></div>
 <header>
   <h1>Что видит система</h1>
   <div class="chip"><b id="hFps" class="num">—</b><span>зрение, к/с</span></div>
@@ -123,23 +379,27 @@ svg.chart{width:100%;display:block;overflow:visible}
 
 <main>
   <section class="card">
+    <div class="kvmnote">KVM: сюда приходит только видео с экрана системы, зрение его распознаёт — нажимать здесь нечего.
+      Щит нажимается на вкладке <button class="link" data-goto="systems">«Системы»</button>; можно открыть рядом:
+      <a class="btnlink" data-win="system" target="_blank" rel="noopener">Щит в окне ↗</a>
+      <a class="btnlink" data-win="vision" target="_blank" rel="noopener">Зрение в окне ↗</a></div>
     <div class="toolbar" id="layers">
       <label>Слои</label>
       <button data-l="blocks" class="on">Блоки</button>
       <button data-l="objects" class="on">Приборы</button>
-      <button data-l="needles" class="on">Стрелки</button>
+      <button data-l="needles" class="on vision-only">Стрелки</button>
       <button data-l="labels" class="on">Показания</button>
-      <button data-l="truth">Рамки истины</button>
-      <button data-l="errors">Только ошибки</button>
+      <button data-l="truth" class="vision-only">Рамки истины</button>
+      <button data-l="errors" class="vision-only">Только ошибки</button>
       <span class="sep"></span>
       <button id="bPause">Стоп-кадр</button>
-      <button id="bCache" class="on" title="Неизменившиеся объекты берутся из кэша">Кэш</button>
+      <button id="bCache" class="on vision-only" title="Неизменившиеся объекты берутся из кэша">Кэш</button>
     </div>
     <div id="viewer">
       <img id="frame" alt="Кадр с экрана ВМ">
       <svg id="ovl" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet"></svg>
     </div>
-    <div class="legend">
+    <div class="legend vision-only">
       <span><i style="border-color:var(--good)"></i>✓ прочитано верно</span>
       <span><i style="border-color:var(--crit)"></i>✗ расходится с моделью</span>
       <span><i style="border-color:var(--warn)"></i>? не уверено / не прочитано</span>
@@ -148,21 +408,7 @@ svg.chart{width:100%;display:block;overflow:visible}
       <span><i style="border-color:#d55181;border-width:0 0 3px 0;border-radius:0"></i>стрелка, найденная по красноте</span>
       <span>пунктир у прибора — взят из кэша</span>
     </div>
-    <div class="toolbar" style="margin-top:12px">
-      <label>Щит в ВМ</label>
-      <button data-a="start">Пуск</button>
-      <button data-a="stop">Стоп</button>
-      <button data-a="freq" data-d="-2">ЧРП −2 Гц</button>
-      <button data-a="freq" data-d="2">ЧРП +2 Гц</button>
-      <select id="selFault"><option value="">Отказ…</option><option value="clog">АСПО</option><option value="skin">Скин</option>
-        <option value="leak">Утечка</option><option value="iso">Изоляция</option><option value="water">Обводнение</option></select>
-      <button data-a="repair">Ремонт</button>
-      <span class="sep"></span>
-      <label>Компоновка</label>
-      <button data-a="layout" data-v="A">A</button><button data-a="layout" data-v="B">B</button>
-      <button data-a="layout" data-v="C">C</button><button data-a="layout" data-v="D">D</button>
-      <select id="selSpeed"><option value="1">×1</option><option value="30" selected>×30</option><option value="120">×120</option><option value="600">×600</option></select>
-      <span class="sep"></span>
+    <div class="toolbar vision-only" style="margin-top:12px">
       <button id="bExact" title="Модель на паузу, кадр и истина — один и тот же момент">Точная проверка</button>
       <span id="exactRes"></span>
     </div>
@@ -208,7 +454,73 @@ svg.chart{width:100%;display:block;overflow:visible}
     <h2>История <small>последние 3 минуты, наведите — время синхронно на всех графиках</small></h2>
     <div class="mult" id="hist"></div>
   </div>
+  <div class="card" id="onb" style="grid-column:1 / -1"></div>
 </section>
+</section>
+
+<section class="tab pad" id="tab-playbooks">
+  <div class="card" style="margin-bottom:12px;display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+    <div style="flex:1;min-width:260px"><h2 style="margin:0" id="pbTitle">Плейбуки</h2>
+      <div style="font-size:12.5px;color:var(--ink-2);margin-top:4px">Собираются автоматически из того, что система видит на экране этой системы, и меняются вместе с ним.
+      <span class="kind k-action">⚡ на щите</span> нажимает орган управления в ВМ (спросит подтверждение) и проверяет результат по картинке;
+      <span class="kind k-fix">🛠 исправление</span> чинит распознавание или инфраструктуру — безопасно.</div></div>
+    <label class="switch" title="Исправления распознавания и инфраструктуры выполняются сами (не чаще раза в минуту). Нажатия на щите — никогда."><input type="checkbox" id="autoheal"> Самовосстановление</label>
+  </div>
+  <div class="card" id="apCard" style="margin-bottom:12px">
+    <div class="aphead"><h2>Режим работы</h2>
+      <span class="seg" role="group" aria-label="Режим работы системы">
+        <button data-apmode="manual" title="Технологические действия — только по кнопке оператора">Ручной</button>
+        <button data-apmode="auto" title="Система сама держит щит в работе: выполняет плейбуки с проверкой по картинке и чинит цепочку">Автомат</button>
+      </span>
+      <span id="apState" class="hint"></span></div>
+    <p class="hint" id="apHint" style="margin:6px 0 0"></p>
+    <div class="apgrid">
+      <div><h3>Жизнеспособность <span id="vitScore" class="hint"></span>
+          <button id="bVital" title="Сквозная проверка: ВМ → щит → видео → зрение → HID → сверка">Проверить сейчас</button>
+          <button id="bVitalFix" title="Проверить и сразу починить первое, что сломано">Проверить и починить</button></h3>
+        <ul class="cl" id="vitList"><li class="hint" style="display:block">Проверки ещё не было — нажмите «Проверить сейчас» (в автомате идёт сама раз в минуту).</li></ul></div>
+      <div><h3>Журнал автомата</h3><div id="apEsc"></div><div class="jobs" id="apLog"></div></div>
+    </div>
+  </div>
+  <div id="pbList"></div>
+  <div class="card"><h2>Что выполнялось <small>последние действия по этой системе — вручную и самовосстановлением</small></h2><div class="jobs" id="jobList"></div></div>
+</section>
+
+<section class="tab pad" id="tab-infra">
+  <div class="card" style="margin-bottom:12px"><h2>Конвейер выбранной системы <small id="ifSys"></small></h2><div class="pipe" id="ifPipe"></div></div>
+  <div class="infra-grid">
+    <div class="card"><h2>Хост</h2><dl class="kv2" id="ifHost"></dl></div>
+    <div class="card"><h2>Стек распознавания</h2><dl class="kv2" id="ifStack"></dl></div>
+  </div>
+  <div class="card" style="margin-top:12px"><h2>Системы <small>ВМ, гостевая ОС, захват, распознавание, профиль</small></h2><div style="overflow-x:auto"><table class="t" id="ifTable"></table></div></div>
+</section>
+
+</div></div>
+
+<div class="pop" id="help" role="dialog" aria-label="Что можно нажимать">
+  <h3 style="margin:0 0 6px;font-size:14px">Что здесь нажимается</h3>
+  <h4>Кнопки</h4><p>Всё, что выглядит как <button tabindex="-1">кнопка</button>, — выполняет действие. Недоступная кнопка полупрозрачна, причина — во всплывающей подсказке.</p>
+  <h4><span class="kind k-action">⚡ на щите</span></h4><p>Нажимает орган управления щита в ВМ через HID (как KVM) — по месту, где кнопка найдена на кадре. Перед нажатием спросит подтверждение; результат проверяется по картинке.</p>
+  <h4><span class="kind k-fix">🛠 исправление</span></h4><p>Чинит распознавание или инфраструктуру: перепривязать блоки, сбросить кэш, перезапустить «HDMI»-службу или щит в ВМ. Безопасно; при включённом самовосстановлении выполняется само.</p>
+  <h4>Тестовый канал стенда</h4><p>Кнопки «Пуск», «Отказ…», «Компоновка» под кадром управляют моделью напрямую — только для проверки распознавания, на настоящем щите их нет.</p>
+  <h4>Системы и Зрение</h4><p>«Системы» — сам щит, как у оператора: щелчки, перетаскивание, колесо и клавиши уходят в него. «Зрение» — KVM: получает только видео с экрана системы и распознаёт; на кадре рамки кликабельны, но только чтобы показать шаги OpenCV. «Рядом зрение» на «Системах» показывает, что зрение увидело после каждого нажатия, через сколько и сходится ли со щитом. «Щит в окне» и «Зрение в окне» — то же в отдельных окнах, их можно поставить рядом.</p>
+  <h4>Системы и карточки</h4><p>Карточки систем слева и на «Обзоре» открывают систему. Цифры, подписи и графики — только показывают.</p>
+  <h4>Список систем слева</h4><p>Кнопка « / » над списком (или клавиша <b>[</b>) сворачивает его в узкую полосу: остаются короткие метки, цвет статуса и точность — переключать системы можно и так. Выбранная система тогда видна в верхней полосе; щелчок по ней разворачивает список.</p>
+  <h4>Режим работы (Плейбуки)</h4><p>«Ручной» — нажатия на щите только по кнопке оператора. «Автомат» — система сама выполняет технологические плейбуки с проверкой каждого шага по картинке и раз в минуту проверяет жизнеспособность цепочки (ВМ → щит → видео → зрение → HID), чиня сломанное; две неудачи одного плейбука — «нужен оператор». «Проверить сейчас» — проверка жизнеспособности в любом режиме.</p>
+  <h4>Демо</h4><p>«▶ Демо» в верхней полосе проигрывает сценарий на живой системе: стенд создаёт аварию или помеху, а система сама её видит, собирает плейбук и выполняет шаги с проверкой по картинке. Кнопку можно убрать крестиком. <button id="bDemoShow" style="display:none">Вернуть кнопку «Демо»</button></p>
+  <p style="margin-top:10px"><button id="bHelpClose">Понятно</button></p>
+</div>
+
+<div class="modal-bg" id="demoModal" role="dialog" aria-label="Демо">
+  <div class="modal">
+    <h3>Демо: как система действует по плейбуку</h3>
+    <p style="font-size:12.5px;color:var(--ink-2);margin:0 0 8px">Сцену готовит тестовый канал стенда (на настоящем объекте авария или помеха случаются сами). Дальше — только то, что система видит на экране и делает через HID, с проверкой каждого шага по картинке. Это меняет состояние щита выбранной ВМ.</p>
+    <div id="demoScn"></div>
+    <label style="display:flex;gap:8px;align-items:center;margin:10px 0;font-size:13px">Система <select id="demoSys"></select></label>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button id="demoCancel">Отмена</button><button id="demoGo" class="act fix">Запустить</button></div>
+  </div>
+</div>
+<aside id="demoPanel" aria-live="polite"><header><b style="flex:1" id="demoTitle">Демо</b><button id="demoStop" title="Остановить демо">Остановить</button><button id="demoClose" title="Скрыть панель" aria-label="Скрыть панель">✕</button></header><ol id="demoSteps"></ol></aside>
 
 <div id="tip"></div>
 
@@ -216,9 +528,16 @@ svg.chart{width:100%;display:block;overflow:visible}
 const $ = id => document.getElementById(id);
 const NS = "http://www.w3.org/2000/svg";
 const OVL = {good:"#0ca30c", crit:"#d03b3b", warn:"#fab219", muted:"#898781", block:"#3987e5", needle:"#d55181"};
-const QUIET = new Set(["button", "lamp", "annunciator", "selector"]);
+const QUIET = new Set(["button", "lamp", "annunciator", "selector", "level"]);
+const CAND = {"panel":"#3987e5", "gauge?":"#d55181", "value?":"#0ca30c", "button?":"#fab219"};
 const layers = {blocks:true, objects:true, needles:true, labels:true, truth:false, errors:false};
 let state = null, selected = null, frozen = false, loading = false, freq = 50;
+let SYS = null, TAB = "overview", systems = [], pbData = null, infraData = null;
+const store = {get: k => { try { return localStorage.getItem(k); } catch(e) { return null; } },
+               set: (k, v) => { try { localStorage.setItem(k, v); } catch(e) {} }};
+const q = (path, extra="") => path + (path.includes("?") ? "&" : "?") + "sys=" + encodeURIComponent(SYS || "") + extra;
+const post = (path, body) => fetch(path, {method:"POST", body:JSON.stringify(Object.assign({sys:SYS}, body || {}))}).then(r => r.json());
+function safe(name, fn){ try { fn(); } catch(e) { console.error(name, e); } }
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const el = (tag, attrs={}, parent) => { const e = document.createElementNS(NS, tag);
@@ -237,13 +556,17 @@ function statusOf(o){
 async function poll(){
   if (!frozen && !loading){
     try{
-      const s = await (await fetch("/api/vision")).json();
-      if (s.ready && (!state || s.seq !== state.seq)){
+      if (!SYS){ setTimeout(poll, 300); return; }
+      const want = SYS;
+      const s = await (await fetch(q("/api/vision", "&kvm=1"))).json();
+      if (want !== SYS){ setTimeout(poll, 50); return; }
+      if (!s.ready){ state = s; safe("banner", drawBanner); }
+      if (s.ready && (!state || s.seq !== state.seq || state.system !== s.system)){
         loading = true;
         const img = $("frame");
         img.onload = () => { state = s; loading = false; render(); };
         img.onerror = () => { loading = false; };
-        img.src = "/frame.jpg?seq=" + s.seq;
+        img.src = q("/frame.jpg", "&seq=" + s.seq);
       }
       $("hErr").textContent = s.error || s.source_error || "";
     }catch(e){ $("hErr").textContent = "нет связи с cvdash.py"; loading = false; }
@@ -253,7 +576,16 @@ async function poll(){
 
 function render(){
   const s = state;
+  safe("sys", () => sysOnState(s));
+  safe("banner", drawBanner);
+  const onb = s.kind === "onboarding";
+  document.querySelectorAll("#tab-vision > header, #detail, .bottom > .card:not(#onb), .vision-only")
+    .forEach(e => e.style.display = onb ? "none" : "");
+  $("tab-vision").querySelector("main").style.gridTemplateColumns = onb ? "1fr" : "";
+  $("onb").style.display = onb ? "block" : "none";
+  if (onb){ safe("onb", drawOnboarding); safe("ovl", drawOverlay); return; }
   $("hFps").textContent = fx(s.fps);
+  if (!s.rolling) return;
   const ra = s.rolling.total ? 100*s.rolling.ok/s.rolling.total : null;
   $("hAcc").textContent = ra == null ? "—" : fx(ra, 1) + " %";
   $("hFrame").textContent = `${s.frame.ok}/${s.frame.total}`;
@@ -261,8 +593,9 @@ function render(){
   $("hAge").textContent = fx(s.timing.age_ms, 0) + " мс";
   $("hQ").textContent = fx(s.quality, 2) + (s.registered ? " · поиск" : "");
   $("hLay").textContent = `${s.model.layout || "—"} · ${s.model.clock || "—"}`;
-  if (s.model.plant) freq = s.model.plant.freq_hz;
-  drawOverlay(); drawClass(); drawTiming(); drawGauge(); drawLog(); drawHistory(); drawClones(); drawShieldLog();
+  if (s.model && s.model.plant) freq = s.model.plant.freq_hz;
+  for (const [n, f] of [["overlay", drawOverlay], ["class", drawClass], ["timing", drawTiming], ["gauge", drawGauge],
+                        ["log", drawLog], ["history", drawHistory], ["clones", drawClones], ["shieldlog", drawShieldLog]]) safe(n, f);
 }
 
 /* ───────── наложение ───────── */
@@ -276,7 +609,7 @@ function drawOverlay(){
     }
   }
   if (layers.blocks){
-    for (const b of s.blocks){
+    for (const b of (s.blocks || [])){
       const [x,y,w,h] = b.rect;
       const g = el("g", {style:"cursor:pointer"}, svg);
       el("rect", {x, y, width:w, height:h, fill:"transparent", stroke:OVL.block, "stroke-width":3, "stroke-dasharray":"12 6"}, g);
@@ -293,7 +626,11 @@ function drawOverlay(){
     }
   }
   if (layers.needles) overlayTrends(svg);
-  for (const o of s.objects){
+  for (const t of (s.texts || [])){
+    const [x, y, w, h] = t.bbox;
+    el("rect", {x, y, width:w, height:h, fill:"rgba(57,135,229,.12)", stroke:"none"}, svg);
+  }
+  for (const o of (s.objects || [])){
     const st = statusOf(o);
     if (layers.errors && st.k === "ok") continue;
     if (layers.objects && o.value_box){
@@ -302,6 +639,30 @@ function drawOverlay(){
     }
     const [x,y] = o.at, [w,h] = o.size;
     const g = el("g", {style:"cursor:pointer"}, svg);
+    if (o.cls === "level"){                                  // уровень табло — рамка поверх, не перехватывает клики
+      if (o.read && o.read !== "normal" && layers.objects)
+        el("rect", {x, y, width:w, height:h, rx:5, fill:"none", stroke:o.read === "crit" ? OVL.crit : OVL.warn, "stroke-width":3,
+                    "stroke-dasharray":"8 4", "pointer-events":"none"}, g);
+      continue;
+    }
+    if (o.candidate){
+      el("rect", {x, y, width:w, height:h, rx:3, fill:"transparent", stroke:CAND[o.cls] || "#3987e5", "stroke-width":2, "stroke-dasharray":"6 4"}, g);
+      g.addEventListener("mousemove", e => tip(e, `<div class="t">Найдено автопоиском: ${esc(o.cls)}</div>уверенность ${fx(o.score,2)} · ${w}×${h} px<br>для чтения нужен профиль`));
+      g.addEventListener("mouseleave", hideTip);
+      continue;
+    }
+    if (o.missed){                                          // щит без профиля: есть на щите, но не найдено
+      if (layers.objects) el("rect", {x, y, width:w, height:h, rx:3, fill:"rgba(208,59,59,.08)", stroke:OVL.crit, "stroke-width":2, "stroke-dasharray":"2 4"}, g);
+      g.addEventListener("mousemove", e => tip(e, `<div class="t">Не найдено: ${esc(o.cls)}</div>На щите: ${esc(o.truth)}<br>распознавание без профиля этот прибор не нашло`));
+      g.addEventListener("mouseleave", hideTip);
+      continue;
+    }
+    if (o.hidden){
+      el("rect", {x, y, width:w, height:h, fill:"rgba(137,135,129,.18)", stroke:"#898781", "stroke-width":1.5, "stroke-dasharray":"3 3"}, g);
+      g.addEventListener("mousemove", e => tip(e, `<div class="t">${esc(o.label)}</div>Блок закрыт или не найден — объект не виден, сверка пропущена`));
+      g.addEventListener("mouseleave", hideTip);
+      continue;
+    }
     if (layers.objects){
       el("rect", {x, y, width:w, height:h, rx:3, fill:selected && selected.id===o.id ? "rgba(57,135,229,.18)" : "transparent",
         stroke:st.c, "stroke-width": selected && selected.id===o.id ? 4 : 2, "stroke-dasharray": o.cached ? "4 3" : "none"}, g);
@@ -377,8 +738,8 @@ async function select(sel){
   const body = $("detailBody");
   body.innerHTML = `<div class="empty">считаю…</div>`;
   try{
-    const d = sel.block ? await (await fetch("/api/block?name=" + encodeURIComponent(sel.block))).json()
-                        : await (await fetch("/api/detail?id=" + encodeURIComponent(sel.id))).json();
+    const d = sel.block ? await (await fetch(q("/api/block", "&name=" + encodeURIComponent(sel.block)))).json()
+                        : await (await fetch(q("/api/detail", "&id=" + encodeURIComponent(sel.id)))).json();
     if (d.error){ body.innerHTML = `<div class="empty err">${esc(d.error)}</div>`; return; }
     body.innerHTML = sel.block ? blockHtml(d) : detailHtml(d);
     if (d.kind === "gauge") profileChart($("pChart"), d.profile, d.result);
@@ -398,6 +759,17 @@ function detailHtml(d){
   let h = objHead(d);
   const charsHtml = chars => chars.map((c,i) => `<div class="cell"><figure style="margin:0"><img src="${c.glyph}" class="pix"><figcaption>символ ${i+1}</figcaption></figure>
       <div class="cands">${c.cands.map((k,j) => `<div class="cand ${j===0?"best":""}"><img src="${k.img}" class="pix" style="height:42px">«${esc(k.char)}» <span class="num">${fx(k.score,3)}</span></div>`).join("")}</div></div>`).join("");
+  if (d.kind === "zero"){
+    const R = d.result || {}, det = R.detail || {};
+    h += `<div class="step"><h3>1. Что на кадре</h3><p>Профиля нет: место, тип и подпись прибора найдены по общему виду SCADA.</p><img src="${I.crop}" style="max-width:100%"></div>
+    <div class="step"><h3>2. Как прочитано</h3><ol style="margin:0;padding-left:18px">${(d.steps || []).map(s => `<li style="margin:3px 0">${esc(s)}</li>`).join("")}</ol></div>
+    <div class="step"><h3>3. Итог</h3><dl class="kv num"><dt>подпись</dt><dd>${esc(R.label ?? "—")}</dd>
+      <dt>${R.state != null ? "состояние" : "значение"}</dt><dd><b>${esc(R.state != null ? ({on:"вкл", off:"выкл"}[R.state] || R.state) : (R.value ?? "—"))}</b> ${esc(R.unit || "")}</dd>
+      ${det.scale ? `<dt>числа шкалы</dt><dd>${det.scale.map(v => esc(v)).join(" · ")}</dd><dt>угол стрелки</dt><dd>${fx(det.angle, 1)}° · ошибка подгонки ${fx(det.fit_err, 2)}</dd>` : ""}
+      ${det.fill != null ? `<dt>доля заливки</dt><dd>${fx(det.fill * 100, 1)} %${det.text ? ` · число рядом «${esc(det.text)}»` : ""}</dd>` : ""}
+      ${det.s != null ? `<dt>цвет (HSV)</dt><dd>S ${fx(det.s, 0)} · V ${fx(det.v, 0)}</dd>` : ""}</dl></div>`;
+    return h;
+  }
   if (d.kind === "readout"){
     h += `<div class="step"><h3>1. Табло</h3><p>Место — из контрольного кадра нового банка (нарезан с щита в ВМ) плюс сдвиг блока.</p><img src="${I.crop}" class="pix"></div>
     <div class="step"><h3>2. Значение — по цвету</h3><p>Цифры значения насыщенно-цветные, подписи и единицы серые: маска по насыщенности (HSV) вырезает только число${R.gray ? " (уставка в «АВТО» серая — по яркости)" : ""}. Синие рамки — символы, разрезанные по пустым столбцам; слипшиеся режутся по шагу моноширинного шрифта.</p>
@@ -679,13 +1051,521 @@ function drawShieldLog(){
       return `<tr><td><span class="status s-${ok ? "ok" : "bad"}"><i>${ok ? "✓" : "✗"}</i></span></td><td class="num">${esc(l ? l.time : "—")}</td><td>${esc(l ? l.tag : "—")}</td>
         <td>${esc(l ? l.msg : "—")}</td><td style="color:var(--muted)">${t ? esc(`${t.t} ${t.tag}: ${t.msg}`) : "—"}</td></tr>`; }).join("");
 }
+/* ───────── баннер: что не так с кадром этой системы ───────── */
+function drawBanner(){
+  const s = state || {}, h = s.health || {}, box = $("vBanner");
+  let tone = null, html = "";
+  if (s.kind === "onboarding"){ tone = "info"; html = `<b>Система без профиля распознавания.</b> Показания этого щита пока не читаются — идёт подготовка${s.onboarding && s.onboarding.progress ? ": " + s.onboarding.progress.join(" из ") + " шагов" : ""}.`; }
+  else if (!s.ready || h.stream_dead){ tone = "critical"; html = `<b>Нет видеопотока с экрана ВМ.</b> ${esc(s.source_error || s.error || "")}`; }
+  else if (h.scene === "absent"){ tone = "critical"; html = `<b>Щит не виден в кадре.</b> Блоки не найдены (балл ${fx(h.quality, 2)}): щит закрыт, браузер упал или открыта консоль.`; }
+  else if (h.scene === "obstructed"){ tone = "warning"; html = `<b>Часть щита закрыта:</b> ${esc((h.lost_blocks || []).join(", "))}. Объекты в этих блоках не сверяются — это не ошибки чтения.`; }
+  else if ((h.persistent || []).length){ tone = "warning"; html = `<b>Распознавание стабильно расходится со щитом:</b> ${h.persistent.slice(0, 4).map(p => esc(p.label)).join(", ")}.`; }
+  else if (h.truth_down){ tone = "info"; html = "<b>Сверка с моделью недоступна</b> — распознавание работает, но точность не оценивается."; }
+  box.innerHTML = tone ? `<div class="banner b-${tone}"><span>${html}</span><button class="link" data-goto="playbooks">Что делать →</button></div>` : "";
+  const g = box.querySelector("[data-goto]"); if (g) g.onclick = () => openTab("playbooks");
+}
+
+/* ───────── система без профиля: подготовка ───────── */
+function drawOnboarding(){
+  const o = state.onboarding || {}, box = $("onb");
+  const icon = st => ({done:'<span class="ico done">✓</span>', fail:'<span class="ico fail">✗</span>', pending:'<span class="ico">…</span>', blocked:'<span class="ico na">–</span>'})[st] || '<span class="ico">?</span>';
+  const prof = (o.profiles || []).map(p => `<tr><td>${esc(p.profile)}</td><td class="r num">${fx(p.score, 2)}</td><td>${p.score > .8 ? "совпадает" : "не совпадает"}</td></tr>`).join("");
+  const texts = (state.texts || []).slice(0, 80).map(t => `<span class="chipbtn" style="cursor:default" title="уверенность ${fx(t.conf, 2)}">${esc(t.text)}</span>`).join(" ");
+  const pr = o.progress ? 100 * o.progress[0] / o.progress[1] : 0;
+  box.innerHTML = `<h2>Подготовка новой системы <small>${esc(o.summary || "")}</small></h2>
+   <div class="bar2" style="margin:6px 0 12px"><span style="width:${pr}%"></span></div>
+   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+    <div><h2>Чек-лист готовности</h2><ul class="cl">${(o.checklist || []).map(c => `<li>${icon(c.status)}<div>${esc(c.text)}<small>${esc(c.detail || "")}</small></div></li>`).join("")}</ul>
+      <p style="font-size:12.5px;color:var(--ink-2)">На кадре — результат автопоиска: синие рамки — панели, пурпурные — круглые приборы, зелёные — цветные числа, жёлтые — кнопки; голубая подложка — прочитанные надписи. Действия подготовки — во вкладке <button class="link" data-goto="playbooks">Плейбуки</button>.</p></div>
+    <div><h2>Известные профили <small>сравнение шапки контрольного кадра</small></h2><table class="t"><tr><th>профиль</th><th class="r">балл</th><th></th></tr>${prof || "<tr><td>—</td></tr>"}</table>
+      <h2 style="margin-top:12px">Прочитанные надписи <small>${(state.texts || []).length}, Tesseract rus+eng</small></h2><div style="display:flex;flex-wrap:wrap;gap:4px;max-height:240px;overflow:auto">${texts || "—"}</div></div>
+   </div>`;
+  const g = box.querySelector("[data-goto]"); if (g) g.onclick = () => openTab("playbooks");
+}
+
+/* ───────── системы: список слева и обзор ───────── */
+const TONE_ICON = {ok:"✓", warning:"!", critical:"✗", info:"i", serious:"!"};
+const toneChip = (tone, text) => `<span class="tone t-${tone}"><i>${TONE_ICON[tone] || "·"}</i>${esc(text)}</span>`;
+const thumbUrl = s => `/thumb.jpg?sys=${encodeURIComponent(s.id)}&v=${s.seq || 0}`;
+async function pollSystems(){
+  try{
+    const r = await (await fetch("/api/systems")).json();
+    systems = r.systems || [];
+    if (!SYS){ const saved = store.get("sys"); SYS = systems.some(x => x.id === saved) ? saved : r.active; post("/api/select", {}); sysStream(); }
+    safe("rail", drawRail);
+    if (TAB === "overview") safe("overview", drawOverview);
+    const cur = systems.find(x => x.id === SYS);
+    const n = cur ? cur.plant.length + cur.problems.length : 0;
+    $("pbCnt").style.display = n ? "" : "none"; $("pbCnt").textContent = n;
+  }catch(e){}
+  setTimeout(pollSystems, 2000);
+}
+const shortName = s => s.short || (String(s.id).match(/\d+/) || [String(s.id).slice(0, 5)])[0];
+let railMin = store.get("rail_min") === "1";
+function setRail(min){
+  railMin = min; store.set("rail_min", min ? "1" : "0");
+  document.querySelector(".app").classList.toggle("rail-min", min);
+  document.body.classList.toggle("rail-min-on", min);
+  const b = $("railToggle"); b.textContent = min ? "»" : "«"; b.setAttribute("aria-expanded", String(!min));
+  b.title = (min ? "Развернуть" : "Свернуть") + " список систем ( [ )";
+  safe("rail", drawRail);
+  setTimeout(() => { if (TAB === "vision" && state && state.ready) render(); }, 180);   // графики меряют ширину
+}
+function drawCur(){
+  const s = systems.find(x => x.id === SYS);
+  if (typeof sysStream === "function") sysStream();
+  $("layGroup").style.display = s && !s.layout ? "none" : "contents";
+  const zero = s && s.reader === "zero";
+  $("tcPlant").style.display = zero ? "none" : "contents";
+  $("tcZero").style.display = zero ? "contents" : "none";
+  $("selSpeed").style.display = zero ? "none" : "";
+  if (zero) $("zeroSeed").textContent = s.seed != null ? `сейчас — зерно ${s.seed}` : "";
+  $("curSys").innerHTML = s ? `${toneChip(s.tone, s.status)}<b>${esc(s.name)}</b>` : "";
+}
+function drawRail(){
+  drawCur();
+  if (railMin){
+    $("railList").innerHTML = systems.map(s => `<button class="sysm tl-${esc(s.tone)} ${s.id === SYS ? "on" : ""}" data-sys="${esc(s.id)}"
+      title="${esc(s.name)} — ${esc(s.status)}${s.acc != null ? ", точность " + fx(s.acc, 1) + " %" : ""}" aria-label="${esc(s.name)}" aria-current="${s.id === SYS}">
+      <span class="sh">${esc(shortName(s))}</span>${s.mode === "auto" ? '<span class="badge-auto">АВТО</span>' : ""}<span class="tone t-${esc(s.tone)}"><i>${TONE_ICON[s.tone] || "·"}</i></span>
+      <span class="ac num">${s.acc != null ? fx(s.acc, 0) + " %" : "—"}</span></button>`).join("");
+    $("railList").querySelectorAll("[data-sys]").forEach(b => b.onclick = () => selectSystem(b.dataset.sys));
+    return;
+  }
+  $("railList").innerHTML = systems.map(s => `<button class="sys ${s.id === SYS ? "on" : ""}" data-sys="${esc(s.id)}" title="Открыть эту систему">
+    <img src="${thumbUrl(s)}" alt="">
+    <div class="nm">${esc(s.name)}</div>
+    <div class="sub">${s.mode === "auto" ? '<span class="badge-auto">АВТО</span> ' : ""}${s.escalated ? '<span class="badge-op">оператор</span> ' : ""}${toneChip(s.tone, s.status)} ${s.acc != null ? `<span class="num">${fx(s.acc, 1)} %</span>` : ""}</div></button>`).join("");
+  $("railList").querySelectorAll("[data-sys]").forEach(b => b.onclick = () => selectSystem(b.dataset.sys));
+}
+function drawOverview(){
+  const crit = systems.filter(s => s.tone === "critical").length, warn = systems.filter(s => s.tone === "warning").length;
+  $("ovSummary").innerHTML = `Систем: <b>${systems.length}</b> · авария или нет сигнала: <b>${crit}</b> · требуют внимания: <b>${warn}</b> · на подготовке: <b>${systems.filter(s => s.kind === "onboarding").length}</b>`;
+  $("ovGrid").innerHTML = systems.map(s => `<div class="card big" data-sys="${esc(s.id)}" role="button" tabindex="0" title="Открыть «Зрение» этой системы">
+    <img src="${thumbUrl(s)}" alt="">
+    <div class="row2"><b>${esc(s.name)}</b><span>${s.mode === "auto" ? '<span class="badge-auto" title="Автомат: система сама держит щит в работе">АВТО</span> ' : ""}${s.escalated ? '<span class="badge-op">нужен оператор</span> ' : ""}${toneChip(s.tone, s.status)}</span></div>
+    ${s.vital ? `<div style="font-size:12px;color:var(--ink-2)">Жизнеспособность: ${s.vital[0]} из ${s.vital[1]} — ${esc(s.vital[2])}</div>` : ""}
+    ${s.kind === "onboarding"
+      ? `<div style="font-size:12px;color:var(--ink-2)">Профиля нет — подготовка: ${s.progress ? s.progress.join(" из ") : "—"} шагов</div><div class="bar2"><span style="width:${s.progress ? 100 * s.progress[0] / s.progress[1] : 0}%"></span></div>`
+      : `<div class="kpis"><div><b class="num">${s.acc != null ? fx(s.acc, 1) + " %" : "—"}</b>точность</div><div><b class="num">${fx(s.fps, 1)}</b>к/с</div><div><b>${esc(s.layout || "—")}</b>компоновка</div><div><b>${s.autoheal ? "вкл" : "выкл"}</b>самовосст.</div></div>`}
+    ${(s.plant.length || s.problems.length) ? `<ul class="issues">${[...s.plant.map(t => "⚡ " + t), ...s.problems.map(t => "🛠 " + t)].map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : `<div style="font-size:12px;color:var(--muted)">${s.kind === "onboarding" ? "" : "Замечаний нет"}</div>`}
+    <div class="row2"><span style="font-size:11.5px;color:var(--muted)">${esc(s.page)} · ${s.profile ? "профиль " + esc(s.profile) : "без профиля"}</span>
+      <button data-pb="${esc(s.id)}">Плейбуки →</button></div></div>`).join("");
+  $("ovGrid").querySelectorAll(".big").forEach(c => {
+    c.onclick = e => { if (e.target.dataset && e.target.dataset.pb) return; selectSystem(c.dataset.sys); openTab("vision"); };
+    c.onkeydown = e => { if (e.key === "Enter") c.click(); }; });
+  $("ovGrid").querySelectorAll("[data-pb]").forEach(b => b.onclick = () => { selectSystem(b.dataset.pb); openTab("playbooks"); });
+}
+function selectSystem(id){
+  if (!id || id === SYS) return;
+  SYS = id; store.set("sys", id); state = null; selected = null; pbData = null;
+  $("detailBody").innerHTML = '<div class="empty">Выберите прибор на кадре — здесь появятся шаги его чтения.</div>';
+  $("ovl").textContent = ""; $("frame").removeAttribute("src"); $("vBanner").innerHTML = "";
+  post("/api/select", {}); safe("rail", drawRail); refreshTab();
+  reacts = []; $("react").innerHTML = '<li class="hint">Нажмите что-нибудь на щите — здесь появится, что зрение заметило по видео, через сколько и сходится ли с щитом.</li>';
+  sysStream();
+}
+function openTab(t){
+  TAB = t; store.set("tab", t);
+  document.querySelectorAll(".tabs [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === t));
+  document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x.id === "tab-" + t));
+  refreshTab();
+  sysStream();             // живое видео щита тянется, только пока открыты «Системы»
+}
+function refreshTab(){
+  if (TAB === "overview") safe("overview", drawOverview);
+  if (TAB === "playbooks") loadPlaybooks();
+  if (TAB === "infra") loadInfra();
+  if (TAB === "vision" && state && state.ready) render();
+}
+
+/* ───────── плейбуки ───────── */
+const KIND = {action:["k-action", "⚡ на щите"], fix:["k-fix", "🛠 исправление"], check:["k-check", "👁 проверка на экране"],
+              test:["k-test", "🧪 тестовый канал"], info:["k-info", ""]};
+const PBKIND = {plant:"технологический процесс", vision:"распознавание", infra:"инфраструктура", onboarding:"подготовка"};
+let runningSeq = false;
+async function loadPlaybooks(){
+  if (TAB !== "playbooks" || !SYS) return;
+  try{ const want = SYS; const d = await (await fetch(q("/api/playbooks"))).json(); if (want === SYS){ pbData = d; safe("pb", drawPlaybooks); } }catch(e){}
+  try{ const want = SYS; const a = await (await fetch(q("/api/autopilot"))).json(); if (want === SYS) safe("ap", () => drawAutopilot(a)); }catch(e){}
+}
+/* ───────── режим работы: ручной / автомат, жизнеспособность ───────── */
+const VIT_ICO = {ok:'<span class="ico done">✓</span>', fail:'<span class="ico fail">✗</span>', warn:'<span class="ico warn">!</span>'};
+const REPAIR_RU = {start_vm:"запустить ВМ", restart_panel:"перезапустить щит в ВМ", restart_vmhdmi:"перезапустить «HDMI»-службу",
+  flush:"сбросить кэш и перепривязать", esc:"Esc в ВМ", reconnect_truth:"переподключить сверку"};
+function drawVitality(v){
+  if (!v){ return; }
+  $("vitScore").innerHTML = `${v.ok} из ${v.total} · <b>${esc(v.verdict)}</b> · ${esc(v.t)}`;
+  $("vitList").innerHTML = v.checks.map(c => `<li>${VIT_ICO[c.status] || ""}<div>${esc(c.text)}<small>${esc(c.detail || "")}${
+    c.repair ? ` · ремонт: ${esc(REPAIR_RU[c.repair] || c.repair)}` : ""}</small></div></li>`).join("");
+}
+function drawAutopilot(a){
+  const auto = a.mode === "auto";
+  document.querySelectorAll("[data-apmode]").forEach(b => b.classList.toggle("on", b.dataset.apmode === a.mode));
+  $("apCard").classList.toggle("auto", auto);
+  $("apState").innerHTML = auto ? (a.running ? `<span class="badge-auto">АВТО</span> выполняет плейбук…` : `<span class="badge-auto">АВТО</span> следит за щитом`) : "технологические действия — по кнопке оператора";
+  $("apHint").textContent = auto
+    ? "Автомат сам выполняет технологические плейбуки (авария → ремонт, сброс, пуск; насос стоит → пуск; отложения → промывка) и раз в минуту проверяет жизнеспособность, чиня то, что сломалось. Каждый шаг подтверждается по картинке; не подтвердился — плейбук откладывается на 5 мин, две неудачи за 30 мин — «нужен оператор»."
+    : "Ручной режим: плейбуки собираются и показываются, нажатия на щите — по кнопке оператора. Самовосстановление распознавания работает, если включено.";
+  if (a.vitality) drawVitality(a.vitality);
+  $("apEsc").innerHTML = (a.escalated || []).map(e => `<div class="esc"><b>Нужен оператор:</b> «${esc(e.title)}» — ${esc(e.why)} (с ${esc(e.t)}).
+    <button data-unesc="${esc(e.playbook)}">Снять эскалацию</button></div>`).join("");
+  $("apEsc").querySelectorAll("[data-unesc]").forEach(b => b.onclick = () => post("/api/autopilot", {clear_escalation: true, playbook: b.dataset.unesc}).then(loadPlaybooks));
+  $("apLog").innerHTML = (a.log || []).map(l => `<div><time>${esc(l.t)}</time> <span class="${l.status === "fail" ? "bad-t" : l.status === "ok" ? "ok-t" : ""}">${esc(l.text)}</span></div>`).join("")
+    || '<div class="hint">Пока пусто.</div>';
+}
+document.querySelectorAll("[data-apmode]").forEach(b => b.onclick = async () => {
+  const mode = b.dataset.apmode, cur = systems.find(x => x.id === SYS) || {};
+  if (mode === "auto" && !confirm(`Включить автомат для «${cur.name || SYS}»?\n\nСистема будет сама нажимать органы управления этого щита по плейбукам (ремонт, сброс защит, пуск, промывка…), проверяя каждый шаг по картинке. Если шаг не подтвердится дважды — остановится и позовёт оператора.`)) return;
+  await post("/api/autopilot", {mode}); loadPlaybooks(); pollSystems();
+});
+$("bVital").onclick = async () => { $("bVital").disabled = true; try{ drawVitality(await post("/api/vitality", {})); } finally { $("bVital").disabled = false; } };
+$("bVitalFix").onclick = async () => { $("bVitalFix").disabled = true; try{ drawVitality(await post("/api/vitality", {repair: true})); loadPlaybooks(); } finally { $("bVitalFix").disabled = false; } };
+setInterval(loadPlaybooks, 1500);
+function stepIcon(st){
+  const j = st.job && st.job.status;
+  if (j === "выполняется") return '<span class="ico run" title="выполняется"></span>';
+  if (st.status === "done") return '<span class="ico done" title="видно на экране / выполнено">✓</span>';
+  if (j === "ошибка" || j === "не подтвердилось" || st.status === "fail") return '<span class="ico fail" title="не получилось">✗</span>';
+  if (j === "выполнено") return '<span class="ico done" title="выполнено">✓</span>';
+  if (st.kind === "info") return '<span class="ico na">i</span>';
+  if (st.available === false) return '<span class="ico na" title="недоступно">–</span>';
+  return '<span class="ico" title="ещё не сделано">○</span>';
+}
+function drawPlaybooks(){
+  const d = pbData || {}, cur = systems.find(x => x.id === SYS) || {};
+  $("pbTitle").textContent = "Плейбуки — " + (cur.name || SYS || "");
+  $("autoheal").checked = !!d.autoheal;
+  const list = d.playbooks || [];
+  $("pbList").innerHTML = list.length ? list.map((p, pi) => {
+    const runnable = p.steps.filter(s => (s.kind === "action" || s.kind === "fix") && s.available && s.status !== "done");
+    return `<article class="pb"><header>
+      ${toneChip(p.severity, p.severity_title)}
+      <div style="flex:1;min-width:0"><h3>${esc(p.title)}</h3>
+        <div style="font-size:11.5px;color:var(--muted)">${PBKIND[p.kind] || p.kind}${p.auto ? " · исправляется само, если включено самовосстановление" : ""}</div>
+        <div class="why">${esc(p.why || "")}</div>
+        ${(p.evidence || []).length ? `<div class="ev">${p.evidence.map(e => `<button class="chipbtn" data-ev="${esc(e)}" title="Показать на кадре">${esc(objLabel(e))}</button>`).join("")}</div>` : ""}</div>
+      ${runnable.length > 1 && p.kind === "plant" ? `<button class="act plant" data-run="${pi}" ${runningSeq ? "disabled" : ""} title="Выполнить действия по порядку, каждое — с проверкой по картинке; на первом неудачном — остановка">Выполнить по шагам</button>` : ""}
+      </header><ol class="steps">${p.steps.map((st, si) => {
+        const k = KIND[st.kind] || ["k-info", ""];
+        const btn = (st.kind === "action" || st.kind === "fix" || st.kind === "test")
+          ? `<button class="act ${st.kind === "action" ? "plant" : "fix"}" data-step="${pi}:${si}" ${st.available === false || (st.job && st.job.status === "выполняется") || runningSeq ? "disabled" : ""}
+              title="${esc(st.available === false ? (st.reason || "недоступно") : st.kind === "action" ? "Нажмёт на щите в ВМ и проверит результат по картинке" : st.kind === "test" ? "Тестовый канал стенда" : "Безопасное исправление")}">${st.kind === "action" ? "Нажать на щите" : st.kind === "test" ? "Выполнить" : "Исправить"}</button>` : "";
+        return `<li class="st">${stepIcon(st)}<div>
+          <div class="tx">${k[1] ? `<span class="kind ${k[0]}">${k[1]}</span>` : ""}${esc(st.text)}</div>
+          ${st.expect_text ? `<div class="meta">ждём на экране: ${esc(st.expect_text)}${st.status === "done" ? " — видно ✓" : ""}</div>` : ""}
+          ${st.detail ? `<div class="meta">${esc(st.detail)}</div>` : ""}
+          ${st.job ? `<div class="meta">${esc(st.job.t)} · ${esc(st.job.status)}${st.job.msg ? ": " + esc(st.job.msg) : ""}</div>` : ""}
+          ${st.available === false && st.reason ? `<div class="meta">недоступно: ${esc(st.reason)}</div>` : ""}</div><div>${btn}</div></li>`; }).join("")}</ol></article>`;
+  }).join("") : `<div class="card">Плейбуков нет — система в порядке.</div>`;
+  const fc = window.demoFocus;
+  if (fc && fc.playbook){
+    const i = list.findIndex(p => p.id === fc.playbook);
+    const art = $("pbList").querySelectorAll(".pb")[i];
+    if (art){ art.classList.add("focus");
+      if (fc.step){ const k = list[i].steps.findIndex(x => x.id === fc.step); const li = art.querySelectorAll(".st")[k]; if (li) li.classList.add("focus"); }
+      if (window.demoScrolled !== fc.playbook + (fc.step || "")){ art.scrollIntoView({block:"center", behavior:"smooth"}); window.demoScrolled = fc.playbook + (fc.step || ""); } }
+  }
+  $("pbList").querySelectorAll("[data-step]").forEach(b => b.onclick = () => { const [pi, si] = b.dataset.step.split(":").map(Number); runStep(list[pi], list[pi].steps[si]); });
+  $("pbList").querySelectorAll("[data-run]").forEach(b => b.onclick = () => runSequence(list[Number(b.dataset.run)]));
+  $("pbList").querySelectorAll("[data-ev]").forEach(b => b.onclick = () => { openTab("vision"); setTimeout(() => select({id:b.dataset.ev}), 400); });
+  const jobs = d.jobs || [];
+  $("jobList").innerHTML = jobs.length ? jobs.map(j => `<div><time class="num">${esc(j.t)}</time> ${j.auto ? "🤖 " : ""}${esc(j.title || j.action)} — <b>${esc(j.status)}</b>${j.msg ? ": " + esc(j.msg) : ""}</div>`).join("") : "<div>пока ничего</div>";
+}
+function objLabel(id){ const o = state && state.objects && state.objects.find(x => x.id === id); return o ? (o.label || id) : id; }
+async function runStep(p, st, confirmed){
+  if (st.kind === "action" && !confirmed &&
+      !confirm(`Нажать на щите системы «${SYS}»?\n\n${st.text}\n\nКнопка будет нажата в ВМ по месту, где она найдена на кадре; результат проверяется по картинке.`)) return null;
+  const r = await post("/api/fix", {action: st.action.name, args: st.action.args, step: st.id, expect: st.expect || null, wait: st.wait || 20, title: st.text});
+  loadPlaybooks();
+  return r.job;
+}
+async function waitJob(id){
+  for (let i = 0; i < 150; i++){
+    await new Promise(r => setTimeout(r, 700));
+    const d = await (await fetch(q("/api/playbooks"))).json();
+    const j = (d.jobs || []).find(x => x.id === id);
+    if (j && j.status !== "выполняется") return j;
+  }
+  return {status: "таймаут"};
+}
+async function runSequence(p){
+  const acts = p.steps.filter(s => (s.kind === "action" || s.kind === "fix") && s.available && s.status !== "done");
+  if (!confirm(`Выполнить «${p.title}» по шагам на «${SYS}»?\n\n` + acts.map((s, i) => `${i + 1}. ${s.text}`).join("\n") +
+               "\n\nКаждый шаг проверяется по картинке; на первом неудачном — остановка.")) return;
+  runningSeq = true; safe("pb", drawPlaybooks);
+  try{
+    for (const st of acts){
+      const job = await runStep(p, st, true);
+      if (!job) break;
+      const j = await waitJob(job.id);
+      if (j.status !== "выполнено"){ alert(`Остановлено на шаге «${st.text}»: ${j.status}${j.msg ? " — " + j.msg : ""}`); break; }
+    }
+  } finally { runningSeq = false; loadPlaybooks(); }
+}
+$("autoheal").onchange = e => post("/api/autoheal", {on: e.target.checked}).then(loadPlaybooks);
+
+/* ───────── на чём работает ───────── */
+async function loadInfra(){
+  if (TAB !== "infra") return;
+  try{ infraData = await (await fetch("/api/infra")).json(); safe("infra", drawInfra); }catch(e){}
+}
+setInterval(loadInfra, 3000);
+const dur = s => s == null ? "—" : s > 86400 ? `${Math.floor(s / 86400)} д ${Math.floor(s % 86400 / 3600)} ч` : s > 3600 ? `${Math.floor(s / 3600)} ч ${Math.floor(s % 3600 / 60)} мин` : `${Math.floor(s / 60)} мин`;
+const kv = pairs => pairs.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v ?? "—"}</dd>`).join("");
+function drawInfra(){
+  const d = infraData || {}, h = d.host || {}, dp = d.dashboard_proc || {};
+  const memf = (h.used_gb || 0) / (h.total_gb || 1);
+  $("ifHost").innerHTML = kv([["Процессор", esc(h.cpu)], ["Ядер", h.cores],
+    ["Память", `${fx(h.used_gb, 1)} из ${fx(h.total_gb, 1)} ГБ<div class="bar2" style="margin-top:3px"><span style="width:${100 * memf}%;background:${memf > .85 ? "var(--crit)" : "var(--s1)"}"></span></div>`],
+    ["Нагрузка 1/5/15 мин", esc((h.load || []).join(" / "))], ["ОС", esc(h.os)], ["Ядро", esc(h.kernel)],
+    ["Виртуализация", `${esc(h.qemu)}${h.kvm ? " · KVM" : " · <span class='err'>без KVM</span>"}`], ["Имя хоста", esc(h.hostname)], ["Работает", `${fx(h.uptime_h, 1)} ч`]]);
+  $("ifStack").innerHTML = kv([["Python", esc(h.python)], ["OpenCV", esc(h.opencv)], ["NumPy", esc(h.numpy)], ["websockets", esc(h.websockets)],
+    ["Tesseract", `${esc(h.tesseract)} · ${esc((h.tess_langs || []).join(", "))}`],
+    ["Дашборд", `pid ${dp.pid ?? "—"} · CPU ${fx(dp.cpu_pct, 0)} % · ${dp.rss_mb ?? "—"} МБ`],
+    ["Захват", "QEMU VNC → vmhdmi → MJPEG (как PiKVM)"], ["Распознавание", "FastReader (bridge/) + ExtraReader (vm/): глифы, Tesseract, тренды по цвету"],
+    ["Ввод", "обратный канал vmhdmi → VNC → USB-мышь и клавиатура ВМ"]]);
+  const S = d.systems || [], cur = S.find(x => x.id === SYS) || S[0];
+  if (cur){
+    const st = cur.stream || {}, g = cur.guest || {}, v = cur.vision || {}, t = v.timing || {}, vp = cur.vm_proc || {};
+    $("ifSys").textContent = cur.name;
+    const stage = (ok, title, sub, val) => `<div class="stage ${ok === true ? "ok" : ok === false ? "bad" : "unk"}"><b>${esc(title)}</b><span>${esc(sub)}</span><div class="v num">${val}</div></div>`;
+    $("ifPipe").innerHTML = [
+      stage(!!vp.pid, "ВМ · QEMU/KVM", `${cur.vm_cfg.vcpu} vCPU · ${cur.vm_cfg.ram_gb} ГБ · VNC :${cur.ports.vnc}`, vp.pid ? `CPU ${fx(vp.cpu_pct, 0)} % · ${vp.rss_mb} МБ` : "не запущена"),
+      stage(g.reachable === undefined ? null : !!g.reachable, "Гость: Debian + Chromium", `${g.os || "—"}`, g.reachable ? `${esc(g.mode || "—")} · ${esc((g.chromium || "").replace(/ built.*/, ""))}` : "нет ssh"),
+      stage(!!st.jpeg_fps, "«HDMI»-служба vmhdmi", `VNC → JPEG q${st.quality ?? "—"} · :${cur.ports.mjpeg}`, st.jpeg_fps ? `${fx(st.jpeg_fps, 1)} к/с · ${st.jpeg_kb} КБ · ${fx(st.encode_ms_p50, 1)} мс` : "нет потока"),
+      stage(v.kind === "onboarding" ? null : v.fps != null, v.kind === "onboarding" ? "Подготовка" : "Распознавание", v.kind === "onboarding" ? "автопоиск, Tesseract" : "FastReader + ExtraReader",
+            v.kind === "onboarding" ? "профиля нет" : `${fx(v.fps, 1)} к/с · ${fx(t.read_ms, 0)} + ${fx(t.extra_ms, 0)} мс`),
+      stage(true, "Плейбуки", "из распознанного", "→ HID обратно в ВМ")].join('<span class="arrow" aria-hidden="true">→</span>');
+  }
+  $("ifTable").innerHTML = `<tr><th>система</th><th>ВМ</th><th>гостевая ОС</th><th>экран и щит</th><th>захват</th><th>распознавание</th><th>профиль</th><th>порты</th></tr>` + S.map(x => {
+    const vp = x.vm_proc || {}, hp = x.vmhdmi_proc || {}, g = x.guest || {}, st = x.stream || {}, v = x.vision || {}, pr = x.profile;
+    return `<tr><td><b>${esc(x.name)}</b><br><span style="color:var(--muted)">${esc(x.id)}</span></td>
+      <td class="num">${vp.pid ? `pid ${vp.pid}<br>CPU ${fx(vp.cpu_pct, 0)} % · ${vp.rss_mb} МБ<br>${x.vm_cfg.vcpu} vCPU · ${x.vm_cfg.ram_gb} ГБ · ${dur(vp.uptime_s)}<br>диск ${x.vm_cfg.disk_mb ?? "—"} МБ` : '<span class="err">не запущена</span>'}</td>
+      <td>${g.reachable ? `${esc(g.os)}<br>ядро ${esc(g.kernel)}<br>${esc((g.chromium || "").replace(/ built.*/, ""))}<br>загрузка ${esc(g.load)}<br>память ${esc(g.mem)} МБ · ${esc(g.cpus)} CPU` : "нет ssh"}</td>
+      <td>${esc(g.mode || "—")}<br>${esc((g.page || x.page).replace("file:///opt/scada/", ""))}<br>Xorg ${g.xorg && g.xorg !== "0" ? "✓" : "✗"} · Chromium ${g.chrome && g.chrome !== "0" ? "✓" : "✗"}</td>
+      <td class="num">${st.jpeg_fps != null ? `${fx(st.jpeg_fps, 1)} к/с · ${st.jpeg_kb} КБ<br>VNC ${fx(st.vnc_updates_per_s, 0)} обн/с<br>JPEG ${fx(st.encode_ms_p50, 1)} мс<br>vmhdmi CPU ${fx(hp.cpu_pct, 0)} %` : '<span class="err">нет потока</span>'}</td>
+      <td class="num">${v.kind === "onboarding" ? "подготовка" : `${fx(v.fps, 1)} к/с · ${v.active ? "выбрана" : "фон"}<br>чтение ${fx((v.timing || {}).read_ms, 0)} мс<br>привязка ${fx(v.quality, 2)}`}</td>
+      <td>${pr ? (pr.kind ? `${esc(pr.path)}<br>${esc(pr.kind)} · ${pr.templates} объектов<br>надёжно ${pr.reliable} из ${pr.checked} (самопроверка)<br>калибровочных состояний ${pr.validation}`
+                         : `${esc(pr.path)}<br>${pr.templates} эталонов · ${pr.created ? esc(pr.created.slice(0, 10)) : "—"}<br>глифы ${pr.glyphs ? "✓" : "✗"} · источники журнала ${pr.log_tags ? "✓" : "✗"}<br>контрольных кадров ${pr.validation}`) : "нет"}</td>
+      <td class="num">VNC ${x.ports.vnc}<br>MJPEG ${x.ports.mjpeg}<br>HID ${x.ports.control}<br>ssh ${x.ports.ssh}</td></tr>`;
+  }).join("");
+}
+
+
+/* ───────── демо ───────── */
+let demoScenario = "plant", demoTimer = null, demoFocusApplied = null;
+function demoVisible(){ const hidden = store.get("demo_hidden") === "1";
+  $("demoBtn").style.display = hidden ? "none" : ""; $("bDemoShow").style.display = hidden ? "" : "none"; }
+$("bDemoHide").onclick = () => { store.set("demo_hidden", "1"); demoVisible(); };
+$("bDemoShow").onclick = () => { store.set("demo_hidden", "0"); demoVisible(); };
+$("bDemo").onclick = async () => {
+  const d = await (await fetch("/api/demo")).json();
+  const sc = d.scenarios || {};
+  $("demoScn").innerHTML = Object.entries(sc).map(([k, t]) => `<button class="scn ${k === demoScenario ? "on" : ""}" data-scn="${k}"><b>${esc(t)}</b><span>${k === "plant"
+      ? "Изоляция кабеля падает ниже порога, защита отключает насос. Система видит аварию на табло, собирает плейбук и проходит ремонт → сброс защиты → пуск, проверяя каждый шаг на экране."
+      : "Поверх щита появляется окно. Система замечает закрытые панели, не считает их ошибками и закрывает окно клавишей Esc через HID — сама, если включено самовосстановление."}</span></button>`).join("");
+  $("demoScn").querySelectorAll("[data-scn]").forEach(b => b.onclick = () => { demoScenario = b.dataset.scn;
+    $("demoScn").querySelectorAll("[data-scn]").forEach(x => x.classList.toggle("on", x === b)); });
+  const prof = systems.filter(x => x.profile);
+  $("demoSys").innerHTML = prof.map(x => `<option value="${esc(x.id)}" ${x.id === SYS ? "selected" : ""}>${esc(x.name)}</option>`).join("");
+  $("demoModal").classList.add("on");
+};
+$("demoCancel").onclick = () => $("demoModal").classList.remove("on");
+$("demoGo").onclick = async () => {
+  const sid = $("demoSys").value;
+  $("demoModal").classList.remove("on");
+  const r = await fetch("/api/demo/start", {method:"POST", body:JSON.stringify({sys:sid, scenario:demoScenario})}).then(x => x.json());
+  if (r.error){ alert(r.error); return; }
+  selectSystem(sid); demoFocusApplied = null;
+  $("demoPanel").classList.add("on"); pollDemo();
+};
+$("demoStop").onclick = () => fetch("/api/demo/stop", {method:"POST", body:JSON.stringify({sys:SYS})});
+$("demoClose").onclick = () => $("demoPanel").classList.remove("on");
+async function pollDemo(){
+  clearTimeout(demoTimer);
+  try{
+    const d = await (await fetch("/api/demo")).json();
+    $("demoTitle").textContent = (d.running ? "Демо идёт: " : "Демо: ") + (d.title || "");
+    $("demoStop").style.display = d.running ? "" : "none";
+    const ic = {run:'<span class="ico run"></span>', ok:'<span class="ico done">✓</span>', fail:'<span class="ico fail">✗</span>', info:'<span class="ico na">i</span>'};
+    $("demoSteps").innerHTML = (d.steps || []).map(s => `<li>${ic[s.status] || ""}<div><time class="num">${esc(s.t)}</time>${esc(s.text)}</div></li>`).join("");
+    $("demoSteps").lastElementChild && $("demoSteps").lastElementChild.scrollIntoView({block:"nearest"});
+    const f = d.focus;
+    if (f && JSON.stringify(f) !== demoFocusApplied){
+      demoFocusApplied = JSON.stringify(f);
+      if (d.sys && d.sys !== SYS) selectSystem(d.sys);
+      if (f.tab && f.tab !== TAB) openTab(f.tab);
+      window.demoFocus = f;
+    }
+    if (d.running) demoTimer = setTimeout(pollDemo, 1000);
+  }catch(e){ demoTimer = setTimeout(pollDemo, 2000); }
+}
+demoVisible();
+fetch("/api/demo").then(r => r.json()).then(d => { if (d.running){ $("demoPanel").classList.add("on"); pollDemo(); } }).catch(() => {});
+/* ───────── справка, вкладки, старт ───────── */
+$("bHelp").onclick = () => $("help").classList.toggle("on");
+$("bHelpClose").onclick = () => $("help").classList.remove("on");
+document.querySelectorAll(".tabs [data-tab]").forEach(b => b.onclick = () => openTab(b.dataset.tab));
+$("railToggle").onclick = () => setRail(!railMin);
+$("curSys").onclick = () => setRail(false);
+addEventListener("keydown", e => {
+  if (e.key !== "[" || e.ctrlKey || e.altKey || e.metaKey || /^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName)) return;
+  setRail(!railMin); });
+setRail(railMin);
+// ?tab=vision&sys=well1249 — дашборд во втором окне сразу на нужной вкладке и системе
+const UP = new URLSearchParams(location.search);
+if (UP.get("sys")){ SYS = UP.get("sys"); post("/api/select", {}); }
+openTab(UP.get("tab") || store.get("tab") || "overview");
+pollSystems();
+
+/* ───────── «Системы»: сам щит — всё нажимается; зрение получает только видео ───────── */
+let SPLIT = store.get("sys_split") === "1", reacts = [];
+function winUrl(kind){
+  return kind === "system" ? "/system?sys=" + encodeURIComponent(SYS || "") : "/?tab=vision&sys=" + encodeURIComponent(SYS || "");
+}
+function sysStream(){
+  const want = TAB === "systems" && SYS ? "/stream?sys=" + encodeURIComponent(SYS) : "";
+  const img = $("sysLive");
+  if ((img.dataset.src || "") !== want){ img.dataset.src = want; if (want) img.src = want; else img.removeAttribute("src"); }
+  const cur = systems.find(x => x.id === SYS);
+  $("sysTitle").textContent = "Щит — " + (cur ? cur.name : SYS || "");
+  document.querySelectorAll("[data-win]").forEach(a => a.href = winUrl(a.dataset.win));
+}
+$("sysLive").onload = () => { $("sysNoSig").style.display = "none"; };
+$("sysLive").onerror = () => { if (!$("sysLive").dataset.src) return; $("sysNoSig").style.display = "flex"; $("sysLive").dataset.src = ""; setTimeout(sysStream, 2000); };
+function setSplit(on){
+  SPLIT = on; store.set("sys_split", on ? "1" : "0");
+  $("sysGrid").classList.toggle("split", on); $("bSplit").classList.toggle("on", on);
+  if (on && state) safe("sysvision", () => drawSysVision(state));
+}
+$("bSplit").onclick = () => setSplit(!SPLIT);
+document.querySelectorAll("[data-goto]").forEach(b => b.onclick = () => openTab(b.dataset.goto));
+
+let hidQ = Promise.resolve();
+const hid = body => (hidQ = hidQ.then(() => post("/api/hid", body)).catch(e => ({error: String(e)})));
+function toFrame(e){
+  const svg = $("sysMap"), img = $("sysLive");
+  const W = img.naturalWidth || 1920, H = img.naturalHeight || 1080;
+  if (svg.getAttribute("viewBox") !== `0 0 ${W} ${H}`) svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  return {x: Math.round(Math.max(0, Math.min(W - 1, p.x))), y: Math.round(Math.max(0, Math.min(H - 1, p.y)))};
+}
+function ripple(x, y){
+  const c = el("circle", {cx:x, cy:y, r:6, fill:"none", stroke:"#3987e5", "stroke-width":3}, $("sysMap"));
+  c.animate([{r:6, opacity:1}, {r:34, opacity:0}], {duration:650, easing:"ease-out"}).onfinish = () => c.remove();
+}
+const ST_RU = {on:"вкл", off:"выкл", blink:"мигает", disabled:"недоступна", pressed:"нажата", released:"отпущена",
+               normal:"норма", warn:"внимание", crit:"авария", run:"в работе", stop:"остановлен", apv:"ожидание АПВ", alarm:"авария",
+               open:"открыт", closed:"закрыт", throttled:"прикрыт", running:"в работе", stopped:"стоит"};
+const ru = v => v == null ? "—" : (ST_RU[v] || String(v));
+// дискретные объекты: по их смене видно, поймало ли зрение действие (стрелки и тренды меняются сами)
+const DISCRETE = new Set(["button", "lamp", "annunciator", "selector", "status_text", "badge", "pill", "level", "valve", "pump", "switch"]);
+const snapReads = s => new Map(((s && s.objects) || []).filter(o => DISCRETE.has(o.cls)).map(o => [o.id, o.read]));
+function startReaction(what, p){
+  const rc = {t0: performance.now(), wall: new Date().toLocaleTimeString("ru-RU"), what, base: snapReads(state),
+              changes: [], done: false, li: document.createElement("li")};
+  const ol = $("react"); if (ol.querySelector(".hint")) ol.textContent = "";
+  ol.prepend(rc.li); reacts.unshift(rc); reacts = reacts.slice(0, 15);
+  while (ol.children.length > 15) ol.lastChild.remove();
+  drawReact(rc);
+  setTimeout(() => { rc.done = true; drawReact(rc); medianReact(); }, 8000);
+}
+function drawReact(rc){
+  const mark = c => c.ok === true ? `<span class="ok-t">✓ сходится со щитом</span>` : c.ok === false ? `<span class="bad-t">✗ не сходится со щитом</span>`
+    : c.rel === false ? `<span class="unc-t">? не уверено</span>` : `<span class="hint">не сверяется</span>`;
+  rc.li.innerHTML = `<time>${rc.wall}</time><b>${esc(rc.what)}</b>` +
+    rc.changes.map(c => `<span class="chg">зрение увидело: «${esc(c.label)}» ${esc(ru(c.from))} → <b>${esc(ru(c.to))}</b> через <b class="num">${fx(c.dt / 1000, 1)} с</b> · ${mark(c)}</span>`).join("") +
+    (rc.changes.length ? "" : rc.done ? `<span class="chg hint">за 8 с зрение изменений на щите не увидело — щелчок мимо органа управления или действие ничего не поменяло</span>`
+                                      : `<span class="chg hint">жду, что зрение увидит по видео…</span>`);
+}
+function medianReact(){
+  const d = reacts.filter(r => r.changes.length).map(r => r.changes[0].dt).sort((a, b) => a - b);
+  $("svReact").textContent = d.length ? fx(d[Math.floor(d.length / 2)] / 1000, 1) + " с" : "—";
+}
+function sysOnState(s){
+  if (!s || s.system !== SYS) return;
+  const now = performance.now();
+  for (const rc of reacts){
+    if (rc.done) continue;
+    let ch = false;
+    for (const o of s.objects || []){
+      if (!DISCRETE.has(o.cls) || !rc.base.has(o.id) || rc.base.get(o.id) === o.read || rc.changes.some(c => c.id === o.id)) continue;
+      rc.changes.push({id:o.id, label:o.label || o.id, from:rc.base.get(o.id), to:o.read, dt:now - rc.t0, ok:o.ok, rel:o.reliable}); ch = true;
+    }
+    if (ch){ drawReact(rc); medianReact(); }
+  }
+  if (SPLIT && TAB === "systems") drawSysVision(s);
+}
+function drawSysVision(s){
+  $("svFps").textContent = fx(s.fps);
+  const ra = s.rolling && s.rolling.total ? 100 * s.rolling.ok / s.rolling.total : null;
+  $("svAcc").textContent = ra == null ? "—" : fx(ra, 1) + " %";
+  $("svAge").textContent = s.timing && s.timing.age_ms != null ? fx(s.timing.age_ms, 0) + " мс" : "—";
+  if ($("frame").src && $("svFrame").src !== $("frame").src) $("svFrame").src = $("frame").src;
+  const svg = $("svOvl"); svg.textContent = "";
+  if (s.frame_size) svg.setAttribute("viewBox", `0 0 ${s.frame_size[0]} ${s.frame_size[1]}`);
+  const bad = [];
+  for (const o of s.objects || []){
+    if (!o.at || !o.size || o.candidate || o.hidden) continue;
+    const st = statusOf(o);
+    el("rect", {x:o.at[0], y:o.at[1], width:o.size[0], height:o.size[1], fill:"none", stroke:st.c,
+                "stroke-width": st.k === "ok" ? 2 : 4, "stroke-opacity": st.k === "ok" ? .5 : 1, rx:2}, svg);
+    if (st.k === "bad" || st.k === "unc") bad.push([st, o]);
+  }
+  $("svIssues").innerHTML = bad.slice(0, 10).map(([st, o]) => `<li>${st.i} ${esc(o.label || o.id)}: прочитано «${esc(ru(o.read))}»` +
+    (o.truth != null ? `, на щите «${esc(ru(o.truth))}»` : "") + `</li>`).join("") || `<li class="hint">всё сходится со щитом</li>`;
+}
+const SS = $("sysStage");
+let drag = null, lastMove = 0;
+SS.addEventListener("pointerdown", e => {
+  if (e.button !== 0) return;
+  e.preventDefault(); SS.focus({preventScroll:true});
+  drag = Object.assign(toFrame(e), {sent:false}); SS.setPointerCapture(e.pointerId);
+});
+SS.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const p = toFrame(e);
+  if (!drag.sent && Math.hypot(p.x - drag.x, p.y - drag.y) > 6){
+    drag.sent = true; hid({op:"down", x:drag.x, y:drag.y}).then(r => { $("sysLast").textContent = r.error ? "не отправлено: " + r.error : "перетаскивание"; });
+  }
+  if (drag.sent && performance.now() - lastMove > 40){ lastMove = performance.now(); hid({op:"move", x:p.x, y:p.y}); }
+});
+SS.addEventListener("pointerup", e => {
+  if (!drag) return;
+  const p = toFrame(e);
+  if (drag.sent){ hid({op:"up", x:p.x, y:p.y}); startReaction("перетаскивание", p); }
+  else {
+    ripple(p.x, p.y);
+    startReaction(`щелчок ${p.x}, ${p.y}`, p);
+    const rc = reacts[0];
+    hid({op:"click", x:p.x, y:p.y}).then(r => {
+      $("sysLast").textContent = r.error ? "не отправлено: " + r.error : `щелчок ${p.x}, ${p.y}`;
+      if (r.obj){ rc.what = `щелчок ${p.x}, ${p.y} — по кадру зрения это «${r.obj.label}»`; drawReact(rc); }
+    });
+  }
+  drag = null;
+});
+SS.addEventListener("wheel", e => { e.preventDefault(); const p = toFrame(e); hid({op:"wheel", x:p.x, y:p.y, dy:e.deltaY}); }, {passive:false});
+SS.addEventListener("keydown", e => {
+  if (e.ctrlKey || e.altKey || e.metaKey || /^F\d+$/.test(e.key)) return;
+  e.preventDefault();
+  hid({op:"key", key:e.key}).then(r => { $("sysLast").textContent = r.error ? "не отправлено: " + r.error : "клавиша " + e.key; });
+  startReaction("клавиша " + e.key);
+});
+setSplit(SPLIT);
+
 /* ───────── управление ───────── */
 document.querySelectorAll("#layers [data-l]").forEach(b => b.onclick = () => {
   layers[b.dataset.l] = !layers[b.dataset.l]; b.classList.toggle("on", layers[b.dataset.l]); if (state) drawOverlay(); });
 $("bPause").onclick = () => { frozen = !frozen; $("bPause").classList.toggle("on", frozen); $("bPause").textContent = frozen ? "Продолжить" : "Стоп-кадр"; };
 $("bCache").onclick = async () => { const on = !$("bCache").classList.contains("on");
-  await fetch("/api/cache", {method:"POST", body:JSON.stringify({on})}); $("bCache").classList.toggle("on", on); };
-async function act(action, arg){ await fetch("/api/action", {method:"POST", body:JSON.stringify({action, arg})}); }
+  await post("/api/cache", {on}); $("bCache").classList.toggle("on", on); };
+async function act(action, arg){
+  const r = await post("/api/action", {action, arg}).catch(e => ({error: String(e)}));
+  $("actRes").innerHTML = r.error ? `<span class="err">не выполнено: ${esc(r.error)}</span>` : `<span style="color:var(--muted)">отправлено: ${esc(action)}</span>`;
+  clearTimeout(act.t); act.t = setTimeout(() => $("actRes").textContent = "", 6000); }
 document.querySelectorAll("[data-a]").forEach(b => b.onclick = async () => {
   const a = b.dataset.a;
   if (a === "freq"){ freq = Math.max(35, Math.min(65, freq + Number(b.dataset.d))); await act("freq", freq); }
@@ -694,8 +1574,8 @@ $("selFault").onchange = async e => { if (e.target.value) await act("fault", e.t
 $("selSpeed").onchange = e => act("speed", Number(e.target.value));
 $("bExact").onclick = async () => {
   $("bExact").disabled = true; $("exactRes").textContent = "модель на паузе, сверяю…";
-  try{ const r = await (await fetch("/api/exact", {method:"POST", body:"{}"})).json();
-    $("exactRes").innerHTML = r.error ? `<span class="err">${esc(r.error)}</span>` :
+  try{ const r = await post("/api/exact", {});
+    $("exactRes").innerHTML = r.error || !r.fails ? `<span class="err">${esc(r.error || "нет ответа")}</span>` :
       `<b class="num">${r.ok}/${r.total} = ${fx(r.acc,2)} %</b> (компоновка ${esc(r.layout)}, ${esc(r.clock)})` +
       (r.fails.length ? ` · расхождения: ${r.fails.map(f => `${esc(f.id)} ${esc(f.read)}≠${esc(f.truth)}`).join(", ")}` : " · без расхождений");
   } finally { $("bExact").disabled = false; } };

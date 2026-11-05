@@ -25,6 +25,11 @@ sys.path.insert(0, str(HERE))
 from vmhdmi import Cdp                     # noqa: E402
 from extra_reader import ExtraReader, value_crop    # noqa: E402
 
+import os
+# порты системы: по умолчанию основная ВМ; дашборд передаёт свои для любой системы
+MJPEG = os.environ.get("SCADA_MJPEG", "8781")
+SSH_PORT = int(os.environ.get("SCADA_SSH", "2222"))
+CDP_PORT = int(os.environ.get("SCADA_CDP", "9227"))
 BANK = HERE / "cv_templates_vm"
 OUT = BANK / "glyphs_live"
 
@@ -34,7 +39,7 @@ CHOKES = [20, 47, 83, 29, 96, 71, 34, 58, 65, 100, 92, 41]
 
 
 def snap():
-    data = urlopen("http://127.0.0.1:8781/snapshot.png", timeout=10).read()
+    data = urlopen(f"http://127.0.0.1:{MJPEG}/snapshot.png", timeout=10).read()
     return cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
 
 
@@ -57,7 +62,7 @@ def calibrate_tags(cdp, log_o):
     for i, tag in enumerate(panel_tags()):
         cdp.evaluate("t => { alarm('info', t, 'калибровка источника'); syncUI(); render(); }", tag)
         time.sleep(0.6)
-        for kind, url in (("png", "http://127.0.0.1:8781/snapshot.png"), ("jpg", "http://127.0.0.1:8781/snapshot")):
+        for kind, url in (("png", f"http://127.0.0.1:{MJPEG}/snapshot.png"), ("jpg", f"http://127.0.0.1:{MJPEG}/snapshot")):
             img = cv2.imdecode(np.frombuffer(urlopen(url, timeout=10).read(), np.uint8), cv2.IMREAD_COLOR)
             crop = img[y + 5:y + 20, x + 138:x + 198]
             p = f"log_tags/{i:02d}_{kind}.png"
@@ -72,7 +77,7 @@ def main():
     er = ExtraReader(BANK)
     sp = {o["id"]: o for o in er.readouts}
     log_o = er.ref["log_banner"]
-    cdp = Cdp(local_port=9227)
+    cdp = Cdp(ssh_port=SSH_PORT, local_port=CDP_PORT)
     samples = []
     rng = np.random.default_rng(7)
     try:

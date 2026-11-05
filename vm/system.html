@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Щит системы</title>
+<style>
+:root{
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#222220; --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+  --border:rgba(255,255,255,.10); --s1:#3987e5; --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme:light;
+    --page:#f9f9f7; --surface:#fcfcfb; --surface-2:#f0efec; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --border:rgba(11,11,11,.10); --s1:#2a78d6;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#0d0d0d; --surface:#1a1a19; --surface-2:#222220; --ink:#f0efec; --ink-2:#c3c2b7; --muted:#898781;
+  --border:rgba(255,255,255,.10); --s1:#3987e5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--page);color:var(--ink);font:13px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+body{display:flex;flex-direction:column;overflow:hidden}
+button,select{font:inherit;color:var(--ink);background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer}
+button:hover,select:hover{border-color:var(--muted)}
+button.on{border-color:var(--s1);box-shadow:inset 0 0 0 1px var(--s1)}
+.num{font-variant-numeric:tabular-nums}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border)}
+header b.t{font-size:14px;font-weight:600}
+.kv{display:flex;flex-direction:column;line-height:1.15}.kv b{font-size:14px;font-weight:600}.kv span{font-size:11px;color:var(--muted)}
+.grow{flex:1}
+.tone{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;border-radius:10px;padding:1px 8px 1px 6px;border:1px solid}
+.t-ok{color:var(--good);border-color:var(--good)}.t-warning{color:var(--warn);border-color:var(--warn)}
+.t-critical{color:var(--crit);border-color:var(--crit)}.t-info{color:var(--s1);border-color:var(--s1)}.t-serious{color:var(--serious);border-color:var(--serious)}
+#wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:10px 16px}
+#stage{position:relative;aspect-ratio:16/9;max-width:100%;max-height:100%;width:100%;background:#000;border-radius:6px;overflow:hidden;cursor:pointer}
+#stage:focus{outline:2px solid var(--s1);outline-offset:2px}
+#stage img,#stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* картинка вписывается без растяжения — так же, как пересчёт щелчка (svg meet) */
+#stage img{object-fit:contain}
+#stage svg{pointer-events:none}
+#stage svg text{font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif}
+#nosig{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--muted);font-size:15px}
+footer{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 16px;background:var(--surface);border-top:1px solid var(--border);font-size:12.5px;color:var(--ink-2)}
+footer b{color:var(--ink);font-weight:600}
+#jobs{display:flex;gap:4px 14px;flex-wrap:wrap}
+#jobs span{white-space:nowrap}
+#jobs time{color:var(--muted);margin-right:4px}
+.hint{color:var(--muted);font-size:12px}
+@media (max-width:700px){#wrap{padding:8px}header{padding:8px}footer{padding:8px}.hint{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <b class="t">Щит системы</b>
+  <select id="sys" aria-label="Система"></select>
+  <span class="hint">как у оператора — всё нажимается; экран уходит по «HDMI» в зрение</span>
+  <span class="grow"></span>
+  <a id="vis" target="_blank" rel="noopener" style="color:var(--s1)">Зрение этой системы ↗</a>
+  <a id="back" href="/" style="color:var(--s1)">Дашборд</a>
+</header>
+<div id="wrap">
+  <div id="stage" tabindex="0" aria-label="Щит системы: щелчки и клавиши уходят в него">
+    <img id="live" alt="Экран системы">
+    <svg id="ovl" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet"></svg>
+    <svg id="fx" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid meet"></svg>
+    <div id="nosig">нет видео с ВМ</div>
+  </div>
+</div>
+<footer>
+  <span>Последнее: <b id="last">—</b></span>
+  <span class="grow"></span>
+  <span class="hint">Щелчки, перетаскивание, колесо и клавиши уходят в щит. Ctrl/Alt-сочетания и F1–F12 остаются браузеру (F11 — полный экран).</span>
+</footer>
+<script>
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const el = (tag, a={}, p) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+let SYS = new URLSearchParams(location.search).get("sys") || "";
+function setStream(){
+  const src = "/stream?sys=" + encodeURIComponent(SYS);
+  if ($("live").dataset.src !== src){ $("live").dataset.src = src; $("live").src = src; }
+  history.replaceState(null, "", "/system?sys=" + encodeURIComponent(SYS));
+  $("vis").href = "/?tab=vision&sys=" + encodeURIComponent(SYS);
+}
+$("live").onerror = () => { $("nosig").style.display = "flex"; setTimeout(() => { $("live").dataset.src = ""; setStream(); }, 2000); };
+$("live").onload = () => { $("nosig").style.display = "none"; };
+async function loadSystems(){
+  try{
+    const r = await (await fetch("/api/systems")).json(), S = r.systems || [];
+    if (!SYS || !S.some(s => s.id === SYS)) SYS = r.active || (S[0] || {}).id;
+    $("sys").innerHTML = S.map(s => `<option value="${esc(s.id)}" ${s.id === SYS ? "selected" : ""}>${esc(s.name)}</option>`).join("");
+    const cur = S.find(s => s.id === SYS); if (cur) document.title = "Щит · " + cur.name;
+    setStream();
+  }catch(e){ setTimeout(loadSystems, 2000); }
+}
+$("sys").onchange = () => { SYS = $("sys").value; setStream(); $("stage").focus(); };
+
+let q = Promise.resolve();
+const hid = body => (q = q.then(() => fetch("/api/hid", {method:"POST", body:JSON.stringify(Object.assign({sys:SYS}, body))}).then(r => r.json()))
+                        .catch(e => ({error:String(e)})));
+function toFrame(e){
+  const svg = $("ovl"), img = $("live"), W = img.naturalWidth || 1920, H = img.naturalHeight || 1080;
+  if (svg.getAttribute("viewBox") !== `0 0 ${W} ${H}`) svg.setAttribute("viewBox", `0 0 ${W} ${H}`), $("fx").setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  return {x: Math.round(Math.max(0, Math.min(W - 1, p.x))), y: Math.round(Math.max(0, Math.min(H - 1, p.y)))};
+}
+function ripple(x, y){
+  const c = el("circle", {cx:x, cy:y, r:6, fill:"none", stroke:"#3987e5", "stroke-width":3}, $("fx"));
+  c.animate([{r:6, opacity:1}, {r:34, opacity:0}], {duration:650, easing:"ease-out"}).onfinish = () => c.remove();
+}
+const show = (r, f) => { $("last").textContent = r && r.error ? "не отправлено: " + r.error : f; };
+const S = $("stage");
+let drag = null, lastMove = 0;
+S.addEventListener("pointerdown", e => {
+  if (e.button !== 0) return;
+  e.preventDefault(); S.focus({preventScroll:true});
+  drag = Object.assign(toFrame(e), {sent:false}); S.setPointerCapture(e.pointerId);
+});
+S.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const p = toFrame(e);
+  if (!drag.sent && Math.hypot(p.x - drag.x, p.y - drag.y) > 6){ drag.sent = true; hid({op:"down", x:drag.x, y:drag.y}).then(r => show(r, "перетаскивание")); }
+  if (drag.sent && performance.now() - lastMove > 40){ lastMove = performance.now(); hid({op:"move", x:p.x, y:p.y}); }
+});
+S.addEventListener("pointerup", e => {
+  if (!drag) return;
+  const p = toFrame(e);
+  if (drag.sent) hid({op:"up", x:p.x, y:p.y});
+  else { ripple(p.x, p.y); hid({op:"click", x:p.x, y:p.y}).then(r => show(r, `щелчок ${p.x}, ${p.y}`)); }
+  drag = null;
+});
+S.addEventListener("wheel", e => { e.preventDefault(); const p = toFrame(e); hid({op:"wheel", x:p.x, y:p.y, dy:e.deltaY}); }, {passive:false});
+addEventListener("keydown", e => {
+  if (e.ctrlKey || e.altKey || e.metaKey || /^F\d+$/.test(e.key) || e.target.tagName === "SELECT") return;
+  e.preventDefault();
+  hid({op:"key", key:e.key}).then(r => show(r, "клавиша " + e.key));
+});
+loadSystems();
+S.focus({preventScroll:true});
+</script>
+</body>
+</html>

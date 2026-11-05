@@ -34,3 +34,8 @@ vm/tessdata/
 vm/cv_templates_vm/validation/
 vm/cv_templates_vm/glyphs_live/live_*.png
 .chrome-kiosk/
+vm/instances/
+vm/autopilot.json
+vm/.setup_done
+vm/profiles/*/frames/
+vm/profiles/*/calibration.json

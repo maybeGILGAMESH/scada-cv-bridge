@@ -19,7 +19,8 @@ fi
 [ -f ssh_key ] || ssh-keygen -q -t ed25519 -N '' -C scada-vm -f ssh_key
 if [ ! -f scada-vm.qcow2 ]; then
   qemu-img create -q -f qcow2 -F qcow2 -b "$BASE" scada-vm.qcow2 20G
-  sed "s|__SSH_KEY__|$(cat ssh_key.pub)|" user-data.tmpl > user-data
+  sed -e "s|__SSH_KEY__|$(cat ssh_key.pub)|" -e "s|__HOST__|scada-vm|" \
+      -e "s|__PAGE__|neft-hmi-cv-fullscreen.html|" user-data.tmpl > user-data
   cloud-localds seed.iso user-data meta-data
   echo "ВМ создана. Первый запуск ставит пакеты (~3–5 мин) и перезагружается сам."
 fi

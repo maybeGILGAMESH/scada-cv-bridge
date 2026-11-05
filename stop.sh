@@ -1,7 +1,7 @@
 #!/bin/bash
-# Остановить стенд: дашборд, окно просмотра, vmhdmi, ВМ.
+# Остановить стенд: дашборд, окно просмотра, все системы (vmhdmi + ВМ).
 DIR="$(cd "$(dirname "$0")" && pwd)"
+PY="$DIR/.venv/bin/python"; [ -x "$PY" ] || PY=python3
 pkill -f "[v]m/cvdash.py" && echo "дашборд остановлен"
 pkill -f "[v]m/vmview.py" && echo "окно просмотра закрыто"
-pkill -f "[v]mhdmi.py" && echo "vmhdmi остановлен"
-"$DIR/vm/run-vm.sh" stop
+"$PY" "$DIR/vm/fleet.py" down "$@"

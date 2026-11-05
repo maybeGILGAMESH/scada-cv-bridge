@@ -26,6 +26,11 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from vmhdmi import Cdp      # noqa: E402
 
+import os
+# порты системы: по умолчанию основная ВМ; дашборд передаёт свои для любой системы
+MJPEG = os.environ.get("SCADA_MJPEG", "8781")
+SSH_PORT = int(os.environ.get("SCADA_SSH", "2222"))
+CDP_PORT = int(os.environ.get("SCADA_CDP", "9226"))
 OUT = HERE / "cv_templates_vm"
 
 EXPORT_JS = """async (val) => {
@@ -58,11 +63,52 @@ def fix_manifest(man):
     return man
 
 
+DISCRETE = ("apparatus", "valve", "pump", "lamp", "annunciator", "button", "selector")
+
+
+def fill_missing_states(man, root):
+    """Выгрузка щита режет не все состояния: у фонтанной арматуры есть только
+    «работает», и читатель физически не может ответить «стоит». Недостающее
+    состояние добирается из контрольного кадра компоновки A, где разметка
+    показывает объект в этом состоянии: вырезка того же места и размера."""
+    import cv2
+    have = {}
+    for t in man["templates"]:
+        if t["class"] in DISCRETE:
+            have.setdefault(t["object_id"], {})[t.get("state")] = t
+    idx = json.loads((root / "validation" / "index.json").read_text(encoding="utf-8"))
+    added = []
+    for f in idx["frames"]:
+        if "/A/" not in f["image"] and not f["image"].startswith("validation/A"):
+            continue
+        ann = json.loads((root / f["truth"]).read_text(encoding="utf-8"))
+        img = None
+        for o in ann["objects"]:
+            st = o.get("state")
+            if o["id"] not in have or st in (None, "blink") or st in have[o["id"]]:   # «мигает» — это то горит, то нет
+                continue
+            base = next(iter(have[o["id"]].values()))
+            x, y = base["anchor"]
+            w, h = base["w"], base["h"]
+            if img is None:
+                img = cv2.imread(str(root / f["image"]))
+            crop = img[int(y):int(y) + h, int(x):int(x) + w]
+            rel = f"templates/{base['class']}/{o['id']}_{st}.png"
+            cv2.imwrite(str(root / rel), crop)
+            t = dict(base, file=rel, state=st, mask=None)
+            man["templates"].append(t)
+            have[o["id"]][st] = t
+            added.append(f"{o['id']}:{st}")
+    if added:
+        print(f"  добраны недостающие состояния из контрольных кадров: {', '.join(added)}")
+    return man
+
+
 def main():
     ap = argparse.ArgumentParser(description="Эталоны с щита в ВМ")
     ap.add_argument("--cur", action="store_true", help="контрольные кадры только в текущей компоновке")
     a = ap.parse_args()
-    cdp = Cdp(local_port=9226)
+    cdp = Cdp(ssh_port=SSH_PORT, local_port=CDP_PORT)
     try:
         cdp.evaluate("() => { setLayout('A'); syncUI(); }")
         t = time.time()
@@ -83,7 +129,7 @@ def main():
     OUT.mkdir()
     with zipfile.ZipFile(io.BytesIO(bytes(buf))) as z:
         z.extractall(OUT)
-    man = fix_manifest(json.loads((OUT / "manifest.json").read_text(encoding="utf-8")))
+    man = fill_missing_states(fix_manifest(json.loads((OUT / "manifest.json").read_text(encoding="utf-8"))), OUT)
     (OUT / "manifest.json").write_text(json.dumps(man, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"готово: {OUT}  эталонов {len(man['templates'])}, "
           f"контрольных кадров {len(list((OUT / 'validation').rglob('*.png')))}")

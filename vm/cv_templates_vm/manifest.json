@@ -9707,6 +9707,21 @@
    "mask": null,
    "unit": "%",
    "block": "console"
+  },
+  {
+   "file": "templates/apparatus/eq_xtree_stopped.png",
+   "object_id": "eq_xtree",
+   "class": "apparatus",
+   "label": "ФА фонтанная арматура",
+   "state": "stopped",
+   "w": 32,
+   "h": 36,
+   "anchor": [
+    91,
+    123
+   ],
+   "mask": null,
+   "block": "mimic"
   }
  ],
  "layouts": {

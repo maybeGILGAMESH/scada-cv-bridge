@@ -1,0 +1,102 @@
+{
+ "_comment": "Системы под наблюдением. vm=main — основная ВМ (run-vm.sh), остальные — vm/instances/<id>. profile — банк эталонов распознавания (папка в vm/) или null: система без профиля, готовится к работе. setup — начальный сценарий щита через тестовый канал (только для стенда). short — короткая метка для свёрнутого списка систем. reader=zero — щит без профиля: распознаётся «с нуля» (zero_vision.py); ram_mb — память ВМ.",
+ "systems": [
+  {
+   "id": "well1247",
+   "name": "Скважина 1247 · основной АРМ",
+   "vm": "main",
+   "page": "neft-hmi-cv-fullscreen.html",
+   "profile": "cv_templates_vm",
+   "ports": {
+    "vnc": 5900,
+    "mjpeg": 8781,
+    "control": 8790,
+    "ssh": 2222,
+    "cdp": 9222,
+    "cdp_dash": 9224
+   },
+   "setup": null,
+   "short": "1247"
+  },
+  {
+   "id": "well1248",
+   "name": "Куст 12 · АРМ-2 (компоновка C, износ насоса)",
+   "vm": "vm2",
+   "page": "neft-hmi-cv-fullscreen.html",
+   "profile": "cv_templates_vm",
+   "ports": {
+    "vnc": 5901,
+    "mjpeg": 8782,
+    "control": 8791,
+    "ssh": 2223,
+    "cdp": 9232,
+    "cdp_dash": 9234
+   },
+   "setup": {
+    "layout": "C",
+    "start": true,
+    "fault": "clog",
+    "speed": 120
+   },
+   "short": "АРМ-2"
+  },
+  {
+   "id": "well1249",
+   "name": "Куст 12 · АРМ-3 (компоновка D)",
+   "vm": "vm3",
+   "page": "neft-hmi-cv-fullscreen.html",
+   "profile": "cv_templates_vm",
+   "ports": {
+    "vnc": 5902,
+    "mjpeg": 8783,
+    "control": 8792,
+    "ssh": 2224,
+    "cdp": 9242,
+    "cdp_dash": 9244
+   },
+   "setup": {
+    "layout": "D",
+    "start": true,
+    "speed": 30
+   },
+   "short": "АРМ-3"
+  },
+  {
+   "id": "newsys",
+   "name": "Куст 14 · старый щит (профиль со страницы)",
+   "vm": "vm4",
+   "page": "neft-scada.html",
+   "profile": "profiles/newsys",
+   "ports": {
+    "vnc": 5903,
+    "mjpeg": 8784,
+    "control": 8793,
+    "ssh": 2225,
+    "cdp": 9252,
+    "cdp_dash": 9254
+   },
+   "setup": null,
+   "reader": "dom",
+   "short": "К-14"
+  },
+  {
+   "id": "rand",
+   "name": "Случайная SCADA (распознавание без профиля)",
+   "vm": "vm5",
+   "page": "random-scada.html",
+   "profile": null,
+   "reader": "zero",
+   "ram_mb": 1536,
+   "short": "СЛУЧ",
+   "ports": {
+    "vnc": 5904,
+    "mjpeg": 8785,
+    "control": 8794,
+    "ssh": 2226,
+    "cdp": 9262,
+    "cdp_dash": 9264
+   },
+   "setup": null
+  }
+ ]
+}

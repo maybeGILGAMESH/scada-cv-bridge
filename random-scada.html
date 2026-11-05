@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Случайная SCADA</title>
+<!--
+  Генератор случайных щитов SCADA для проверки распознавания «без профиля».
+  Каждое зерно (?seed=N, window.regen(N)) — другая станция: название, тема, шрифт,
+  сетка панелей, набор приборов (числовые табло, стрелочные приборы со своей шкалой,
+  шкалы-полосы, резервуары, лампы, кнопки-переключатели, тренды, журнал), подписи и
+  единицы. Значения живут, кнопки нажимаются. window.__truth() — истина для проверки
+  (что где нарисовано и какое значение), распознавание её не видит.
+-->
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--font)}
+#hdr{height:64px;display:flex;align-items:center;gap:24px;padding:0 24px;background:var(--hdr);border-bottom:2px solid var(--line)}
+#hdr .t{font-size:24px;font-weight:700;letter-spacing:.02em}
+#hdr .s{font-size:15px;color:var(--muted)}
+#hdr .g{flex:1}
+#clk{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+#grid{position:absolute;top:76px;left:12px;right:12px;bottom:12px;display:grid;gap:12px}
+.pnl{background:var(--pnl);border:1px solid var(--line);border-radius:var(--rad);padding:10px 12px;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+.pnl>h3{margin:0 0 8px;font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.body{flex:1;display:flex;flex-wrap:wrap;align-content:flex-start;gap:12px;min-height:0}
+.w{position:relative}
+.tile{background:var(--tile);border:1px solid var(--line);border-radius:var(--rad);padding:8px 12px;min-width:170px}
+.tile .l{font-size:14px;color:var(--muted)}
+.tile .v{font-weight:700;font-variant-numeric:tabular-nums;color:var(--val)}
+.tile .u{font-size:15px;color:var(--muted);margin-left:6px;font-weight:400}
+.tile.row{display:flex;align-items:baseline;gap:14px}
+.gauge{width:210px;text-align:center}
+.gauge .l{font-size:14px;margin-top:2px}
+.bar{width:230px}
+.bar .l{font-size:14px;margin-bottom:4px}
+.bar .tr{height:22px;background:var(--track);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.bar .f{height:100%;background:var(--acc)}
+.bar .n{font-size:15px;margin-top:3px;font-variant-numeric:tabular-nums}
+.tank{width:120px;text-align:center}
+.tank .tr{height:160px;width:70px;margin:0 auto;background:var(--track);border:2px solid var(--line);border-radius:6px;position:relative;overflow:hidden}
+.tank .f{position:absolute;left:0;right:0;bottom:0;background:var(--acc2)}
+.tank .l{font-size:14px;margin-top:4px}
+.tank .n{font-size:15px;font-variant-numeric:tabular-nums}
+.lamp{display:flex;align-items:center;gap:10px;min-width:200px;font-size:15px}
+.lamp i{display:block;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--off)}
+.btn{font:inherit;font-size:15px;font-weight:700;padding:10px 18px;border-radius:var(--rad);border:2px solid var(--line);background:var(--btn);color:var(--ink);cursor:pointer;min-width:130px}
+.btn.on{background:var(--btnon);color:var(--btnonink);border-color:var(--btnon)}
+.trend{width:360px}
+.trend .l{font-size:14px;margin-bottom:2px}
+.alog{width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+.alog div{padding:3px 0;border-bottom:1px solid var(--line)}
+.alog b{display:inline-block;width:70px;color:var(--muted);font-weight:400}
+</style>
+</head>
+<body>
+<div id="hdr"><span class="t" id="ttl"></span><span class="s" id="sub"></span><span class="g"></span><span id="clk"></span></div>
+<div id="grid"></div>
+<script>
+"use strict";
+let R, W = [], T0 = 0, SEED = 0;
+const mulberry = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const pick = a => a[Math.floor(R() * a.length)];
+const rint = (a, b) => a + Math.floor(R() * (b - a + 1));
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+const THEMES = [
+  {bg:"#0e141b", hdr:"#141d27", pnl:"#16212c", tile:"#0f1821", line:"#2b3a4a", ink:"#e6edf3", muted:"#8ea3b5", val:"#4fd1c5", acc:"#3fa7ff", acc2:"#2e7fd8", track:"#0a1016", off:"#3a4652", btn:"#1d2a37", btnon:"#2fbf71", btnonink:"#05140b", dial:"#e9eef2", dialink:"#1b2430", needle:"#e0412f"},
+  {bg:"#f2f2ee", hdr:"#ffffff", pnl:"#ffffff", tile:"#f7f7f3", line:"#c9c9c0", ink:"#1b1b18", muted:"#5e5e57", val:"#0b5cad", acc:"#0b7a3e", acc2:"#1f6fbf", track:"#e6e6df", off:"#b9b9b0", btn:"#ececE5", btnon:"#0b7a3e", btnonink:"#ffffff", dial:"#ffffff", dialink:"#202020", needle:"#c62828"},
+  {bg:"#1b1b1b", hdr:"#262626", pnl:"#222222", tile:"#1a1a1a", line:"#3d3d3d", ink:"#f0f0f0", muted:"#a0a0a0", val:"#ffcc33", acc:"#ff8c1a", acc2:"#d9731a", track:"#121212", off:"#454545", btn:"#2e2e2e", btnon:"#ffcc33", btnonink:"#1b1b1b", dial:"#2b2b2b", dialink:"#f0f0f0", needle:"#ff5a36"},
+  {bg:"#0b2233", hdr:"#0f2c42", pnl:"#11324b", tile:"#0d2a3f", line:"#2a5675", ink:"#eaf6ff", muted:"#9cc2dc", val:"#a6f36a", acc:"#5cc8ff", acc2:"#36a3e0", track:"#081a28", off:"#3b5568", btn:"#17405e", btnon:"#a6f36a", btnonink:"#0b2233", dial:"#dcecf7", dialink:"#0b2233", needle:"#ff3b3b"},
+  {bg:"#d9dde2", hdr:"#c3cbd3", pnl:"#eef1f4", tile:"#ffffff", line:"#9aa5b1", ink:"#1d2329", muted:"#4f5b66", val:"#1d2329", acc:"#2b8a3e", acc2:"#3b6fb6", track:"#cfd6dd", off:"#9aa5b1", btn:"#dfe5ea", btnon:"#3b6fb6", btnonink:"#ffffff", dial:"#f9fafb", dialink:"#1d2329", needle:"#d32f2f"},
+];
+const FONTS = ["DejaVu Sans", "DejaVu Sans Mono", "DejaVu Serif", "Liberation Sans", "Liberation Sans Narrow", "Liberation Mono", "Liberation Serif"];
+const SITES = ["УКПГ-3 · Площадка 7", "Насосная станция №2", "ДНС-14 Куст 5", "Котельная КВ-2", "Водозабор ВЗУ-1", "Компрессорная КС-4", "Очистные сооружения", "Подстанция 35/6 кВ", "Нефтепарк РВС", "ТЭЦ · Блок 2", "Скважина 318 · УЭЦН", "Холодильная установка"];
+const PARAMS = [
+  ["Давление на входе", "бар", 0, 16], ["Давление на выходе", "бар", 0, 40], ["Давление масла", "бар", 0, 10], ["Перепад давления", "кПа", 0, 250],
+  ["Температура воды", "°C", 0, 120], ["Температура масла", "°C", 20, 140], ["Температура подшипника", "°C", 0, 150], ["Температура газа", "°C", -20, 80],
+  ["Расход воды", "м³/ч", 0, 400], ["Расход газа", "м³/ч", 0, 5000], ["Расход нефти", "т/сут", 0, 300], ["Уровень", "%", 0, 100],
+  ["Уровень в баке", "м", 0, 12], ["Ток двигателя", "А", 0, 250], ["Напряжение", "В", 0, 420], ["Частота", "Гц", 0, 60],
+  ["Мощность", "кВт", 0, 900], ["Обороты", "об/мин", 0, 3000], ["Вибрация", "мм/с", 0, 20], ["Влажность", "%", 0, 100],
+  ["Концентрация CH4", "%НКПР", 0, 50], ["pH", "", 0, 14], ["Нагрузка", "%", 0, 120], ["Загазованность", "%", 0, 100],
+];
+const LAMPS = ["Насос 1 в работе", "Насос 2 в работе", "Авария", "Связь", "Питание", "Резерв", "Задвижка открыта", "Задвижка закрыта", "Перегрев", "Утечка", "Дистанционное", "Готовность", "Защита", "Обогрев", "Вентилятор"];
+const BTNS = ["Пуск", "Стоп", "Сброс", "Авто", "Ручн.", "Открыть", "Закрыть", "Насос 1", "Насос 2", "Квитировать", "Резерв", "Обогрев", "Вентиляция"];
+const PANELS = ["Технологические параметры", "Насосный агрегат", "Резервуары", "Сигнализация", "Управление", "Электрика", "Тренды", "Состояние", "Котёл", "Компрессор", "Измерения", "Обзор", "Узел учёта"];
+const ALARMS = ["Пуск насоса", "Останов насоса", "Превышение давления", "Низкий уровень", "Квитирование", "Обрыв связи", "Связь восстановлена", "Высокая температура", "Переход в авто"];
+
+function fmt(v, d) { return v.toFixed(d); }
+// уникальная подпись из словаря; словарь кончился — с номером («Насос 1 в работе 2»)
+function uniq(list, used) {
+  const free = list.filter(x => !used.has(x));
+  let l = free.length ? pick(free) : pick(list) + " " + rint(2, 9);
+  while (used.has(l)) l = pick(list) + " " + rint(2, 99);
+  used.add(l); return l;
+}
+function paramRand() {
+  const [l, u, a, b] = pick(PARAMS);
+  const d = (b - a) >= 1000 ? 0 : pick([0, 1, 1, 2]);
+  return {label: l, unit: u, min: a, max: b, dec: d, v: a + (b - a) * (0.15 + 0.7 * R())};
+}
+
+function el(tag, cls, parent, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+const NS = "http://www.w3.org/2000/svg";
+function sv(tag, a, p) { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+
+// ── приборы ─────────────────────────────────────────────────────────
+function mkTile(body) {
+  const p = paramRand(), row = R() < 0.35, big = pick([26, 30, 34, 40]);
+  const w = el("div", "w tile" + (row ? " row" : ""), body);
+  el("div", "l", w, p.label);
+  const vv = el("div", "v", w); vv.style.fontSize = big + "px";
+  const num = el("span", null, vv); const un = el("span", "u", vv, p.unit);
+  return {type: "value", el: w, p, upd() { num.textContent = fmt(p.v, p.dec); }, truth() {
+    return {label: p.label, value: +fmt(p.v, p.dec), text: num.textContent, unit: p.unit, valueBox: num}; }};
+}
+function mkGauge(body) {
+  const p = paramRand(); p.dec = Math.min(p.dec, 1);
+  const span = pick([240, 270, 180, 300]), a0 = 90 + (360 - span) / 2;   // от 0 — вправо, по часовой (экранные координаты)
+  const w = el("div", "w gauge", body), S = 190, c = S / 2, r = 82;
+  const svg = sv("svg", {width: S, height: S, viewBox: `0 0 ${S} ${S}`}, w);
+  const th = getComputedStyle(document.body);
+  sv("circle", {cx: c, cy: c, r: r + 6, fill: th.getPropertyValue("--dial"), stroke: th.getPropertyValue("--line"), "stroke-width": 3}, svg);
+  const majors = pick([4, 5, 6]), step = niceStep((p.max - p.min) / majors);
+  const lo = Math.floor(p.min / step) * step, hi = Math.ceil(p.max / step) * step;
+  p.min = lo; p.max = hi;
+  const ang = v => (a0 + span * (v - lo) / (hi - lo)) * Math.PI / 180;
+  for (let v = lo; v <= hi + 1e-9; v += step / 2) {
+    const a = ang(v), major = Math.abs((v - lo) / step - Math.round((v - lo) / step)) < 1e-6;
+    sv("line", {x1: c + Math.cos(a) * r, y1: c + Math.sin(a) * r, x2: c + Math.cos(a) * (r - (major ? 12 : 6)), y2: c + Math.sin(a) * (r - (major ? 12 : 6)),
+                stroke: th.getPropertyValue("--dialink"), "stroke-width": major ? 2.5 : 1.2}, svg);
+    if (major) {
+      const t = sv("text", {x: c + Math.cos(a) * (r - 26), y: c + Math.sin(a) * (r - 26) + 5, "text-anchor": "middle", "font-size": 14,
+                            fill: th.getPropertyValue("--dialink"), "font-family": getComputedStyle(document.body).fontFamily}, svg);
+      t.textContent = +v.toFixed(2);
+    }
+  }
+  const unitT = sv("text", {x: c, y: c - 22, "text-anchor": "middle", "font-size": 13, fill: th.getPropertyValue("--dialink")}, svg); unitT.textContent = p.unit;
+  const nd = sv("line", {x1: c, y1: c, x2: c, y2: c, stroke: th.getPropertyValue("--needle"), "stroke-width": 4, "stroke-linecap": "round"}, svg);
+  sv("circle", {cx: c, cy: c, r: 8, fill: th.getPropertyValue("--needle")}, svg);
+  const showNum = R() < 0.5;
+  const nt = showNum ? sv("text", {x: c, y: c + 44, "text-anchor": "middle", "font-size": 18, "font-weight": 700, fill: th.getPropertyValue("--dialink")}, svg) : null;
+  el("div", "l", w, p.label);
+  p.v = Math.max(lo, Math.min(hi, p.v));
+  return {type: "gauge", el: w, p, upd() {
+    const a = ang(p.v); nd.setAttribute("x2", c + Math.cos(a) * (r - 18)); nd.setAttribute("y2", c + Math.sin(a) * (r - 18));
+    if (nt) nt.textContent = fmt(p.v, p.dec);
+  }, truth() { return {label: p.label, value: +p.v.toFixed(2), unit: p.unit, min: lo, max: hi, digital: !!nt}; }};
+}
+function niceStep(x) { const e = Math.pow(10, Math.floor(Math.log10(x))); const f = x / e; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * e; }
+function mkBar(body) {
+  const p = paramRand(); p.unit = "%"; p.min = 0; p.max = 100; p.dec = 0; p.label = pick(["Заполнение", "Открытие клапана", "Загрузка", "Уровень", "Положение задвижки", "Нагрузка насоса"]) + (R() < 0.5 ? " " + rint(1, 4) : "");
+  const w = el("div", "w bar", body); el("div", "l", w, p.label);
+  const tr = el("div", "tr", w), f = el("div", "f", tr); const showNum = R() < 0.6; const n = showNum ? el("div", "n", w) : null;
+  return {type: "bar", el: w, p, upd() { f.style.width = p.v.toFixed(1) + "%"; if (n) n.textContent = Math.round(p.v) + " %"; },
+          truth() { return {label: p.label, value: +p.v.toFixed(1), unit: "%", min: 0, max: 100, track: tr}; }};
+}
+function mkTank(body) {
+  const p = {label: pick(["РВС-1", "РВС-2", "Бак", "Ёмкость Е-1", "Резервуар 3", "Танк"]), unit: "%", min: 0, max: 100, dec: 0, v: 20 + 60 * R()};
+  const w = el("div", "w tank", body); const tr = el("div", "tr", w), f = el("div", "f", tr);
+  el("div", "l", w, p.label); const n = el("div", "n", w);
+  return {type: "tank", el: w, p, upd() { f.style.height = p.v.toFixed(1) + "%"; n.textContent = Math.round(p.v) + " %"; },
+          truth() { return {label: p.label, value: +p.v.toFixed(1), unit: "%", min: 0, max: 100, track: tr}; }};
+}
+function mkLamp(body, used) {
+  const l = uniq(LAMPS, used);
+  const col = pick(["#2fd36b", "#ff3b30", "#ffcc00", "#3fa7ff"]);
+  const w = el("div", "w lamp", body); const i = el("i", null, w); el("span", null, w, l);
+  const s = {on: R() < 0.55};
+  return {type: "lamp", el: w, p: s, upd() { i.style.background = s.on ? col : ""; i.style.boxShadow = s.on ? `0 0 10px ${col}` : "none"; },
+          truth() { return {label: l, state: s.on ? "on" : "off", color: col, dot: i}; }};
+}
+function mkBtn(body, used) {
+  const l = uniq(BTNS, used);
+  const b = el("button", "w btn", body, l); const s = {on: R() < 0.4};
+  b.onclick = () => { s.on = !s.on; log("Оператор: «" + l + "» " + (s.on ? "вкл" : "откл")); upd(); };
+  const upd = () => b.classList.toggle("on", s.on);
+  return {type: "button", el: b, p: s, upd, truth() { return {label: l, state: s.on ? "on" : "off"}; }};
+}
+function mkTrend(body) {
+  const p = paramRand(); p.dec = 1;
+  const w = el("div", "w trend", body); el("div", "l", w, p.label + (p.unit ? ", " + p.unit : ""));
+  const Wd = 360, Hd = 150, svg = sv("svg", {width: Wd, height: Hd}, w), th = getComputedStyle(document.body);
+  sv("rect", {x: 40, y: 6, width: Wd - 46, height: Hd - 26, fill: "none", stroke: th.getPropertyValue("--line")}, svg);
+  const step = niceStep((p.max - p.min) / 4); const lo = Math.floor(p.min / step) * step, hi = Math.ceil(p.max / step) * step; p.min = lo; p.max = hi;
+  for (let v = lo; v <= hi + 1e-9; v += step) {
+    const y = 6 + (Hd - 26) * (1 - (v - lo) / (hi - lo));
+    sv("line", {x1: 40, x2: Wd - 6, y1: y, y2: y, stroke: th.getPropertyValue("--line"), "stroke-dasharray": "3 3"}, svg);
+    const t = sv("text", {x: 36, y: y + 4, "text-anchor": "end", "font-size": 11, fill: th.getPropertyValue("--muted")}, svg); t.textContent = +v.toFixed(2);
+  }
+  const pl = sv("polyline", {fill: "none", stroke: th.getPropertyValue("--acc"), "stroke-width": 2}, svg);
+  const hist = [];
+  return {type: "trend", el: w, p, upd() {
+    hist.push(p.v); if (hist.length > 60) hist.shift();
+    pl.setAttribute("points", hist.map((v, i) => `${40 + (Wd - 46) * i / 59},${6 + (Hd - 26) * (1 - (v - lo) / (hi - lo))}`).join(" "));
+  }, truth() { return {label: p.label, value: +p.v.toFixed(1), unit: p.unit, min: lo, max: hi}; }};
+}
+let LOG = [];
+function log(t) { const d = new Date(T0 + performance.now() * 30); LOG.unshift([d.toTimeString().slice(0, 5), t]); LOG = LOG.slice(0, 8); if (logEl) drawLog(); }
+let logEl = null;
+function drawLog() { logEl.innerHTML = LOG.map(([a, b]) => `<div><b>${a}</b>${b}</div>`).join(""); }
+function mkLog(body) { const w = el("div", "w alog", body); logEl = w; for (let i = 0; i < 6; i++) LOG.push([`${String(rint(0, 23)).padStart(2, "0")}:${String(rint(0, 59)).padStart(2, "0")}`, pick(ALARMS)]); drawLog();
+  return {type: "log", el: w, p: {}, upd() {}, truth() { return {label: "Журнал", rows: LOG.slice(0, 6).map(r => r.join(" "))}; }}; }
+
+// ── станция ─────────────────────────────────────────────────────────
+function regen(seed) {
+  SEED = seed >>> 0; R = mulberry(SEED); W = []; logEl = null; LOG = [];
+  const th = pick(THEMES); for (const k in th) document.body.style.setProperty("--" + k, th[k]);
+  document.body.style.setProperty("--font", `"${pick(FONTS)}", sans-serif`);
+  document.body.style.setProperty("--rad", pick(["0px", "4px", "8px", "12px"]));
+  document.getElementById("ttl").textContent = pick(SITES);
+  document.getElementById("sub").textContent = pick(["АРМ оператора", "Мнемосхема", "Обзорный кадр", "Диспетчерская"]) + " · " + pick(["SCADA", "HMI", "АСУ ТП"]) + " v" + rint(2, 9) + "." + rint(0, 9);
+  T0 = Date.UTC(2026, rint(0, 11), rint(1, 28), rint(0, 23), rint(0, 59));
+  const g = document.getElementById("grid"); g.innerHTML = "";
+  const cols = rint(3, 4), rows = rint(2, 3);
+  g.style.gridTemplateColumns = Array.from({length: cols}, () => rint(8, 12) + "fr").join(" ");
+  g.style.gridTemplateRows = Array.from({length: rows}, () => rint(8, 12) + "fr").join(" ");
+  const kinds = shuffle(["values", "gauges", "bars", "lamps", "buttons", "trend", "tanks", "mixed", "values", "gauges", "lamps", "mixed"]);
+  const usedL = new Set(), usedB = new Set(), panelsUsed = new Set();
+  let hasLog = false;
+  for (let i = 0; i < cols * rows; i++) {
+    const kind = (!hasLog && i === cols * rows - 1 && R() < 0.6) ? "log" : kinds[i % kinds.length];
+    const pn = el("div", "pnl", g); const title = uniq(PANELS, panelsUsed);
+    el("h3", null, pn, kind === "log" ? "Журнал событий" : title);
+    const body = el("div", "body", pn), cap = {w: pn.clientWidth, h: pn.clientHeight};
+    const add = f => { const x = f(body); W.push(x); x.upd(); if (body.scrollHeight > body.clientHeight + 2 || body.scrollWidth > body.clientWidth + 2) { body.removeChild(x.el); W.pop(); return false; } return true; };
+    if (kind === "log") { hasLog = true; add(mkLog); continue; }
+    const pool = {values: [mkTile], gauges: [mkGauge], bars: [mkBar], lamps: [b => mkLamp(b, usedL)], buttons: [b => mkBtn(b, usedB)],
+                  trend: [mkTrend], tanks: [mkTank], mixed: [mkTile, mkGauge, mkBar, b => mkLamp(b, usedL), b => mkBtn(b, usedB), mkTile]}[kind];
+    let tries = 0, fails = 0;
+    while (tries++ < 14 && fails < 3) { if (!add(pick(pool))) fails++; }
+  }
+  W.forEach(x => x.upd());
+}
+window.paused = false;          // «Точная проверка»: генератор на паузе, кадр и истина — один момент
+function tick() {
+  if (window.paused) return;
+  for (const x of W) {
+    const p = x.p;
+    if (x.type === "lamp" || x.type === "button") { if (x.type === "lamp" && R() < 0.01) { p.on = !p.on; } x.upd(); continue; }
+    if (p.max != null) { const span = p.max - p.min; p.v += (R() - 0.5) * span * 0.02; p.v = Math.max(p.min + 0.03 * span, Math.min(p.max - 0.03 * span, p.v)); }
+    x.upd();
+  }
+  const d = new Date(T0 + performance.now() * 30);
+  document.getElementById("clk").textContent = d.toISOString().slice(11, 19);
+}
+window.__truth = () => {
+  const box = e => { const r = e.getBoundingClientRect(); return [Math.round(r.x), Math.round(r.y), Math.round(r.width), Math.round(r.height)]; };
+  return {seed: SEED, widgets: W.map((x, i) => {
+    const t = x.truth(), o = {i, type: x.type, bbox: box(x.el)};
+    for (const k in t) o[k] = (t[k] instanceof Element) ? box(t[k]) : t[k];
+    return o;
+  })};
+};
+window.regen = regen;
+const q = new URLSearchParams(location.search);
+// станция собирается, когда окно уже полного размера и шрифты загружены: в киоске
+// страница грузится раньше, чем окно развернётся, — проверка «влезает ли прибор» отбросила бы всё
+let SEED0 = +(q.get("seed") || Date.now() % 100000), rz = null;
+const build = () => regen(SEED || SEED0);
+addEventListener("load", () => (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => setTimeout(build, 300)));
+addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(build, 400); });
+setInterval(tick, 1000);
+</script>
+</body>
+</html>

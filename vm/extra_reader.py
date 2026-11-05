@@ -98,6 +98,44 @@ def bbox_of(mask, pad=2):
 NUM = re.compile(r"-?\d+(?:\.\d+)?")
 
 
+def colored_text(frame, rect, gray_ok=False):
+    """Насыщенно-цветная надпись внутри прямоугольника → (вырезка, рамка в кадре)."""
+    x, y, w, h = [int(round(v)) for v in rect]
+    area = frame[max(0, y):y + h, max(0, x):x + w]
+    if area.size == 0:
+        return None, None
+    bb = bbox_of(color_mask(area))
+    if bb is None and gray_ok:
+        bb = bbox_of(area.max(axis=2) > 90)
+    if bb is None:
+        return None, None
+    bx0, by0, bx1, by1 = bb
+    bright = (area[by0:by1].max(axis=2) > 70).any(axis=0)
+    while bx0 > 0 and bright[max(0, bx0 - 5):bx0].any():
+        bx0 -= 1
+    while bx1 < len(bright) and bright[bx1:bx1 + 5].any():
+        bx1 += 1
+    return area[by0:by1, bx0:bx1], [max(0, x) + bx0, max(0, y) + by0, bx1 - bx0, by1 - by0]
+
+
+def bar_value_rect(bbox):
+    """Число справа от шкалы: правое поле шириной 84 px, строка у нижнего края."""
+    x, y, w, h = bbox
+    return [x + w - 90, y + h - 27, 84, 23]          # левее — край заливки шкалы
+
+
+def well_geometry(o):
+    """Ствол скважины из разметки контрольного кадра: устье (глубина 0) и забой
+    по вертикали, место риски «Ндин» по горизонтали."""
+    lx, ly, lw, lh = o["liquid_bbox"]
+    bot = ly + lh
+    lvl = max(1e-3, o["level_pct"] / 100.0)
+    top = bot - lh / lvl
+    x_mark0, x_mark1 = lx - 2 - 12, lx + lw + 2 + 12
+    return {"top": top, "bot": bot, "x0": x_mark0, "x1": x_mark1, "label_x": lx + lw + 2 + 14,
+            "depth": o["value"] / max(1e-3, 1 - lvl)}
+
+
 def value_crop(frame, bbox):
     """Значение табло: нижние две трети без рамки, по насыщенному цвету.
     → (вырезка значения, её прямоугольник в кадре, «серое» — уставка в АВТО)"""
@@ -147,7 +185,16 @@ class ExtraReader:
                     self.tags.append((t["tag"], v))
         self.pool = ThreadPoolExecutor(max_workers=workers)
         self.readouts = [o for o in ref["objects"] if o["type"] == "text_readout"]
+        self.bars = [o for o in ref["objects"] if o["type"] == "bargraph"]
+        self.well = self.ref.get("mimic_well")
         self.trends = [o for o in ref["objects"] if o["type"] == "trend"]
+        # Заголовки блоков — неизменные надписи в левом верхнем углу. У блоков с
+        # повторяющимся узором (шесть одинаковых шкал, сетка табло) сопоставление
+        # блока целиком неоднозначно и сдвигается на шаг узора; заголовок — нет.
+        import json as _j
+        man = _j.loads((Path(templates_dir) / "manifest.json").read_text(encoding="utf-8"))
+        self.block_rects = man.get("blocks") or {}
+        self.titles = {}
         self.legend = {}               # тренд → цвета серий (BGR), снятые с легенды контрольного кадра
         ref_img = cv2.imread(str(Path(templates_dir) / "reference" / "frame.png"))
         # журнал FastReader не привязывает (в полосе нет эталонов приборов), а при
@@ -161,6 +208,11 @@ class ExtraReader:
             self.log_anchor = (x, y, ref_img[y:y + h, x:x + 66].copy())
         for t in self.trends:
             self.legend[t["id"]] = self._legend_colors(ref_img, t)
+        for name in ("bars", "right", "console", "mimic", "trends"):
+            r = self.block_rects.get(name)
+            if r:
+                x, y = int(r[0]), int(r[1])
+                self.titles[name] = (x + 8, y + 6, ref_img[y + 6:y + 28, x + 8:x + 8 + min(220, int(r[2]) - 16)].copy())
 
     # сдвиг объекта = сдвиг его блока
     def _shift(self, oid, offsets):
@@ -204,6 +256,84 @@ class ExtraReader:
         return {"id": o["id"], "text": text, "value": float(text) if text else None,
                 "chars": info, "box": box, "locked": gray,
                 "_crop": crop, "_val": val, "_segs": segs}
+
+    def anchor_blocks(self, frame, reg):
+        """Поправить сдвиги блоков по заголовкам. reg: {блок: (dx, dy, балл)} — правится на месте.
+        → список исправленных блоков."""
+        fixed = []
+        for name, (tx, ty, tpl) in self.titles.items():
+            if name not in reg or tpl.size == 0:
+                continue
+            dx, dy = reg[name][0], reg[name][1]
+            th, tw = tpl.shape[:2]
+            x0, y0 = max(0, tx + dx - 40), max(0, ty + dy - 150)
+            roi = frame[y0:ty + dy + th + 150, x0:tx + dx + tw + 40]
+            if roi.shape[0] < th or roi.shape[1] < tw:
+                continue
+            r = cv2.matchTemplate(roi, tpl, cv2.TM_CCOEFF_NORMED)
+            _, mx, _, loc = cv2.minMaxLoc(r)
+            ndx, ndy = x0 + loc[0] - tx, y0 + loc[1] - ty
+            if mx >= 0.75 and (abs(ndx - dx) > 3 or abs(ndy - dy) > 3):
+                reg[name] = (int(ndx), int(ndy), max(float(reg[name][2]), float(mx)))
+                fixed.append(name)
+        return fixed
+
+    # ── шкалы: число справа — точнее заливки и видно за пределом шкалы ─
+    def read_bar(self, frame, o, offsets):
+        dx, dy = self._shift(o["id"], offsets)
+        x, y, w, h = [int(round(v)) for v in o["bbox"]]
+        val, box = colored_text(frame, bar_value_rect([x + dx, y + dy, w, h]))
+        if val is None:
+            return {"id": o["id"], "text": None, "value": None, "box": None}
+        text, info, _, _ = self.glyphs.read(val, allowed=set("0123456789.-"))
+        text = text.replace(" ", "")
+        ok = NUM.fullmatch(text) is not None
+        return {"id": o["id"], "text": text if ok else None, "value": float(text) if ok else None,
+                "box": box, "chars": info, "_val": val}
+
+    # ── ствол скважины: уровень по риске «Ндин» и подписи ───────────
+    def read_well(self, frame, offsets):
+        o = self.well
+        if not o or "liquid_bbox" not in o:
+            return None
+        g = well_geometry(o)
+        dx, dy = self._shift("mimic_well", offsets)
+        top, bot = int(g["top"] + dy), int(g["bot"] + dy)
+        x0, x1 = int(g["x0"] + dx), int(g["x1"] + dx)
+        # полоса шире ствола вправо: там подпись «Ндин N м» — второй признак риски
+        band = frame[max(0, top - 6):bot + 6, max(0, x0):x1 + 80]
+        if band.size == 0:
+            return None
+        W0 = x1 - max(0, x0)
+        # Риска — жёлтая горизонталь (#f7b731), выходящая за обсадную колонну на
+        # 12 px с обеих сторон. Именно концы снаружи колонны её и выдают: внутри
+        # ствола есть и другое жёлтое (жидкость, подписи). Порог мягкий — в JPEG
+        # тонкая линия бледнеет.
+        # как у трендов: яркость — из кадра, оттенок — из сглаженного цвета (MJPEG 4:2:0)
+        ycc = cv2.cvtColor(band, cv2.COLOR_BGR2YCrCb).astype(np.float32)
+        ch = cv2.blur(ycc[:, :, 1:], (3, 3)) - 128.0
+        ref = cv2.cvtColor(np.uint8([[[49, 183, 247]]]), cv2.COLOR_BGR2YCrCb)[0, 0, 1:].astype(np.float32) - 128.0
+        cos = (ch @ ref) / (np.linalg.norm(ch, axis=2) * np.linalg.norm(ref) + 1e-3)
+        amber = (ycc[:, :, 0] > 110) & (cos > 0.85) & (np.linalg.norm(ch, axis=2) > 10)
+        ends = np.minimum(amber[:, :10].mean(axis=1), amber[:, W0 - 10:W0].mean(axis=1))
+        # Стрелки притока у забоя тоже жёлтые и выходят за колонну, но подписи справа
+        # у них нет; у риски — «Ндин N м» в пределах ±7 строк.
+        lab = amber[:, W0 + 3:W0 + 75].sum(axis=1).astype(np.float32)
+        lab = np.convolve(lab, np.ones(15, np.float32), mode="same")
+        ends = ends * np.where(lab >= 25, 1.0, 0.3)
+        k = int(np.argmax(ends))
+        if ends[k] < 0.2:                                           # ложные (стрелки притока у забоя) — 0,1
+            return {"level_pct": None, "mark_y": None, "box": [x0, top, x1 - x0, bot - top]}
+        sel = np.nonzero(ends >= ends[k] * 0.5)[0]
+        sel = sel[np.abs(sel - k) <= 2]
+        w_ = ends[sel]
+        mark_y = max(0, top - 6) + float((sel * w_).sum() / w_.sum())
+        level = 100.0 * (bot - mark_y) / max(1.0, bot - top)
+        # Подпись «Ндин N м» лежит поверх шкалы глубины — для чтения ненадёжна.
+        # Глубину даёт сама риска: шкала ствола линейна от устья до забоя.
+        h_din = g["depth"] * (1 - level / 100.0)
+        return {"level_pct": float(np.clip(level, 0, 100)), "mark_y": mark_y,
+                "h_din": h_din, "depth": g["depth"], "box": [x0, top, x1 - x0, bot - top]}
 
     # ── журнал ──────────────────────────────────────────────────────
     def locate_log(self, frame):
@@ -358,6 +488,22 @@ class ExtraReader:
             series.append({"color": col, "last": to_val(last_y), "curve": curve,
                            "coverage": float(np.mean([c is not None for c in curve])),
                            "_mask": m})
+        # Серия без единой видимой точки, когда её штрих есть в легенде, — не ошибка
+        # чтения, а перекрытие: серии рисуются по порядку легенды, и более поздняя
+        # с тем же значением ложится сверху (типично — несколько серий на нуле).
+        for si, sr in enumerate(series):
+            later = [j for j in range(si + 1, len(series)) if series[j]["coverage"] > 0.3]
+            if sr["coverage"] < 0.03:
+                sr["occluded_by"] = later
+            elif sr["last"] is None:
+                # Концевая точка ушла под более позднюю серию с близким значением —
+                # берём самую правую видимую точку линии у края поля (последние 15 px).
+                tail = [(i, v) for i, v in enumerate(sr["curve"]) if v is not None and i >= len(sr["curve"]) - 16]
+                if tail:
+                    sr["last"] = tail[-1][1]
+                    sr["last_from"] = "правая видимая точка"
+                elif later:
+                    sr["occluded_by"] = later
         return {"id": t["id"], "y_min": y_min, "y_max": y_max, "series": series,
                 "plot": [L, T, PW, PH], "names": t.get("series")}
 
@@ -367,6 +513,10 @@ class ExtraReader:
         fut_t = [self.pool.submit(self.read_trend, frame, t, offsets) for t in self.trends]
         fut_l = self.pool.submit(self.read_log, frame, offsets)
         fut_c = self.pool.submit(self.read_clock, frame)
+        fut_b = [self.pool.submit(self.read_bar, frame, o, offsets) for o in self.bars]
+        fut_w = self.pool.submit(self.read_well, frame, offsets)
         return {"readouts": {r["id"]: r for r in (f.result() for f in fut_r) if r},
+                "bars": {r["id"]: r for r in (f.result() for f in fut_b)},
+                "well": fut_w.result(),
                 "trends": {t["id"]: t for t in (f.result() for f in fut_t)},
                 "log": fut_l.result(), "clock": fut_c.result()}

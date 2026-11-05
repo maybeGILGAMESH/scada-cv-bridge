@@ -173,9 +173,13 @@ class Vnc:
         with self.wlock:
             self.s.sendall(struct.pack(">BBxxI", 4, 1 if down else 0, keysym))
 
-    def click(self, x, y, hold=0.04):
+    def click(self, x, y, hold=0.06):
+        # сначала довести курсор: если USB-планшет гостя спал, первое событие
+        # уходит на пробуждение и теряется — нажатие пришло бы в старую точку
+        self.pointer(x + 1, y, 0)
+        time.sleep(0.03)
         self.pointer(x, y, 0)
-        time.sleep(0.01)
+        time.sleep(0.03)
         self.pointer(x, y, 1)
         time.sleep(hold)
         self.pointer(x, y, 0)
@@ -253,15 +257,20 @@ class Encoder:
 
 # ───────────────────────────────────────────────────────────── DevTools (тестовый канал)
 
+# Щиты разные: у нового (neft-hmi-cv) — cmdRepair/syncUI/setLayout, у старого
+# (neft-scada) — repair/sync и компоновок нет. Отсутствующее — ошибка с понятным текстом.
+_SYNC = "(typeof syncUI === 'function' ? syncUI : sync)()"
 SCENARIO_JS = {       # тот же список, что в bridge/emulator.py: только эти действия, без произвольного JS
     "fault": ("k => inject(k)", ("clog", "skin", "leak", "iso", "water")),
-    "layout": ("id => setLayout(id)", None),
+    "layout": ("id => { if (typeof setLayout !== 'function') throw new Error('у этого щита нет компоновок'); setLayout(id); }", None),
     "speed": ("v => { speed = +v; }", None),
-    "pause": ("v => { paused = !!v; syncUI(); }", None),
+    "pause": (f"v => {{ paused = !!v; {_SYNC}; }}", None),
     "start": ("() => cmdStart()", None),
     "stop": ("() => cmdStop()", None),
-    "repair": ("() => cmdRepair()", None),
-    "freq": ("v => { ui.f = Math.max(35, Math.min(65, +v)); syncUI(); }", None),
+    "repair": ("() => (typeof cmdRepair === 'function' ? cmdRepair : repair)()", None),
+    "freq": (f"v => {{ ui.f = Math.max(35, Math.min(65, +v)); {_SYNC}; }}", None),
+    # генератор случайных щитов (random-scada.html): новая станция по зерну
+    "regen": ("s => { if (typeof regen !== 'function') throw new Error('это не генератор случайных щитов'); regen(+s || Math.floor(Math.random() * 1e6)); }", None),
 }
 TRUTH_JS = """() => ({run: S.run, tripped: S.tripped, trip_reason: S.tripReason,
   f: ui.f, choke: ui.choke, auto: ui.auto, apv: ui.apv, inh: ui.inh,
@@ -319,7 +328,9 @@ class Cdp:
                             break
                     res = r.get("result", {})
                     if "exceptionDetails" in res:
-                        raise RuntimeError(res["exceptionDetails"].get("text", "ошибка JS"))
+                        ex = res["exceptionDetails"]
+                        desc = (ex.get("exception") or {}).get("description") or ex.get("text") or "ошибка JS"
+                        raise RuntimeError(desc.splitlines()[0].replace("Error: ", ""))
                     return res.get("result", {}).get("value")
                 except (OSError, ConnectionError, StopIteration, TimeoutError) as e:
                     self.ws = None              # страницу перезагрузили, щит перезапустили
@@ -494,6 +505,8 @@ def main():
     ap.add_argument("--control-port", type=int, default=8790, help="порт обратного канала")
     ap.add_argument("--fps", type=float, default=30)
     ap.add_argument("--quality", type=int, default=80)
+    ap.add_argument("--ssh-port", type=int, default=2222, help="ssh ВМ (туннель к DevTools)")
+    ap.add_argument("--cdp-port", type=int, default=9222, help="локальный порт туннеля к DevTools ВМ")
     a = ap.parse_args()
 
     vh, _, vp = a.vnc.rpartition(":")
@@ -509,7 +522,7 @@ def main():
         sys.exit("VNC ВМ недоступен — ВМ запущена? (vm/run-vm.sh)")
     enc = Encoder(vnc, a.fps, a.quality)
     enc.clients = 0
-    cdp = Cdp()
+    cdp = Cdp(ssh_port=a.ssh_port, local_port=a.cdp_port)
     url = f"http://{a.host}:{a.port}/stream"
     ctl = Control(vnc, cdp, url)
 
